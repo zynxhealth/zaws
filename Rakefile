@@ -3,8 +3,10 @@ require 'bundler'
 require "bundler/gem_tasks"
 require 'cucumber'
 require 'cucumber/rake/task'
+Bundler.setup
+Bundler::GemHelper.install_tasks
 
-Cucumber::Rake::Task.new(:feature) do |t|
+Cucumber::Rake::Task.new do |t|
   t.cucumber_opts = "feature --format pretty"
 end 
 
