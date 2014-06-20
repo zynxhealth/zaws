@@ -10,7 +10,7 @@ rvm:
 #   - rbx
 # uncomment this line if your project needs to run something other than `rake`:
 #install: ruby -S bundle install
-script: find .
+#script: find .
 # - bundle exec rspec spec
 # - bundle exec gem env
 # - bundle exec gem env
