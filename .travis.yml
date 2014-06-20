@@ -11,7 +11,7 @@ rvm:
 # uncomment this line if your project needs to run something other than `rake`:
 before_script:
  - gem -v
- - rvm rubygems 1.8.14
+ - rvm rubygems 1.8.14 --force
  - gem -v
 script: bundle exec rspec spec
 script: bundle exec rake feature
