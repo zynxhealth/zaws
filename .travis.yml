@@ -10,6 +10,8 @@ rvm:
 #   - rbx
 # uncomment this line if your project needs to run something other than `rake`:
 script: 
- - bundle exec gem env
  - bundle exec rspec spec
+ - bundle exec gem env
+ - export GEM_PATH=. 
+ - bundle exec gem env
  - bundle exec --verbose rake feature
