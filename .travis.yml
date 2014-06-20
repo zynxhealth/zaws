@@ -10,4 +10,4 @@ rvm:
 #   - rbx
 # uncomment this line if your project needs to run something other than `rake`:
 script: bundle exec rspec spec
-script: cucumber feature
+script: bundle exec rake feature
