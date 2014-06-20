@@ -12,6 +12,6 @@ rvm:
 script: 
  - bundle exec rspec spec
  - bundle exec gem env
- - export GEM_PATH=/home/travis/build/zynxhealth/zaws/vendor/bundle/ruby/1.9.1/bin:/home/travis/.rvm/gems/ruby-1.9.3-p545/bin:/home/travis/.rvm/rubies/ruby-1.9.3-p545/bin:/home/travis/.rvm/gems/ruby-1.9.3-p545@global/bin:/home/travis/.rvm/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin
+ - export GEM_PATH=/home/travis/build/zynxhealth/zaws/vendor/bundle/ruby/1.9.1/bin:/home/travis/.rvm/gems/ruby-1.9.3-p545/bin:/home/travis/.rvm/gems/ruby-1.9.3-p545@global/bin:/home/travis/.rvm/rubies/ruby-1.9.3-p545/bin:/home/travis/.rvm/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin
  - bundle exec gem env
  - bundle exec --verbose rake feature
