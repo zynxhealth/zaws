@@ -53,7 +53,7 @@ PLATFORMS
 DEPENDENCIES
   aruba (~> 0.5.4)
   aruba-doubles (~> 1.2.1)
-  bundler (~> 1.1.5)
+  bundler (~> 1.6.1)
   cucumber (~> 1.3.14)
   gems (~> 0.8.3)
   rake
