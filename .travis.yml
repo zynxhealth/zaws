@@ -9,6 +9,7 @@ rvm:
 #   - jruby-19mode # JRuby in 1.9 mode
 #   - rbx
 # uncomment this line if your project needs to run something other than `rake`:
-script: bundle exec gem env
-script: bundle exec rspec spec
-script: bundle exec --verbose rake feature
+script: 
+ - bundle exec gem env
+ - bundle exec rspec spec
+ - bundle exec --verbose rake feature
