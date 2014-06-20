@@ -9,5 +9,9 @@ rvm:
 #   - jruby-19mode # JRuby in 1.9 mode
 #   - rbx
 # uncomment this line if your project needs to run something other than `rake`:
+before_script:
+ - gem -v
+ - rvm rubygems 1.8.14
+ - gem -v
 script: bundle exec rspec spec
 script: bundle exec rake feature
