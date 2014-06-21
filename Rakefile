@@ -3,6 +3,7 @@ require 'bundler'
 require "bundler/gem_tasks"
 require 'cucumber'
 require 'cucumber/rake/task'
+require 'coveralls/rake/task'
 Bundler.setup
 Bundler::GemHelper.install_tasks
 
@@ -17,7 +18,9 @@ RSpec::Core::RakeTask.new do |spec|
   spec.rspec_opts = ['--color', '--format documentation']
 end
 
-desc "Run tests, both RSpec and Cucumber"
-task :test => [:spec, :cucumber]
+Coveralls::RakeTask.new
+
+desc "Run tests, both RSpec and Cucumber, then push coverage to Coveralls."
+task :test => [:spec, :cucumber, 'coveralls:push']
 
 task :default => :test
