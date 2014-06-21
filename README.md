@@ -1,4 +1,4 @@
-[![Build Status](https://travis-ci.org/zynxhealth/zaws.svg?branch=master)](https://travis-ci.org/zynxhealth/zaws)
+[![Build Status](https://travis-ci.org/zynxhealth/zaws.svg?branch=master)](https://travis-ci.org/zynxhealth/zaws)     [![Coverage Status](https://coveralls.io/repos/zynxhealth/zaws/badge.png?branch=master)](https://coveralls.io/r/zynxhealth/zaws?branch=master)
 # zaws
 
 Zynx AWS Automation Tool
