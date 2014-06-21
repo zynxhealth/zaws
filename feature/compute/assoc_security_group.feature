@@ -9,7 +9,7 @@ Feature: Associate Security Group
      """
 	 {	"SecurityGroups": [ { "GroupName": "my_security_group","GroupId":"sg-X" } ] }
      """
-    When I run `zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "true\n" 
 	 
   Scenario: Determine a security group is not associated to instance by external id
