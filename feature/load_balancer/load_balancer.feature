@@ -5,7 +5,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
      """
-    When I run `zaws load_balancer exists name-??? --region us-west-1`
+    When I run `bundle exec zaws load_balancer exists name-??? --region us-west-1`
     Then the stdout should contain "true\n" 
 
   Scenario: Determine a load balancer does not exist in a vpc
@@ -13,7 +13,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ ] }
      """
-    When I run `zaws load_balancer exists name-??? --region us-west-1`
+    When I run `bundle exec zaws load_balancer exists name-??? --region us-west-1`
     Then the stdout should contain "false\n" 
 
   Scenario: Declare load balancer in vpc
@@ -37,7 +37,7 @@ Feature: Load Balancer
 	 """
       { "DNSName": "???.us-west-1.elb.amazonaws.com" }
 	 """
-	 When I run `zaws load_balancer create_in_subnet newlb tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
+	 When I run `bundle exec zaws load_balancer create_in_subnet newlb tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
     Then the stdout should contain "Load balancer created.\n" 
 
   Scenario: Declare load balancer in vpc, Skip creation
@@ -45,7 +45,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
      """
-    When I run `zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
+    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
     Then the stdout should contain "Load balancer already exists. Skipping creation.\n" 
 
   Scenario: Delete
@@ -57,7 +57,7 @@ Feature: Load Balancer
 	 """
       { "return": "true" }
 	 """
-    When I run `zaws load_balancer delete "name-???" --region us-west-1`
+    When I run `bundle exec zaws load_balancer delete "name-???" --region us-west-1`
     Then the stdout should contain "Load balancer deleted.\n" 
 
   Scenario: Delete, skip
@@ -65,7 +65,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ ] }
      """
-    When I run `zaws load_balancer delete name-??? --region us-west-1`
+    When I run `bundle exec zaws load_balancer delete name-??? --region us-west-1`
     Then the stdout should contain "Load balancer does not exist. Skipping deletion.\n" 
 
   Scenario: Nagios OK
@@ -73,7 +73,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
      """
-    When I run `zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
+    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
 	Then the output should contain "OK: Load Balancer Exists.\n"
     And the exit status should be 0
 		  
@@ -82,7 +82,7 @@ Feature: Load Balancer
      """
       { "LoadBalancerDescriptions": [ ] }
      """
-    When I run `zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
+    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
 	Then the output should contain "CRITICAL: Load Balancer does not exist.\n"
     And the exit status should be 2
 	
@@ -92,7 +92,7 @@ Feature: Load Balancer
       { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
      """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --undofile undo.sh.1`
+    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --undofile undo.sh.1`
     Then the stdout should contain "Load balancer already exists. Skipping creation.\n" 
 	And the file "undo.sh.1" should contain "zaws load_balancer delete name-??? --region us-west-1 $XTRA_OPTS"
 

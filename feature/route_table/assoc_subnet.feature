@@ -9,7 +9,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ { "SubnetId":"X" } ] } ] }
      """
-    When I run `zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "true\n" 
  
   Scenario: Determine that a subnet is NOT associated to a route table 
@@ -21,7 +21,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ ] } ] }
      """
-    When I run `zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "false\n" 
 
   Scenario: Associate a subnet to a route table
@@ -37,7 +37,7 @@ Feature: Route Table
      """
 	 {	"AssociationId": "rtbassoc-???????" }
      """
-    When I run `zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table associated to subnet.\n" 
 
   Scenario: Associate a subnet to a route table, skip because it exists already
@@ -49,7 +49,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ { "SubnetId":"X" } ] } ] }
      """
-    When I run `zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table already associated to subnet. Skipping association.\n" 
    
   Scenario: Delete subnet association to route table
@@ -65,7 +65,7 @@ Feature: Route Table
      """
 	 {	"return" : "true" }
      """
-    When I run `zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table association to subnet deleted.\n" 
  
   Scenario: Delete subnet association to route table that does not exists, skip it.
@@ -77,7 +77,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ ] } ] }
      """
-    When I run `zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table association to subnet not deleted because it does not exist.\n" 
 		
   Scenario: Nagios OK
@@ -89,7 +89,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ { "SubnetId":"X" } ] } ] }
      """
-    When I run `zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --nagios`
  	Then the output should contain "OK: Route table association to subnet exists.\n"
     And the exit status should be 0
 	
@@ -102,7 +102,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ ] } ] }
      """
-    When I run `zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --nagios`
     Then the output should contain "CRITICAL: Route table association to subnet does not exist.\n"
     And the exit status should be 2
  
@@ -120,7 +120,7 @@ Feature: Route Table
 	 {	"AssociationId": "rtbassoc-???????" }
      """
     Given an empty file named "undo.sh.1"
-    When I run `zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
     Then the output should contain "Route table associated to subnet.\n" 
 	And the file "undo.sh.1" should contain "zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id"
 

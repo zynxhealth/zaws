@@ -21,7 +21,7 @@ Feature: Associate Security Group
      """
 	 {	"SecurityGroups": [ { "GroupName": "my_security_group","GroupId":"sg-Y" } ] }
      """
-    When I run `zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "false\n" 
 	
   Scenario: Change security group of instance by external id
@@ -37,7 +37,7 @@ Feature: Associate Security Group
      """
 	 {  "return": "true" }
 	 """
-    When I run `zaws compute assoc_security_group my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute assoc_security_group my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Security Group Association Changed.\n" 
 	  
   Scenario: Not Change security group of instance by external id, but it is already associated
@@ -49,7 +49,7 @@ Feature: Associate Security Group
      """
 	 {	"SecurityGroups": [ { "GroupName": "my_security_group","GroupId":"sg-X" } ] }
      """
-    When I run `zaws compute assoc_security_group my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute assoc_security_group my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Security Group Association Not Changed.\n" 
 
 

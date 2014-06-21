@@ -6,7 +6,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group exists_by_name my_security_group_name --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group exists_by_name my_security_group_name --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "false\n" 
 
    Scenario: Determine a security group identified by name and vpc has been created
@@ -14,7 +14,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [ { "GroupName": "my_security_group_name" } ] }
      """
-    When I run `zaws security_group exists_by_name my_security_group_name --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group exists_by_name my_security_group_name --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "true\n" 
 
    Scenario: Determine a security group identified by name has NOT been created
@@ -22,7 +22,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group exists_by_name my_security_group_name --region us-west-1`
+    When I run `bundle exec zaws security_group exists_by_name my_security_group_name --region us-west-1`
     Then the output should contain "false\n" 
 
    Scenario: Determine a security group identified by name has been created
@@ -30,7 +30,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [ { "GroupName": "my_security_group_name" } ] }
      """
-    When I run `zaws security_group exists_by_name my_security_group_name --region us-west-1`
+    When I run `bundle exec zaws security_group exists_by_name my_security_group_name --region us-west-1`
     Then the output should contain "true\n" 
 
    Scenario: Delete a security group in a vpc, but skip it cause it does not exist
@@ -38,7 +38,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group delete my_security_group_name --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group delete my_security_group_name --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security Group does not exist. Skipping deletion.\n" 
 
    Scenario: Delete a security group in a vpc
@@ -50,7 +50,7 @@ Feature: Security Group
      """
        { "return": "true" }         
      """
-    When I run `zaws security_group delete my_security_group_name --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group delete my_security_group_name --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security Group deleted.\n" 
 
    Scenario: Declare a new security group in vpc, but don't create it cause it exists
@@ -58,7 +58,7 @@ Feature: Security Group
       """
      {        "SecurityGroups": [ { "GroupName": "my_security_group_name" } ] }
       """
-    When I run `zaws security_group declare my_security_group_name 'My security gorup' --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group declare my_security_group_name 'My security gorup' --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security Group Exists Already. Skipping Creation.\n"
 
    Scenario: Declare a new security group in vpc
@@ -70,7 +70,7 @@ Feature: Security Group
       """
         { "return": "true" }
       """
-    When I run `zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security Group Created.\n"
 
    Scenario: Perform a nagios check, with the result indicatin OK (exit 0), indicating declaring a security group requires no action because it exists.
@@ -78,7 +78,7 @@ Feature: Security Group
       """
      {        "SecurityGroups": [ { "GroupName": "my_security_group_name" } ] }
       """
-    When I run `zaws security_group declare my_security_group_name 'My security gorup' --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws security_group declare my_security_group_name 'My security gorup' --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "OK: Security Group Exists.\n"
     And the exit status should be 0
 		
@@ -87,7 +87,7 @@ Feature: Security Group
       """
       {        "SecurityGroups": [] }
       """
-    When I run `zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "CRITICAL: Security Group Does Not Exist.\n"
     And the exit status should be 2
 
@@ -101,7 +101,7 @@ Feature: Security Group
         { "return": "true" }
       """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws security_group declare my_security_group_name 'My security group' --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
 	Then the output should contain "Security Group Created.\n"
 	And the file "undo.sh.1" should contain "zaws security_group delete my_security_group_name --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 

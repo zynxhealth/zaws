@@ -5,7 +5,7 @@ Feature: Compute
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "true\n" 
 	  
   Scenario: Determine a compute instance DOES NOT exist by instance external id  
@@ -13,7 +13,7 @@ Feature: Compute
      """
 	 {  "Reservations": [] } 
 	 """
-    When I run `zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "false\n" 
 
   Scenario: Declare a compute instance in vpc by external id, created undo file
@@ -85,7 +85,7 @@ Feature: Compute
       { "return":"true" }
     """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --undofile undo.sh.1 --skipruncheck`
+    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --undofile undo.sh.1 --skipruncheck`
 	Then the output should contain "Instance created.\n" 
 	And the file "undo.sh.1" should contain "zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 		
@@ -94,7 +94,7 @@ Feature: Compute
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --skipruncheck`
+    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --skipruncheck`
 	Then the output should contain "Instance already exists. Creation skipped.\n" 
 	
 
@@ -107,7 +107,7 @@ Feature: Compute
      """
 	 {  "TerimatingInstances": [ ] } 
 	 """
-    When I run `zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Instance deleted.\n" 
 	  
   Scenario: Delete, skip
@@ -115,7 +115,7 @@ Feature: Compute
      """
 	 {  "Reservations": [] } 
 	 """
-    When I run `zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Instance does not exist. Skipping deletion.\n" 
 			
   Scenario: Nagios OK
@@ -123,7 +123,7 @@ Feature: Compute
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
+    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
 	Then the output should contain "OK: Instance already exists.\n" 
 	  
   Scenario: Nagios CRITICAL
@@ -131,7 +131,7 @@ Feature: Compute
      """
 	 {  "Reservations": [] } 
 	 """
-    When I run `zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
+    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
 	Then the output should contain "CRITICAL: Instance does not exist.\n" 
 
 

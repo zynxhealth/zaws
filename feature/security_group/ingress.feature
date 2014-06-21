@@ -14,7 +14,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "false\n" 
 
    Scenario: Determine a vpc security group ingress group rule identified by source and target has been created
@@ -40,7 +40,7 @@ Feature: Security Group
 					 "GroupId": "X_source_group_name" } ],
 			      "FromPort": 443 } ] } ] }
      """
-    When I run `zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "true\n" 
 
    Scenario: Declare a new vpc security group ingress group rule identified by source and target. Create it cause it doesn't exist. Also, should append the command to remove the security group to file.
@@ -60,7 +60,7 @@ Feature: Security Group
      """
       {	"return": "true" }
      """
-    When I run `zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Ingress group rule created.\n"
 
    Scenario: Declare a new vpc security group ingress group rule identified by source and target. Do not create it because it does exist.
@@ -87,7 +87,7 @@ Feature: Security Group
 			      "FromPort": 443 } ] } ] }
      """
     Given an empty file named "undo.sh.1" 
-    When I run `zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
 	Then the output should contain "Ingress group rule not created. Exists already.\n"
     And the file "undo.sh.1" should contain "zaws security_group delete_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 
@@ -114,7 +114,7 @@ Feature: Security Group
 					 "GroupId": "X_source_group_name" } ],
 			      "FromPort": 443 } ] } ] }
      """
-    When I run `zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "OK: Security group ingress group rule exists.\n"
     And the exit status should be 0
 		
@@ -131,7 +131,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws security_group declare_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "CRITICAL: Security group ingress group rule does not exist.\n"
     And the exit status should be 2
 
@@ -148,7 +148,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    When I run `zaws security_group delete_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group delete_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security group ingress group rule does not exist. Skipping deletion.\n" 
 
    Scenario: Delete a vpc security group ingress group rule
@@ -178,7 +178,7 @@ Feature: Security Group
      """
        { "return": "true" }         
      """
-    When I run `zaws security_group delete_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws security_group delete_ingress_group target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Security group ingress group rule deleted.\n" 
 
 

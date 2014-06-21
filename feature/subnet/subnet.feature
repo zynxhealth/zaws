@@ -6,7 +6,7 @@ Feature: Subnet
      """
       {	"Subnets": [] }
      """
-    When I run `zaws subnet exists --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
+    When I run `bundle exec zaws subnet exists --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
     Then the output should contain "false\n" 
 
   Scenario: Determine a subnet has been created in vpc
@@ -14,7 +14,7 @@ Feature: Subnet
      """
 		{ "Subnets": [ { "SubnetId" : "X" } ] }
      """
-    When I run `zaws subnet exists --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
+    When I run `bundle exec zaws subnet exists --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
     Then the output should contain "true\n" 
 
   Scenario: Declare a subnet but do not create it if it exists
@@ -22,7 +22,7 @@ Feature: Subnet
      """
 		{ "Subnets": [ { "SubnetId" : "X" } ] }
      """
-    When I run `zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
+    When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
     Then the output should contain "No action needed. Subnet exists already.\n" 
 
   Scenario: Declare a subnet and create it 
@@ -34,7 +34,7 @@ Feature: Subnet
      """
        { "Subnet": { "State": "available" } }        
      """
-    When I run `zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
+    When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
     Then the output should contain "Subnet created.\n" 
 
    Scenario: Delete a subnet, but skip it cause it does not exist
@@ -42,7 +42,7 @@ Feature: Subnet
      """
 		{ "Subnets": [] }
      """
-    When I run `zaws subnet delete  --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
+    When I run `bundle exec zaws subnet delete  --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
     Then the output should contain "Subnet does not exist. Skipping deletion.\n" 
 
    Scenario: Delete a subnet
@@ -54,7 +54,7 @@ Feature: Subnet
      """
        { "return": "true" }         
      """
-    When I run `zaws subnet delete --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
+    When I run `bundle exec zaws subnet delete --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id`
     Then the output should contain "Subnet deleted.\n" 
 
    Scenario: Perform a nagios check, with the result indicatin OK (exit 0), indicating declaring a subnet requires no action because it exists.
@@ -62,7 +62,7 @@ Feature: Subnet
      """
 		{ "Subnets": [ { "SubnetId" : "X" } ] }
      """
-    When I run `zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --nagios`
+    When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --nagios`
 	Then the output should contain "OK: Subnet Exists.\n"
     And the exit status should be 0
 		
@@ -71,7 +71,7 @@ Feature: Subnet
      """
 		{ "Subnets": [] }
      """
-    When I run `zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --nagios`
+    When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --nagios`
 	Then the output should contain "CRITICAL: Subnet Does Not Exist.\n"
     And the exit status should be 2
 
@@ -85,7 +85,7 @@ Feature: Subnet
        { "Subnet": { "State": "available" } }        
      """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --undofile undo.sh.1`
+    When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a --undofile undo.sh.1`
     Then the output should contain "Subnet created.\n" 
 	And the file "undo.sh.1" should contain "zaws subnet delete --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id $XTRA_OPTS"
 

@@ -9,7 +9,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ { "InstanceId" : "i-abc1234", "PublicIp": "198.51.100.0", "Domain": "vpc", "AssociationId":"eipassoc-abcd1234", "AllocationId":"eipalloc-abcd1234"} ] }
 	 """
-    When I run `zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "true\n" 
 
   Scenario: Determine elasticip DOES NOT exist for instance 
@@ -21,7 +21,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ ] }
 	 """
-    When I run `zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "false\n" 
 
   Scenario: Declare elasticip for an instance by external id
@@ -41,7 +41,7 @@ Feature: Elasticip
      """
 	 {  "return": "true" }
 	 """
-    When I run `zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "New elastic ip associated to instance.\n" 
 
   Scenario: Declare elasticip for an instance by external id, Skip creation
@@ -53,7 +53,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ { "InstanceId" : "i-abc1234", "PublicIp": "198.51.100.0", "Domain": "vpc", "AssociationId":"eipassoc-abcd1234", "AllocationId":"eipalloc-abcd1234"} ] }
 	 """
-    When I run `zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "instance already has an elastic ip. Skipping creation.\n" 
 
   Scenario: Delete
@@ -73,7 +73,7 @@ Feature: Elasticip
      """
 	 {  "return": "true" }
 	 """
-    When I run `zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Deleted elasticip.\n" 
 
   Scenario: Delete, skip
@@ -85,7 +85,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ ] }
 	 """
-    When I run `zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Elasticip does not exist. Skipping deletion.\n" 
 
   Scenario: Nagios OK
@@ -97,7 +97,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ { "InstanceId" : "i-abc1234", "PublicIp": "198.51.100.0", "Domain": "vpc", "AssociationId":"eipassoc-abcd1234", "AllocationId":"eipalloc-abcd1234"} ] }
 	 """
-    When I run `zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "OK: Elastic Ip exists.\n" 
 
   Scenario: Nagios CRITICAL
@@ -109,7 +109,7 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ ] }
 	 """
-    When I run `zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "CRITICAL: Elastic Ip DOES NOT EXIST.\n" 
 
   Scenario: Undo file
@@ -130,7 +130,7 @@ Feature: Elasticip
 	 {  "return": "true" }
 	 """
     Given an empty file named "undo.sh.1" 
-	When I run `zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+	When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
 	Then the output should contain "New elastic ip associated to instance.\n" 
 	And the file "undo.sh.1" should contain "zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 

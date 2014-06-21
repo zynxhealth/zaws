@@ -10,7 +10,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-YYYYYYY"} ] } ] }
      """
-    When I run `zaws route_table route_exists_by_instance my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table route_exists_by_instance my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "false\n" 
  
   Scenario: Determine a route exists to an instance by instance external id   
@@ -22,7 +22,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-XXXXXXX"} ] } ] }
      """
-    When I run `zaws route_table route_exists_by_instance my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table route_exists_by_instance my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "true\n" 
  
   Scenario: Declare route to an instance by instance external id
@@ -38,7 +38,7 @@ Feature: Route Table
      """
 	 {	"return" : "true" }
      """
-    When I run `zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route created to instance.\n" 
 
   Scenario: Declare route to an instance by instance external id, but skip createion because it exists.
@@ -50,7 +50,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-XXXXXXX"} ] } ] }
      """
-    When I run `zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route not created to instance. Skip creation.\n" 
 		
    Scenario: Delete route 
@@ -62,7 +62,7 @@ Feature: Route Table
      """
 	 {	"return" : "true" }
      """
-    When I run `zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route deleted.\n" 
 	
    Scenario: Delete route skipped because it doesn't exist
@@ -70,7 +70,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "1.1.1.1/0", "InstanceId": "i-XXXXXXX"} ] } ] }
      """
-    When I run `zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route does not exist. Skipping deletion.\n" 
 	
    Scenario: Perform a nagios check, with the result indicatin OK (exit 0), indicating declaring a route requires no action because it exists.
@@ -82,7 +82,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-XXXXXXX"} ] } ] }
      """
-    When I run `zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "OK: Route to instance exists.\n"
     And the exit status should be 0
 		
@@ -95,7 +95,7 @@ Feature: Route Table
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-YYYYYYY"} ] } ] }
      """
-    When I run `zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the output should contain "CRITICAL: Route to instance does not exist.\n"
     And the exit status should be 2
 
@@ -109,7 +109,7 @@ Feature: Route Table
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-XXXXXXX"} ] } ] }
      """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
 	Then the output should contain "Route not created to instance. Skip creation.\n"
 	And the file "undo.sh.1" should contain "zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 

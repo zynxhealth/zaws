@@ -9,7 +9,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "true\n" 
 	
   Scenario: Determine instance is NOT registered
@@ -21,7 +21,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "false\n" 
 
   Scenario: Declare instance registration
@@ -37,7 +37,7 @@ Feature: Instance Registration
      """
 	 { "return" : "true" } 
 	 """
-    When I run `zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "New instance registered.\n" 
 
   Scenario: Declare instance registration, Skip creation
@@ -49,7 +49,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "Instance already registered. Skipping registration.\n" 
 
   Scenario: Delete
@@ -65,7 +65,7 @@ Feature: Instance Registration
      """
 	 { "return" : "true" } 
 	 """
-    When I run `zaws load_balancer deregister_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws load_balancer deregister_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "Instance deregistered.\n" 
 
   Scenario: Delete, skip
@@ -77,7 +77,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-	When I run `zaws load_balancer deregister_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
+	When I run `bundle exec zaws load_balancer deregister_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "Instance not registered. Skipping deregistration.\n" 
 	
   Scenario: Nagios OK
@@ -89,7 +89,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the stdout should contain "OK: Instance registerd.\n" 
 
   Scenario: Nagios CRITICAL
@@ -101,7 +101,7 @@ Feature: Instance Registration
      """
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
-    When I run `zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
 	Then the stdout should contain "CRITICAL: Instance not registered.\n" 
 
   Scenario: Undo file
@@ -114,7 +114,7 @@ Feature: Instance Registration
 	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
 	 """
 	Given an empty file named "undo.sh.1" 
-    When I run `zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
     Then the stdout should contain "Instance already registered. Skipping registration.\n" 
 	And the file "undo.sh.1" should contain "zaws load_balancer deregister_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 
