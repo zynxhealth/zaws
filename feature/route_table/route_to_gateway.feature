@@ -5,7 +5,7 @@ Feature: Route to Gateway
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ { "GatewayId": "igw-XXXXXXX", "DestinationCidrBlock": "0.0.0.0/0" } ] } ] }
      """
-    When I run `zaws route_table route_exists_by_gateway my_route_table 0.0.0.0/0 igw-XXXXXXX --region us-west-1 --vpcid my_vpc_id`
+    When I run `zaws route_table route_exists_by_gatewayid my_route_table 0.0.0.0/0 igw-XXXXXXX --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "true\n" 
  
   Scenario: Determine a route to a gateway by a gateway id does not exist
@@ -13,7 +13,7 @@ Feature: Route to Gateway
      """
 	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ { "GatewayId": "igw-YYYYYYY", "DestinationCidrBlock": "0.0.0.0/0" } ] } ] }
      """
-    When I run `zaws route_table route_exists_by_gateway my_route_table 0.0.0.0/0 igw-XXXXXXX --region us-west-1 --vpcid my_vpc_id`
+    When I run `zaws route_table route_exists_by_gatewayid my_route_table 0.0.0.0/0 igw-XXXXXXX --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "false\n" 
 
   Scenario: Declare route to gateway id  

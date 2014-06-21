@@ -14,7 +14,7 @@ module ZAWS
 		aws.ec2.compute.view(options[:region],options[:viewtype],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid])
 	  end
 
-	  desc "view_images","View images."
+	  desc "view_images","View images, by default the images are owned by self (your account))."
 	  option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
       option :owner, :type => :string, :desc => "filter by owner of the images", :banner => "<owner>", :aliases => :o, :default => "self"
       option :imageid, :type => :string, :desc => "filter by owner of the images", :banner => "<imageid>", :aliases => :i, :default => nil 
@@ -23,7 +23,7 @@ module ZAWS
 		aws.ec2.compute.view_images(options[:region],options[:viewtype],options[:owner],options[:imageid],$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
-      desc "exists_by_external_id EXTERNAL_ID","Determine if a route table exists by name EXTERNAL_ID."
+      desc "exists_by_external_id EXTERNAL_ID","Determine if an instance exists by name EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def exists_by_external_id(externalid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
@@ -49,35 +49,35 @@ module ZAWS
 		return val
 	  end
     
-	  desc "delete EXTERNAL_ID","Determine if a route table exists by name EXTERNAL_ID."
+	  desc "delete EXTERNAL_ID","Delete an instance by EXTERNAL_ID, this only works if api termination is enabled."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def delete(externalid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		aws.ec2.compute.delete(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid)
 	  end
 
-      desc "exists_security_group_assoc EXTERNAL_ID SECURITY_GROUP","Determine if a route table exists by name EXTERNAL_ID."
+      desc "exists_security_group_assoc EXTERNAL_ID SECURITY_GROUP","Determine if an instance with an EXTERNAL_ID is associated to a named SECURITY_GROUP."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def exists_security_group_assoc(externalid,security_group) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		val,instancid,sgroupid=aws.ec2.compute.exists_security_group_assoc(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid,security_group)
 	  end
 
-	  desc "assoc_security_group EXTERNAL_ID SECURITY_GROUP","Determine if a route table exists by name EXTERNAL_ID."
+	  desc "assoc_security_group EXTERNAL_ID SECURITY_GROUP","Associate a named SECURITY_GROUP to an instance by its EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def assoc_security_group(externalid,security_group) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		aws.ec2.compute.assoc_security_group(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid,security_group)
 	  end
 
-      desc "exists_secondary_ip EXTERNAL_ID IP","Determine if a secondary ip exists by name EXTERNAL_ID."
+      desc "exists_secondary_ip EXTERNAL_ID IP","Determine if a secondary IP exists by name EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def exists_secondary_ip(externalid,ip) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		val,compute_exists,netid=aws.ec2.compute.exists_secondary_ip(options[:region],ip,$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid)
 	  end
 
-	  desc "declare_secondary_ip EXTERNAL_ID IP","Declare secondary ip for instance."
+	  desc "declare_secondary_ip EXTERNAL_ID IP","Declare secondary IP for instance by EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -86,7 +86,7 @@ module ZAWS
 		aws.ec2.compute.declare_secondary_ip(options[:region],ip,$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid,options[:nagios],options[:undofile])
 	  end
 
-	  desc "deelete_secondary_ip EXTERNAL_ID IP","Delete secondary ip for instance."
+	  desc "deelete_secondary_ip EXTERNAL_ID IP","Delete secondary IP for instance by EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def delete_secondary_ip(externalid,ip) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))

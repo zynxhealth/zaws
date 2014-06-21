@@ -12,7 +12,7 @@ module ZAWS
 		aws.route53.hosted_zone.view(options[:viewtype],$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
-	  desc "view_records ZONENAME","View record sets for hosted zone name."
+	  desc "view_records ZONE_NAME","View record sets for hosted ZONE_NAME."
 	  option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
 	  def view_records(zonename)
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))

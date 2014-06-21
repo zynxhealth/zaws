@@ -35,11 +35,8 @@ module ZAWS
 		if ufile
 		  ZAWS::Helper::File.prepend("zaws route_table delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table',ufile)
 		end
-
 		rtable_exists, rtable_id = exists(region,nil,verbose,vpcid,externalid) 
-
 		return ZAWS::Helper::Output.binary_nagios_check(rtable_exists,"OK: Route table exists.","CRITICAL: Route table does not exist.",textout) if nagios
-
 		if not rtable_exists
 		  comline="aws --region #{region} ec2 create-route-table --vpc-id #{vpcid}"
 		  rtable=JSON.parse(@shellout.cli(comline,verbose))
@@ -53,9 +50,7 @@ module ZAWS
 	  end
 
 	  def delete(region,textout=nil,verbose=nil,vpcid,externalid)
-
 		rtable_exists, rtable_id = exists(region,nil,verbose,vpcid,externalid) 
-
         if rtable_exists
           comline="aws --region #{region} ec2 delete-route-table --route-table-id #{rtable_id}"
           deletion=JSON.parse(@shellout.cli(comline,verbose))
@@ -63,7 +58,6 @@ module ZAWS
 		else
 		  textout.puts "Route table does not exist. Skipping deletion."
 		end
-
 	  end
 
 	  def route_exists_by_instance(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,externalid)
@@ -78,17 +72,12 @@ module ZAWS
 	  end
 
 	  def declare_route(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,externalid,nagios,ufile)
-
         if ufile 
 		  ZAWS::Helper::File.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
 		end
-
         # TODO: Route exists already of a different type?
-
 		route_exists, instance_id, rtable_id = route_exists_by_instance(region,nil,verbose,vpcid,routetable,cidrblock,externalid) 
-
 		return ZAWS::Helper::Output.binary_nagios_check(route_exists,"OK: Route to instance exists.","CRITICAL: Route to instance does not exist.",textout) if nagios
-
 		if not route_exists
 		  comline="aws --region #{region} ec2 create-route --route-table-id #{rtable_id} --destination-cidr-block #{cidrblock} --instance-id #{instance_id}"
 		  routereturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -99,7 +88,6 @@ module ZAWS
 	  end
 
 	  def delete_route(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock)
-
         rtable=JSON.parse(view(region,'json',nil,verbose,vpcid,routetable))
 		val = (rtable["RouteTables"].count == 1) && rtable["RouteTables"][0]["Routes"].any? { |x| x["DestinationCidrBlock"]=="#{cidrblock}" }
         rtable_id = (rtable["RouteTables"].count == 1) ? rtable["RouteTables"][0]["RouteTableId"] : nil
@@ -110,7 +98,6 @@ module ZAWS
 		else
 		  textout.puts "Route does not exist. Skipping deletion."
 		end
-
 	  end
 
 	  def route_exists_by_gatewayid(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,gatewayid)
@@ -124,17 +111,12 @@ module ZAWS
 
 
 	  def declare_route_to_gateway(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,gatewayid,nagios,ufile)
-
         if ufile 
 		  ZAWS::Helper::File.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
 		end
-
         # TODO: Route exists already of a different type?
-
 		route_exists, rtable_id = route_exists_by_gatewayid(region,nil,verbose,vpcid,routetable,cidrblock,gatewayid) 
-
 		return ZAWS::Helper::Output.binary_nagios_check(route_exists,"OK: Route to gateway exists.","CRITICAL: Route to gateway does not exist.",textout) if nagios
-
 		if not route_exists
 		  comline="aws --region #{region} ec2 create-route --route-table-id #{rtable_id} --destination-cidr-block #{cidrblock} --gateway-id #{gatewayid}"
 		  routereturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -155,15 +137,11 @@ module ZAWS
 	  end
 
 	  def assoc_subnet(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,nagios,ufile)
-
         if ufile 
 		  ZAWS::Helper::File.prepend("zaws route_table delete_assoc_subnet #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table association to subnet',ufile)
 		end
-
 		assoc_exists, subnetid, rtableid, rtassocid = subnet_assoc_exists(region,nil,verbose,vpcid,routetable,cidrblock) 
-
 		return ZAWS::Helper::Output.binary_nagios_check(assoc_exists,"OK: Route table association to subnet exists.","CRITICAL: Route table association to subnet does not exist.",textout) if nagios
-
 		if not assoc_exists
 		  comline="aws --region #{region} ec2 associate-route-table --subnet-id #{subnetid} --route-table-id #{rtableid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -171,13 +149,10 @@ module ZAWS
 		else
 		  textout.puts "Route table already associated to subnet. Skipping association."
 		end
-
 	  end
 
 	  def delete_assoc_subnet(region,textout=nil,verbose=nil,vpcid,rtable_externalid,cidrblock)
-
 		assoc_exists, subnetid, rtableid, rtassocid = subnet_assoc_exists(region,nil,verbose,vpcid,rtable_externalid,cidrblock) 
-
         if assoc_exists
 		  comline="aws --region #{region} ec2 disassociate-route-table --association-id #{rtassocid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -185,7 +160,6 @@ module ZAWS
 		else
 		  textout.puts "Route table association to subnet not deleted because it does not exist."
 		end
-
 	  end
 
       def propagation_exists_from_gateway(region,textout=nil,verbose=nil,vpcid,rtable_externalid,vgatewayid)
@@ -197,15 +171,11 @@ module ZAWS
 	  end
 
 	  def declare_propagation_from_gateway(region,textout=nil,verbose=nil,vpcid,routetable,vgatewayid,nagios,ufile)
- 
         if ufile 
 		  ZAWS::Helper::File.prepend("zaws route_table delete_propagation_from_gateway my_route_table vgw-???????? --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS",'#Delete route propagation',ufile)
 		end
-
 		propagation_exists,rtableid = propagation_exists_from_gateway(region,nil,verbose,vpcid,routetable,vgatewayid) 
-
 		return ZAWS::Helper::Output.binary_nagios_check(propagation_exists,"OK: Route propagation from gateway enabled.","CRITICAL: Route propagation from gateway not enabled.",textout) if nagios
-
 		if not propagation_exists
 		  comline="aws --region #{region} ec2 enable-vgw-route-propagation --route-table-id #{rtableid} --gateway-id #{vgatewayid}"
 		  propreturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -213,13 +183,10 @@ module ZAWS
 		else
 		  textout.puts "Route propagation from gateway already enabled. Skipping propagation."
 		end
-        
 	  end
 
       def delete_propagation_from_gateway(region,textout=nil,verbose=nil,vpcid,rtable_externalid,vgatewayid)
-
         propagation_exists,rtableid = propagation_exists_from_gateway(region,nil,verbose,vpcid,rtable_externalid,vgatewayid) 
-
         if propagation_exists
 		  comline="aws --region #{region} ec2 disable-vgw-route-propagation --route-table-id #{rtableid} --gateway-id #{vgatewayid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
@@ -227,7 +194,6 @@ module ZAWS
 		else
 		  textout.puts "Route propagation from gateway does not exist, skipping deletion."
 		end
-
 	  end
 
 	end
