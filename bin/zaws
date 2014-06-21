@@ -1,8 +1,20 @@
 #! /usr/bin/ruby
-require 'coveralls'
-Coveralls.wear_merged!
+
+if ENV['COVERAGE']
+  require 'coveralls'
+  Coveralls.wear_merged!
+
+  # As described in the issue, every process must have an unique name:
+  SimpleCov.command_name "binary #{Process.pid}"
+
+  # When running with aruba simplecov was using /tmp/aruba as the root folder. 
+  # This is to force using the project folder
+  SimpleCov.root(File.join(File.expand_path(File.dirname(__FILE__)), '..'))
+
+end
 
 $:.unshift (File.dirname(__FILE__)+ "/../lib")
 require "#{File.dirname(__FILE__)}/../lib/zaws"
 ZAWS::ZAWSCLI.start
+
 
