@@ -11,7 +11,7 @@ Gem::Specification.new do |spec|
   spec.description   = %q{the zaws gem provides command line tools for interfacing with AWS through the AWS CLI. It is required that the AWS CLI be installed on the system that this gem is used on. This gem expects the AWS credentials to be located in a location that the AWS CLI can access them, whether it be environment variables or config file.}
   spec.summary       = %q{Zynx AWS Automation Tool}
   spec.homepage      = ""
-  spec.license       = "MIT"
+  spec.license       = "Apache v2.0"
 
   spec.files         = `git ls-files`.split($/)
   spec.executables   = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
