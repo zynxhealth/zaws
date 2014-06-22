@@ -21,7 +21,7 @@ module ZAWS
 		aws.ec2.route_table.exists(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid)
 	  end
 
-	  desc "declare EXTERNAL_ID","Declare a new route table EXTERNAL_ID, but skip creating it if it exists."
+	  desc "declare EXTERNAL_ID","Declare a new route table by EXTERNAL_ID, but skip creating it if it exists."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -31,7 +31,7 @@ module ZAWS
         exit exitcode
 	  end
 
-	  desc "delete EXTERNAL_ID","Delete route table by EXTERNAL_ID."
+	  desc "delete EXTERNAL_ID","Delete route table by its EXTERNAL_ID."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def delete(externalid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
@@ -45,7 +45,7 @@ module ZAWS
 		aws.ec2.route_table.route_exists_by_instance(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],routetable,cidrblock,externalid)
 	  end
 
-	  desc "declare_route ROUTE_TABLE CIDR_BLOCK INSTANCE_EXTERNAL_ID","Declare a new route to INSTANCE_EXTERNAL_ID for CIDR_BLOCK in ROUTE_TABLE, but skip creating it if it exists."
+	  desc "declare_route ROUTE_TABLE CIDR_BLOCK INSTANCE_EXTERNAL_ID","Declare a new route to instance INSTANCE_EXTERNAL_ID for CIDR_BLOCK in ROUTE_TABLE, but skip creating it if it exists."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -110,7 +110,7 @@ module ZAWS
 		aws.ec2.route_table.propagation_exists_from_gateway(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],rtable_externalid,vgatewayid)
 	  end
 
-	  desc "declare_propagation_from_gateway ROUTE_TABLE_EXTERNAL_ID VIRTUAL_GATEWAY_ID","Propagate routes to the routing tables of a VPC."
+	  desc "declare_propagation_from_gateway ROUTE_TABLE_EXTERNAL_ID VIRTUAL_GATEWAY_ID","Propagate routes to the routing tables from a virtual gateway."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -120,7 +120,7 @@ module ZAWS
 		exit exitcode
 	  end
 
-	  desc "delete_propagation_from_gateway ROUTE_TABLE_EXTERNAL_ID GATEWAY_ID","Delete route propagation."
+	  desc "delete_propagation_from_gateway ROUTE_TABLE_EXTERNAL_ID GATEWAY_ID","Delete route propagation from virtual gateway."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       def delete_propagation_from_gateway(rtable_externalid,vgatewayid)
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))

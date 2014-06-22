@@ -6,7 +6,7 @@ module ZAWS
 	  class_option :region, :type => :string, :desc => "AWS Region", :banner => "<region>",  :aliases => :r, :required => true
 	  class_option :verbose, :type => :boolean, :desc => "Verbose outout", :aliases => :d, :default => false
 
-	  desc "view","View subnets."
+	  desc "view","View security groups."
 	  option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def view
@@ -55,7 +55,7 @@ module ZAWS
 		exit exitcode
 	  end
 
-	  desc "delete_ingress_group TARGET_GROUP_NAME SOURCE_GROUP_NAME PROTOCOL PORT","Declare an ingress security group rule."
+	  desc "delete_ingress_group TARGET_GROUP_NAME SOURCE_GROUP_NAME PROTOCOL PORT","Delete an ingress security group rule."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def delete_ingress_group(target,source,protocol,port) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
