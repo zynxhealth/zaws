@@ -77,6 +77,7 @@ module ZAWS
 		  end
 		  textout.puts "No action needed. Subnet exists already."
 		end
+		return 0
 	  end
 
 	  def available(subnet,verbose)

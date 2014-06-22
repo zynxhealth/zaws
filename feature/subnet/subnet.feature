@@ -24,6 +24,7 @@ Feature: Subnet
      """
     When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
     Then the output should contain "No action needed. Subnet exists already.\n" 
+    And the exit status should be 0
 
   Scenario: Declare a subnet and create it 
     Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
@@ -35,7 +36,8 @@ Feature: Subnet
        { "Subnet": { "State": "available" } }        
      """
     When I run `bundle exec zaws subnet declare --region us-west-1 --cidrblock my_cidr_block --vpcid my_vpc_id --availabilityzone us-west-1a`
-    Then the output should contain "Subnet created.\n" 
+    Then the output should contain "Subnet created.\n"
+    And the exit status should be 0
 
    Scenario: Delete a subnet, but skip it cause it does not exist
     Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
