@@ -50,7 +50,7 @@ module ZAWS
 
 	  def declare(region,vpcid,cidrblock,availabilityzone,statetimeout,textout=nil,verbose=nil,nagios=false,ufile=nil)
         if ufile
-          ZAWS::Helper::File.prepend("zaws subnet delete --region #{region} --cidrblock #{cidrblock} --vpcid #{vpcid} $XTRA_OPTS",'#Delete subnet',ufile)
+          ZAWS::Helper::File.prepend("zaws subnet delete #{cidrblock} #{vpcid} --region #{region} $XTRA_OPTS",'#Delete subnet',ufile)
 		end
 		if not exists(region,nil,verbose,vpcid,cidrblock) 
           if nagios

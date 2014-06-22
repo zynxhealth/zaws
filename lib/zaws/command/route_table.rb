@@ -21,13 +21,12 @@ module ZAWS
 		aws.ec2.route_table.exists(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],externalid)
 	  end
 
-	  desc "declare EXTERNAL_ID","Declare a new route table by EXTERNAL_ID, but skip creating it if it exists."
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
+	  desc "declare EXTERNAL_ID VPCID","Declare a new route table by EXTERNAL_ID in VPCID, but skip creating it if it exists."
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
-	  def declare(externalid) 
+	  def declare(externalid,vpcid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		exitcode = aws.ec2.route_table.declare(options[:region],options[:vpcid],externalid,options[:nagios],$stdout,(options[:verbose]?$stdout:nil),options[:undofile])
+		exitcode = aws.ec2.route_table.declare(options[:region],vpcid,externalid,options[:nagios],$stdout,(options[:verbose]?$stdout:nil),options[:undofile])
         exit exitcode
 	  end
 

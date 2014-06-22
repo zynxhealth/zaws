@@ -30,7 +30,7 @@ Feature: Route Table
      """
       {	"return": "true" }
      """
-    When I run `bundle exec zaws route_table declare my_route_table --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table declare my_route_table my_vpc_id --region us-west-1`
 	Then the output should contain "Route table created with external id: my_route_table.\n" 
  
   Scenario: Declare route table by external id, but DO NOT create it because it exists
@@ -38,7 +38,7 @@ Feature: Route Table
      """
       {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX" } ] }
      """
-    When I run `bundle exec zaws route_table declare my_route_table --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws route_table declare my_route_table my_vpc_id --region us-west-1`
 	Then the output should contain "Route table exists already. Skipping Creation.\n" 
 
   Scenario: Delete a route table in a vpc, but skip it cause it does not exist
@@ -66,7 +66,7 @@ Feature: Route Table
      """
       {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX" } ] }
      """
-    When I run `bundle exec zaws route_table declare my_route_table --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table declare my_route_table my_vpc_id --region us-west-1 --nagios`
 	Then the output should contain "OK: Route table exists.\n"
     And the exit status should be 0
 		
@@ -75,7 +75,7 @@ Feature: Route Table
      """
       {	"RouteTables": [ ] }
      """
-    When I run `bundle exec zaws route_table declare my_route_table --region us-west-1 --vpcid my_vpc_id --nagios`
+    When I run `bundle exec zaws route_table declare my_route_table my_vpc_id --region us-west-1 --nagios`
 	Then the output should contain "CRITICAL: Route table does not exist.\n"
     And the exit status should be 2
 
@@ -85,7 +85,7 @@ Feature: Route Table
       {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX" } ] }
      """
     Given an empty file named "undo.sh.1" 
-    When I run `bundle exec zaws route_table declare my_route_table --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+    When I run `bundle exec zaws route_table declare my_route_table my_vpc_id --region us-west-1 --undofile undo.sh.1`
 	Then the output should contain "Route table exists already. Skipping Creation.\n"
 	And the file "undo.sh.1" should contain "zaws route_table delete my_route_table --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 

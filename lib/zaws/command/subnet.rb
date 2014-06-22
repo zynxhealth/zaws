@@ -14,52 +14,40 @@ module ZAWS
 		aws.ec2.subnet.view(options[:region],options[:viewtype],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid])
 	  end
 
-	  desc "id_subnet_by_ip","get subnet id by specifying ip address in subnet"
-	  option :privateip, :type => :string, :desc => "ip addresses", :banner => "<privateip>", :aliases => :p, :required => true
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :required => true
-	  def id_by_ip
+	  desc "id_by_ip PRIVATE_IP VPCID","get subnet id by specifying PRIVATE_IP address in subnet"
+	  def id_by_ip(privateip,vpcid)
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-	    aws.ec2.subnet.id_by_ip(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:privateip])
+	    aws.ec2.subnet.id_by_ip(options[:region],$stdout,(options[:verbose]?$stdout:nil),vpcid,privateip)
 	  end
 
-	  desc "id_subnet_by_cidrblock","get subnet id by specifying cidrblock for subnet"
-	  option :cidrblock, :type => :string, :desc => "cidrblock", :banner => "<cidrblock>", :aliases => :c, :required => true
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :required => true
-	  def id_by_cidrblock
+	  desc "id_by_cidrblock CIDRBLOCK VPCID","get subnet id by specifying CIDRBLOCK for subnet"
+	  def id_by_cidrblock(cidrblock,vpcid)
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		aws.ec2.subnet.id_by_cidrblock(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:cidrblock])
+		aws.ec2.subnet.id_by_cidrblock(options[:region],$stdout,(options[:verbose]?$stdout:nil),vpcid,cidrblock)
 	  end
 
-	  desc "exists","determine if a subnet exists."
-	  option :cidrblock, :type => :string, :desc => "cidrblock", :banner => "<cidrblock>", :aliases => :c, :required => true
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :required => true
-	  def exists 
+	  desc "exists CIDRBLOCK VPCID","Determine if a subnet exists by CIDRBLOCK."
+	  def exists(cidrblock,vpcid) 
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		aws.ec2.subnet.exists(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:cidrblock])
+		aws.ec2.subnet.exists(options[:region],$stdout,(options[:verbose]?$stdout:nil),vpcid,cidrblock)
 	  end
 
-	  desc "declare","create a subnet if it does not exist already"
-	  option :cidrblock, :type => :string, :desc => "cidrblock", :banner => "<cidrblock>", :aliases => :c, :required => true
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :required => true
-      option :availabilityzone, :type => :string, :desc => "AWS availability zone (eg us-west-1,us-west-2,...)", :banner => "<azone>",  :aliases => :a, :required => true
+	  desc "declare CIDRBLOCK AVAILABILITY_ZONE VPCID","Create a subnet if it does not exist already"
       option :availabilitytimeout, :type => :numeric, :desc => "AWS availability zone (eg us-west-1,us-west-2,...)", :banner => "<azone>",  :aliases => :t, :default => 30
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
-	  def declare 
+	  def declare(cidrblock,availabilityzone,vpcid)
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		exitcode=aws.ec2.subnet.declare(options[:region],options[:vpcid],options[:cidrblock],options[:availabilityzone],options[:availabilitytimeout],$stdout,(options[:verbose]?$stdout:nil),options[:nagios],options[:undofile])
+		exitcode=aws.ec2.subnet.declare(options[:region],vpcid,cidrblock,availabilityzone,options[:availabilitytimeout],$stdout,(options[:verbose]?$stdout:nil),options[:nagios],options[:undofile])
 		exit exitcode
 	  end
 
-	  desc "delete","delete a subnet if it exists already"
-	  option :cidrblock, :type => :string, :desc => "cidrblock", :banner => "<cidrblock>", :aliases => :c, :required => true
-	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :required => true
-	  def delete 
+	  desc "delete CIDRBLOCK VPCID","Delete a subnet if it exists."
+	  def delete(cidrblock,vpcid)
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		aws.ec2.subnet.delete(options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:cidrblock])
+		aws.ec2.subnet.delete(options[:region],$stdout,(options[:verbose]?$stdout:nil),vpcid,cidrblock)
 	  end
-
-
+	
 	end
   end
 end
