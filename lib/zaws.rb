@@ -38,16 +38,16 @@ module ZAWS
 	desc "compute","ec2 compute instance(s)"
 	subcommand "compute",ZAWS::Command::Compute
 
-    desc "elasticip","ec2 compute instance(s)"
+        desc "elasticip","ec2 elasticip(s)"
 	subcommand "elasticip",ZAWS::Command::Elasticip
 
-    desc "load_balancer","elb load balancer(s)"
+        desc "load_balancer","elb load balancer(s)"
 	subcommand "load_balancer",ZAWS::Command::Load_Balancer
 
-    desc "hosted_zone","elb load balancer(s)"
+        desc "hosted_zone","elb hosted_zone(s)"
 	subcommand "hosted_zone",ZAWS::Command::Hosted_Zone
 
-	desc "version","Get the version of the utility."
+	desc "version","Get the version of the Zynx AWS Automation Tool."
 	def version
 	  puts "zaws version #{ZAWS::VERSION}"
 	end

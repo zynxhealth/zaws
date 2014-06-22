@@ -13,14 +13,14 @@ module ZAWS
 		aws.elb.load_balancer.view(options[:region],options[:viewtype],$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
-	  desc "exists LOAD_BALANCER_NAME","Determine if a load balancer exists."
+	  desc "exists LOAD_BALANCER_NAME","Determine if a load balancer exists by its LOAD_BALANCER_NAME"
 	  def exists(lbname) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		val,instances=aws.elb.load_balancer.exists(options[:region],lbname,$stdout,(options[:verbose]?$stdout:nil))
 		return val
 	  end
 
-	  desc "create_in_subnets","Create a new load balancer in the specified vpc."
+	  desc "create_in_subnets","Create a new load balancer in the subnets specified by the option --cidrblocks."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  option :cidrblocks,:type => :array, :desc => "subnet cidr blocks to attach to load balancer, one per avaialability zone.", :banner => "<cidrblocks>", :aliases => :u
 	  option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
@@ -31,13 +31,13 @@ module ZAWS
 		exit exitcode
 	  end
 
-	  desc "delete LOAD_BALANCER_NAME","Delete load balancer if it exists."
+	  desc "delete LOAD_BALANCER_NAME","Delete load balancer identified by LOAD_BALANCER_NAME if it exists."
 	  def delete(lbname) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		aws.elb.load_balancer.delete(options[:region],lbname,$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
-	  desc "exists_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Determine if an instance is registered with load balancer."
+	  desc "exists_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Determine if an instance identified by the INSTANCE_EXTERNAL_ID is registered with load balancer identified by LOAD_BALANCER_NAME."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def exists_instance(lbname,instance_external_id) 
 		$stdout.puts "DEBUG: options[:region]=#{options[:region]}" if options[:verbose]
@@ -48,7 +48,7 @@ module ZAWS
 		aws.elb.load_balancer.exists_instance(options[:region],lbname,instance_external_id,options[:vpcid],$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
-	  desc "register_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Register an instance is registered with load balancer."
+	  desc "register_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Register an instance identified by the INSTANCE_EXTERNAL_ID is registered with load balancer identified by LOAD_BALANCER_NAME."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -61,7 +61,7 @@ module ZAWS
 		aws.elb.load_balancer.register_instance(options[:region],lbname,instance_external_id,options[:vpcid],options[:nagios],$stdout,(options[:verbose]?$stdout:nil),options[:undofile])
 	  end
 
-	  desc "deregister_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Register an instance is registered with load balancer."
+	  desc "deregister_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Deregister an instance identified by the INSTANCE_EXTERNAL_ID is registered with load balancer identified by LOAD_BALANCER_NAME."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def deregister_instance(lbname,instance_external_id) 
 		$stdout.puts "DEBUG: options[:region]=#{options[:region]}" if options[:verbose]

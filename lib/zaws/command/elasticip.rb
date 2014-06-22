@@ -14,7 +14,7 @@ module ZAWS
 		aws.ec2.elasticip.view(options[:region],options[:viewtype],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid])
 	  end
 
-	  desc "assoc_exists EXTERNAL_ID","Determine if an instance has an elastic ip associated."
+	  desc "assoc_exists EXTERNAL_ID","Determine by an instance's EXTERNAL_ID if it has an elastic."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def assoc_exists(externalid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
@@ -22,7 +22,7 @@ module ZAWS
 		return val
 	  end
 
-	  desc "declare EXTERNAL_ID","Declare that an instance should have an elastic ip."
+	  desc "declare EXTERNAL_ID","Declare an instance by its instance's EXTERNAL_ID  should have an elastic ip."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
@@ -32,7 +32,7 @@ module ZAWS
 		return val
 	  end
 
-	  desc "release EXTERNAL_ID","Delete elastic ip address from instance."
+	  desc "release EXTERNAL_ID","Release an elastic ip address a specific instance. The instance's EXTERNAL_ID is required."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def release(externalid) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
