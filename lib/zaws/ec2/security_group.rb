@@ -38,7 +38,7 @@ module ZAWS
 
 	  def declare(region,vpcid,groupname,description,nagios,textout=nil,verbose=nil,ufile=nil)
 		if ufile
-          ZAWS::Helper::File.prepend("zaws security_group delete #{groupname} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete security group',ufile)
+          ZAWS::Helper::ZFile.prepend("zaws security_group delete #{groupname} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete security group',ufile)
 		end
 		sgroup_exists,sgroupid = exists(region,nil,verbose,vpcid,groupname) 
 		return ZAWS::Helper::Output.binary_nagios_check(sgroup_exists,"OK: Security Group Exists.","CRITICAL: Security Group Does Not Exist.",textout) if nagios
@@ -49,6 +49,7 @@ module ZAWS
 		else
 		  textout.puts "Security Group Exists Already. Skipping Creation."
 		end
+		return 0
 	  end
 
       def id_by_name(region,textout=nil,verbose=nil,vpcid,groupname)
@@ -95,7 +96,7 @@ module ZAWS
 
 	  def declare_ingress_group(region,vpcid,target,source,protocol,port,nagios,textout=nil,verbose=nil,ufile=nil) 
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws security_group delete_ingress_group #{target} #{source} #{protocol} #{port} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete security group ingress group rule',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws security_group delete_ingress_group #{target} #{source} #{protocol} #{port} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete security group ingress group rule',ufile)
 		end
 		ingress_exists,targetid,sourceid = ingress_group_exists(region,vpcid,target,source,protocol,port,nil,verbose)
 		return ZAWS::Helper::Output.binary_nagios_check(ingress_exists,"OK: Security group ingress group rule exists.","CRITICAL: Security group ingress group rule does not exist.",textout) if nagios
@@ -111,7 +112,7 @@ module ZAWS
 
 	  def declare_ingress_cidr(region,vpcid,target,cidr,protocol,port,nagios,textout=nil,verbose=nil,ufile=nil) 
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws security_group delete_ingress_cidr #{target} #{cidr} #{protocol} #{port} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete cidr ingress group rule',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws security_group delete_ingress_cidr #{target} #{cidr} #{protocol} #{port} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete cidr ingress group rule',ufile)
 		end
 		ingress_exists,targetid = ingress_cidr_exists(region,vpcid,target,cidr,protocol,port,nil,verbose)
 		return ZAWS::Helper::Output.binary_nagios_check(ingress_exists,"OK: Security group ingress cidr rule exists.","CRITICAL: Security group ingress cidr rule does not exist.",textout) if nagios

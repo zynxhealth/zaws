@@ -68,7 +68,7 @@ Feature: Compute
 		  ]
 	  }
     """
-    And I double `aws --region us-west-1 ec2 run-instances --image-id ami-abc123 --key-name sshkey --instance-type x1-large --placement AvailabilityZone=us-west-1a --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"DeleteOnTermination":true,"SnapshotId":"snap-XXX","VolumeSize":70,"VolumeType":"standard"}}]' --enable-api-termination --client-token test_token --network-interfaces '[{"Groups":["sg-903004f8"],"PrivateIpAddress":"10.0.0.6","DeviceIndex":"0","SubnetId":"subnet-YYYYYY"}]' --ebs-optimized` with stdout:
+    And I double `aws --region us-west-1 ec2 run-instances --image-id ami-abc123 --key-name sshkey --instance-type x1-large --placement AvailabilityZone=us-west-1a --block-device-mappings '[{"DeviceName":"/dev/sda1","Ebs":{"DeleteOnTermination":true,"SnapshotId":"snap-XXX","VolumeSize":70,"VolumeType":"standard"}}]' --enable-api-termination --client-token test_token --network-interfaces '[{"Groups":["sg-903004f8"],"PrivateIpAddress":"10.0.0.6","DeviceIndex":0,"SubnetId":"subnet-YYYYYY"}]' --ebs-optimized` with stdout:
     """
 	   { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ ] } ] } 
 	"""
@@ -85,7 +85,7 @@ Feature: Compute
       { "return":"true" }
     """
 	Given an empty file named "undo.sh.1" 
-    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --undofile undo.sh.1 --skipruncheck`
+    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --undofile undo.sh.1 --skipruncheck --verbose`
 	Then the output should contain "Instance created.\n" 
 	And the file "undo.sh.1" should contain "zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 		

@@ -33,7 +33,7 @@ module ZAWS
 
 	  def declare(region,vpcid,externalid,nagios,textout=nil,verbose=nil,ufile=nil)
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws route_table delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws route_table delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table',ufile)
 		end
 		rtable_exists, rtable_id = exists(region,nil,verbose,vpcid,externalid) 
 		return ZAWS::Helper::Output.binary_nagios_check(rtable_exists,"OK: Route table exists.","CRITICAL: Route table does not exist.",textout) if nagios
@@ -47,6 +47,7 @@ module ZAWS
 		else
 		  textout.puts "Route table exists already. Skipping Creation."
 		end
+		return 0
 	  end
 
 	  def delete(region,textout=nil,verbose=nil,vpcid,externalid)
@@ -73,7 +74,7 @@ module ZAWS
 
 	  def declare_route(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,externalid,nagios,ufile)
         if ufile 
-		  ZAWS::Helper::File.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
 		end
         # TODO: Route exists already of a different type?
 		route_exists, instance_id, rtable_id = route_exists_by_instance(region,nil,verbose,vpcid,routetable,cidrblock,externalid) 
@@ -85,6 +86,7 @@ module ZAWS
 		else
 		  textout.puts "Route not created to instance. Skip creation."
 		end
+		return 0
 	  end
 
 	  def delete_route(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock)
@@ -112,7 +114,7 @@ module ZAWS
 
 	  def declare_route_to_gateway(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,gatewayid,nagios,ufile)
         if ufile 
-		  ZAWS::Helper::File.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws route_table delete_route #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route',ufile)
 		end
         # TODO: Route exists already of a different type?
 		route_exists, rtable_id = route_exists_by_gatewayid(region,nil,verbose,vpcid,routetable,cidrblock,gatewayid) 
@@ -124,6 +126,7 @@ module ZAWS
 		else
 		  textout.puts "Route to gateway exists. Skipping creation."
 		end
+		return 0
 	  end
 
       def subnet_assoc_exists(region,textout=nil,verbose=nil,vpcid,rtable_externalid,cidrblock)
@@ -138,7 +141,7 @@ module ZAWS
 
 	  def assoc_subnet(region,textout=nil,verbose=nil,vpcid,routetable,cidrblock,nagios,ufile)
         if ufile 
-		  ZAWS::Helper::File.prepend("zaws route_table delete_assoc_subnet #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table association to subnet',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws route_table delete_assoc_subnet #{routetable} #{cidrblock} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete route table association to subnet',ufile)
 		end
 		assoc_exists, subnetid, rtableid, rtassocid = subnet_assoc_exists(region,nil,verbose,vpcid,routetable,cidrblock) 
 		return ZAWS::Helper::Output.binary_nagios_check(assoc_exists,"OK: Route table association to subnet exists.","CRITICAL: Route table association to subnet does not exist.",textout) if nagios
@@ -149,6 +152,7 @@ module ZAWS
 		else
 		  textout.puts "Route table already associated to subnet. Skipping association."
 		end
+		return 0
 	  end
 
 	  def delete_assoc_subnet(region,textout=nil,verbose=nil,vpcid,rtable_externalid,cidrblock)
@@ -172,7 +176,7 @@ module ZAWS
 
 	  def declare_propagation_from_gateway(region,textout=nil,verbose=nil,vpcid,routetable,vgatewayid,nagios,ufile)
         if ufile 
-		  ZAWS::Helper::File.prepend("zaws route_table delete_propagation_from_gateway my_route_table vgw-???????? --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS",'#Delete route propagation',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws route_table delete_propagation_from_gateway my_route_table vgw-???????? --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS",'#Delete route propagation',ufile)
 		end
 		propagation_exists,rtableid = propagation_exists_from_gateway(region,nil,verbose,vpcid,routetable,vgatewayid) 
 		return ZAWS::Helper::Output.binary_nagios_check(propagation_exists,"OK: Route propagation from gateway enabled.","CRITICAL: Route propagation from gateway not enabled.",textout) if nagios
@@ -183,6 +187,7 @@ module ZAWS
 		else
 		  textout.puts "Route propagation from gateway already enabled. Skipping propagation."
 		end
+		return 0
 	  end
 
       def delete_propagation_from_gateway(region,textout=nil,verbose=nil,vpcid,rtable_externalid,vgatewayid)

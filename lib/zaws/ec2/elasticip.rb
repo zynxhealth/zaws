@@ -45,7 +45,7 @@ module ZAWS
 
 	  def declare(region,externalid,textout=nil,verbose=nil,vpcid=nil,nagios=nil,ufile=nil)
         if ufile
-          ZAWS::Helper::File.prepend("zaws elasticip release #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Release elastic ip.',ufile)
+          ZAWS::Helper::ZFile.prepend("zaws elasticip release #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Release elastic ip.',ufile)
 		end
         elasticip_exists,instance_id,association_id,allocation_id,ip=assoc_exists(region,externalid,nil,verbose,vpcid)
 		return ZAWS::Helper::Output.binary_nagios_check(elasticip_exists,"OK: Elastic Ip exists.","CRITICAL: Elastic Ip DOES NOT EXIST.",textout) if nagios
