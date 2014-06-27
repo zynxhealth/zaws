@@ -1,3 +1,5 @@
+Beta software - Expect frequent updates to released versions. Minor Bugs are being removed. You can submit [issues](https://github.com/zynxhealth/zaws/issues) as well and they will be looked into.
+
 [![Build Status](https://travis-ci.org/zynxhealth/zaws.svg?branch=master)](https://travis-ci.org/zynxhealth/zaws)     [![Coverage Status](https://coveralls.io/repos/zynxhealth/zaws/badge.png?branch=master)](https://coveralls.io/r/zynxhealth/zaws?branch=master) [![Gem Version](https://badge.fury.io/rb/zaws.svg)](http://badge.fury.io/rb/zaws)
 
 * For some reason the Coverage is flip floppping between 99% and mid 80%s, this looks like an issue with picking up some results. The 99% value is more accurate.
