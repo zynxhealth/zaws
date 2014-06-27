@@ -1,3 +1,5 @@
+# Status
+
 Beta software - Expect frequent releases of 0.0.* versions. Minor Bugs are being removed. You can submit [issues](https://github.com/zynxhealth/zaws/issues) as well and they will be looked into.
 
 [![Build Status](https://travis-ci.org/zynxhealth/zaws.svg?branch=master)](https://travis-ci.org/zynxhealth/zaws)     [![Coverage Status](https://coveralls.io/repos/zynxhealth/zaws/badge.png?branch=master)](https://coveralls.io/r/zynxhealth/zaws?branch=master) [![Gem Version](https://badge.fury.io/rb/zaws.svg)](http://badge.fury.io/rb/zaws)
@@ -7,6 +9,8 @@ Beta software - Expect frequent releases of 0.0.* versions. Minor Bugs are being
 # zaws
 
 Zynx AWS Automation Tool
+
+* [Authorization Delegated to AWS CLI](https://github.com/zynxhealth/zaws/wiki/Authorization-Done-by-AWS-CLI)
 
 # Development
 
