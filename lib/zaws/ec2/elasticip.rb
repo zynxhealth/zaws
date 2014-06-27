@@ -27,14 +27,10 @@ module ZAWS
 		val,instance_id,sgroups=@aws.ec2.compute.exists(region,nil,verbose,vpcid,externalid)
 		if val
 		  addresses=JSON.parse(view(region,'json',nil,verbose,vpcid,instance_id))
-		  verbose.puts addresses if verbose
 		  addressassoc=(addresses["Addresses"] and (addresses["Addresses"].count == 1))
 		  associationid= (addressassoc and addresses["Addresses"][0]["AssociationId"]) ? addresses["Addresses"][0]["AssociationId"]:nil
 		  allocationid= (addressassoc and addresses["Addresses"][0]["AllocationId"]) ? addresses["Addresses"][0]["AllocationId"]:nil
 		  ip= (addressassoc and addresses["Addresses"][0]["PublicIp"]) ? addresses["Addresses"][0]["PublicIp"]:nil
-		  verbose.puts "addressassoc=#{addressassoc}" if verbose
-		  verbose.puts "associationid=#{associationid}" if verbose
-		  verbose.puts "allocationid=#{allocationid}" if verbose
 		  textout.puts addressassoc if textout
 		  return addressassoc,instance_id,associationid,allocationid,ip
 		else
@@ -53,7 +49,7 @@ module ZAWS
 		  comline="aws --region #{region} ec2 allocate-address --domain vpc"
 		  allocation=JSON.parse(@shellout.cli(comline,verbose))
 		  if allocation["AllocationId"]
-			comline="aws --region #{region} ec2 associate-address --instance-id #{instance_id} --public-ip #{allocation["PublicIp"]} --allocation-id #{allocation["AllocationId"]}"
+			comline="aws --region #{region} ec2 associate-address --instance-id #{instance_id} --allocation-id #{allocation["AllocationId"]}"
 			association=JSON.parse(@shellout.cli(comline,verbose))
 			textout.puts "New elastic ip associated to instance." if association["return"] == "true"
 		  end
@@ -65,12 +61,10 @@ module ZAWS
 	  def release(region,externalid,textout=nil,verbose=nil,vpcid=nil)
 		elasticip_exists,instance_id,association_id,allocation_id,ip=assoc_exists(region,externalid,nil,verbose,vpcid)
 		if elasticip_exists and association_id and allocation_id
-		  verbose = $stdout
-		  comline="aws --region #{region} ec2 disassociate-address --public-ip #{ip} --association-id #{association_id}"
-		  verbose.puts comline if verbose
+		  comline="aws --region #{region} ec2 disassociate-address --association-id #{association_id}"
 		  disassociation=JSON.parse(@shellout.cli(comline,verbose))
 		  if disassociation["return"]=="true"
-			comline="aws --region #{region} ec2 release-address --public-ip #{ip} --allocation-id #{allocation_id}"
+			comline="aws --region #{region} ec2 release-address --allocation-id #{allocation_id}"
 			release=JSON.parse(@shellout.cli(comline,verbose))
 			textout.puts "Deleted elasticip." if release["return"] == "true"
 		  end

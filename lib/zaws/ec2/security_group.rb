@@ -64,7 +64,7 @@ module ZAWS
 	  def delete(region,textout=nil,verbose=nil,vpcid,groupname)
 		groupid=id_by_name(region,nil,nil,vpcid,groupname)
 		if groupid 
-		  comline="aws --region #{region} ec2 delete-security-group --group-ids #{groupid}"
+		  comline="aws --region #{region} ec2 delete-security-group --group-id #{groupid}"
 		  sgroup=JSON.parse(@shellout.cli(comline,verbose))
 		  textout.puts "Security Group deleted." if sgroup["return"] == "true"
 		else
