@@ -10,7 +10,11 @@ Beta software - Expect frequent releases of 0.0.* versions. Minor Bugs are being
 
 Zynx AWS Automation Tool
 
+* [Start using "zaws" today](https://github.com/zynxhealth/zaws/wiki/02.-Start-Using-%22zaws%22). This will give you the first steps.
 * [Authorization Delegated to AWS CLI](https://github.com/zynxhealth/zaws/wiki/Authorization-Done-by-AWS-CLI)
+* The [design](https://github.com/zynxhealth/zaws/wiki/04.-Design) of the application is uniform and can be understood with a little effort.
+* [Enhancement requests and issues](https://github.com/zynxhealth/zaws/issues) are tracked here non github. Please feel free to make requests, submit issue tickets, or submit [pull requests](https://github.com/zynxhealth/zaws/pulls).
+* The [reference](https://github.com/zynxhealth/zaws/wiki/06.-References-(eg-Books,-...)) section contains lists of sources that were used in this project.
 
 # Development
 
