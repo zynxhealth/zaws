@@ -45,6 +45,13 @@ module ZAWS
 		aws.ec2.security_group.ingress_group_exists(options[:region],options[:vpcid],target,source,protocol,port,$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
+	  desc "ingress_cidr_exists TARGET_GROUP_NAME CIDR PROTOCOL PORT","Determine if an ingress CIDR rule exists."
+	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
+	  def ingress_cidr_exists(target,cidr,protocol,port) 
+		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
+		aws.ec2.security_group.ingress_cidr_exists(options[:region],options[:vpcid],target,cidr,protocol,port,$stdout,(options[:verbose]?$stdout:nil))
+	  end
+
 	  desc "declare_ingress_group TARGET_GROUP_NAME SOURCE_GROUP_NAME PROTOCOL PORT","Declare an ingress security group rule."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
@@ -55,11 +62,28 @@ module ZAWS
 		exit exitcode
 	  end
 
+	  desc "declare_ingress_cidr TARGET_GROUP_NAME CIDR PROTOCOL PORT","Declare an ingress CIDR rule."
+	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
+      option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
+      option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
+	  def declare_ingress_cidr(target,cidr,protocol,port) 
+		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
+		exitcode = aws.ec2.security_group.declare_ingress_cidr(options[:region],options[:vpcid],target,cidr,protocol,port,options[:nagios],$stdout,(options[:verbose]?$stdout:nil),options[:undofile])
+		exit exitcode
+	  end
+
 	  desc "delete_ingress_group TARGET_GROUP_NAME SOURCE_GROUP_NAME PROTOCOL PORT","Delete an ingress security group rule."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  def delete_ingress_group(target,source,protocol,port) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
 		aws.ec2.security_group.delete_ingress_group(options[:region],options[:vpcid],target,source,protocol,port,$stdout,(options[:verbose]?$stdout:nil))
+	  end
+
+	  desc "delete_ingress_cidr TARGET_GROUP_NAME CIDR PROTOCOL PORT","Delete an ingress security cidr rule."
+	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
+	  def delete_ingress_cidr(target,cidr,protocol,port) 
+		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
+		aws.ec2.security_group.delete_ingress_cidr(options[:region],options[:vpcid],target,cidr,protocol,port,$stdout,(options[:verbose]?$stdout:nil))
 	  end
 
 	end

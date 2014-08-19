@@ -6,7 +6,7 @@ module ZAWS
 
 	  def cli(command,output=nil)
 		output.puts ZAWS::Helper::Output.colorize(command,AWS_consts::COLOR_BLUE) if output
-        list = Mixlib::ShellOut.new(command)
+        list = Mixlib::ShellOut.new(command, :timeout => 30)
 		list.run_command
 		list.error!
 		return list.stdout

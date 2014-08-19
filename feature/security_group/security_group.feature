@@ -46,7 +46,7 @@ Feature: Security Group
      """
 	 {	"SecurityGroups": [ { "GroupName": "my_security_group_name","GroupId": "sg-abcd1234" } ] }
      """
-    And I double `aws --region us-west-1 ec2 delete-security-group --group-ids sg-abcd1234` with stdout:
+    And I double `aws --region us-west-1 ec2 delete-security-group --group-id sg-abcd1234` with stdout:
      """
        { "return": "true" }         
      """

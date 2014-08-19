@@ -37,11 +37,11 @@ Feature: Elasticip
      """
 	 {  "PublicIp": "198.51.100.0", "Domain": "vpc", "AllocationId": "eipalloc-abcd1234",  "AllocationId":"eipalloc-abcd1234" }
 	 """
-	 And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --public-ip 198.51.100.0 --allocation-id eipalloc-abcd1234` with stdout:
+	 And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --allocation-id eipalloc-abcd1234` with stdout:
      """
 	 {  "return": "true" }
 	 """
-    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --verbose`
 	Then the output should contain "New elastic ip associated to instance.\n" 
 
   Scenario: Declare elasticip for an instance by external id, Skip creation
@@ -65,15 +65,15 @@ Feature: Elasticip
      """
 	 {  "Addresses": [ { "InstanceId" : "i-abc1234", "PublicIp": "198.51.100.0", "Domain": "vpc", "AssociationId":"eipassoc-abcd1234", "AllocationId":"eipalloc-abcd1234"} ] }
 	 """
-    And I double `aws --region us-west-1 ec2 disassociate-address --public-ip 198.51.100.0 --association-id eipassoc-abcd1234` with stdout:
+    And I double `aws --region us-west-1 ec2 disassociate-address --association-id eipassoc-abcd1234` with stdout:
      """
 	 {  "return": "true" }
 	 """
-    And I double `aws --region us-west-1 ec2 release-address --public-ip 198.51.100.0 --allocation-id eipalloc-abcd1234` with stdout:
+    And I double `aws --region us-west-1 ec2 release-address --allocation-id eipalloc-abcd1234` with stdout:
      """
 	 {  "return": "true" }
 	 """
-    When I run `bundle exec zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id`
+    When I run `bundle exec zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id --verbose`
 	Then the output should contain "Deleted elasticip.\n" 
 
   Scenario: Delete, skip
@@ -125,12 +125,12 @@ Feature: Elasticip
      """
 	 {  "PublicIp": "198.51.100.0", "Domain": "vpc", "AllocationId": "eipalloc-abcd1234", "AllocationId":"eipalloc-abcd1234" }
 	 """
-	And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --public-ip 198.51.100.0 --allocation-id eipalloc-abcd1234` with stdout:
+	And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --allocation-id eipalloc-abcd1234` with stdout:
      """
 	 {  "return": "true" }
 	 """
     Given an empty file named "undo.sh.1" 
-	When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1`
+	When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1 --verbose`
 	Then the output should contain "New elastic ip associated to instance.\n" 
 	And the file "undo.sh.1" should contain "zaws elasticip release my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 

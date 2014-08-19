@@ -27,7 +27,6 @@ module ZAWS
 		comline="aws --output #{viewtype} --region #{region} ec2 describe-images"
 		comline = "#{comline} --owner #{owner}" if owner 
 		comline = "#{comline} --image-ids #{imageid}" if imageid 
-		verbose.puts comline if verbose
 		images=@shellout.cli(comline,verbose)
 		textout.puts(images) if textout
 		return images
@@ -52,7 +51,7 @@ module ZAWS
 		ip_to_subnet_id = @aws.ec2.subnet.id_by_ip(region,nil,verbose,vpcid,ip)
 		subnet_id=ip_to_subnet_id
 		security_group_id= @aws.ec2.security_group.id_by_name(region,nil,verbose,vpcid,groupname)
-		new_hash= [{ "Groups"=> [security_group_id], "PrivateIpAddress"=>"#{ip}","DeviceIndex"=>"0","SubnetId"=> ip_to_subnet_id }]
+		new_hash= [{ "Groups"=> [security_group_id], "PrivateIpAddress"=>"#{ip}","DeviceIndex"=>0,"SubnetId"=> ip_to_subnet_id }]
 		return new_hash.to_json
 	  end
 
@@ -67,6 +66,7 @@ module ZAWS
 			  exit 1
 			end
 			x["Ebs"]["VolumeSize"]=rootsize.to_i
+            x["Ebs"].delete("Encrypted") if x["Ebs"]["SnapshotId"] #You cannot specify the encrypted flag if specifying a snapshot id in a block device mapping. -AWS
 		  end
 		end
 		return image_mappings.to_json
@@ -78,7 +78,7 @@ module ZAWS
 
 	  def declare(externalid,image,owner,nodetype,root,zone,key,sgroup,privateip,optimized,apiterminate,clienttoken,region,textout,verbose,vpcid,nagios,ufile,no_sdcheck,skip_running_check,volsize,volume)
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete instance',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete instance',ufile)
 		end
 		compute_exists,instance_id,sgroups = exists(region,nil,verbose,vpcid,externalid)
 		return ZAWS::Helper::Output.binary_nagios_check(compute_exists,"OK: Instance already exists.","CRITICAL: Instance does not exist.",textout) if nagios
@@ -214,7 +214,7 @@ module ZAWS
 
 	  def declare_secondary_ip(region,ip,textout,verbose,vpcid,externalid,nagios,ufile)
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws compute delete_secondary_ip #{externalid} #{ip} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete secondary ip',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws compute delete_secondary_ip #{externalid} #{ip} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete secondary ip',ufile)
 		end
 		compute_exists,instance_id,sgroups = exists(region,nil,verbose,vpcid,externalid)
 		secondary_ip_exists,compute_exists,network_interface = exists_secondary_ip(region,ip,nil,verbose,vpcid,externalid)

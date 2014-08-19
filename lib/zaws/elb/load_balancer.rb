@@ -41,7 +41,7 @@ module ZAWS
 
 	  def create_in_subnet(region,lbname,lbprotocol,lbport,inprotocol,inport,securitygroup,cidrblocks,vpcid,nagios=false,textout=nil,verbose=nil,ufile=nil)
 		if ufile
-		  ZAWS::Helper::File.prepend("zaws load_balancer delete #{lbname} --region #{region} $XTRA_OPTS",'#Delete load balancer',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws load_balancer delete #{lbname} --region #{region} $XTRA_OPTS",'#Delete load balancer',ufile)
 		end
 		lbexists,instances,ldescriptions=exists(region,lbname,nil,verbose)
 		return ZAWS::Helper::Output.binary_nagios_check(lbexists,"OK: Load Balancer Exists.","CRITICAL: Load Balancer does not exist.",textout) if nagios
@@ -81,7 +81,7 @@ module ZAWS
 
 	  def register_instance(region,lbname,instance_external_id,vpcid,nagios=false,textout=nil,verbose=nil,ufile=nil)
         if ufile
-		  ZAWS::Helper::File.prepend("zaws load_balancer deregister_instance #{lbname} #{instance_external_id} --region #{region} --vpcid my_vpc_id $XTRA_OPTS",'#Deregister instance',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws load_balancer deregister_instance #{lbname} #{instance_external_id} --region #{region} --vpcid my_vpc_id $XTRA_OPTS",'#Deregister instance',ufile)
 		end
         instance_registered,instance_id = exists_instance(region,lbname,instance_external_id,vpcid,nil,verbose) 
 		return ZAWS::Helper::Output.binary_nagios_check(instance_registered,"OK: Instance registerd.","CRITICAL: Instance not registered.",textout) if nagios
@@ -121,7 +121,7 @@ module ZAWS
 
 	  def declare_listener(region,lbname,lbprotocol,lbport,inprotocol,inport,nagios=false,textout=nil,verbose=nil,ufile=nil)
         if ufile
-		  ZAWS::Helper::File.prepend("zaws load_balancer delete_listener #{lbname} #{lbprotocol} #{lbport} #{inprotocol} #{inport} --region #{region} $XTRA_OPTS",'#Delete listener',ufile)
+		  ZAWS::Helper::ZFile.prepend("zaws load_balancer delete_listener #{lbname} #{lbprotocol} #{lbport} #{inprotocol} #{inport} --region #{region} $XTRA_OPTS",'#Delete listener',ufile)
 		end
         lexists=exists_listener(region,lbname,lbprotocol,lbport,inprotocol,inport,nil,verbose)
 		return ZAWS::Helper::Output.binary_nagios_check(lexists,"OK: Listerner exists.","CRITICAL: Listener does not exist.",textout) if nagios

@@ -31,7 +31,7 @@ module ZAWS
 		return val
 	  end
 
-      desc "declare EXTERNAL_ID IMAGE TYPE ROOT_SIZE ZONE KEY SECURITY_GROUP","Declare a compute instance."
+      desc "declare EXTERNAL_ID IMAGE OWNER TYPE ROOT_SIZE ZONE KEY SECURITY_GROUP","Declare a compute instance."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
       option :privateip, :type => :array, :desc => "array of private ip addresses, in vpc, each given a network interface", :banner => "<privateip>", :aliases => :p, :default => nil
       option :optimized, :type => :string, :desc => "ebs optimized", :banner => "<optimized>", :aliases => :i, :default => false

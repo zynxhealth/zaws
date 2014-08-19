@@ -47,7 +47,7 @@ describe ZAWS::EC2Services::Compute do
     expect(shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=my_security_group_name'",nil).and_return(sgroups)
 	aws=ZAWS::AWS.new(shellout)
 	bdm = aws.ec2.compute.network_interface_json('us-west-1',nil,'my_vpc_id','10.0.0.6','my_security_group_name')
-	expect(bdm).to eq('[{"Groups":["sg-903004f8"],"PrivateIpAddress":"10.0.0.6","DeviceIndex":"0","SubnetId":"subnet-YYYYYY"}]')
+	expect(bdm).to eq('[{"Groups":["sg-903004f8"],"PrivateIpAddress":"10.0.0.6","DeviceIndex":0,"SubnetId":"subnet-YYYYYY"}]')
 
   end
 
