@@ -84,11 +84,14 @@ module ZAWS
 	  end
 
 	  def ingress_cidr_exists(region,vpcid,target,cidr,protocol,port,textout=nil,verbose=nil) 
-		verbose=$stdout
         targetid=id_by_name(region,nil,nil,vpcid,target)
         if targetid 
           sgroups=JSON.parse(view(region,'json',nil,verbose,vpcid,nil,targetid,nil,protocol,port,cidr))
-		  val = (sgroups["SecurityGroups"].count > 0)
+		  if (sgroups["SecurityGroups"].count > 0)
+            # Additionally filter out the sgroups that do not have the cidr and port in the same ip permissions
+		    sgroups["SecurityGroups"]=sgroups["SecurityGroups"].select {|x| x['IpPermissions'].any? {|y| y['ToPort'] and y['FromPort'] and y['ToPort']==port.to_i and y['FromPort']==port.to_i and y['IpRanges'].any? {|z| z['CidrIp']=="#{cidr}" }}} 
+		  end 
+          val = (sgroups["SecurityGroups"].count > 0)
           textout.puts val.to_s if textout
 		  return val, targetid 
 		end
