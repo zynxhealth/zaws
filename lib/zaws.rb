@@ -13,6 +13,7 @@ require "zaws/command/hosted_zone"
 require "zaws/command/cloud_trail"
 require "zaws/command/bucket"
 require "zaws/aws"
+require "zaws/cloud_trail"
 require "zaws/ec2"
 require "zaws/elb"
 require "zaws/route53"
@@ -52,7 +53,7 @@ module ZAWS
 	subcommand "hosted_zone",ZAWS::Command::Hosted_Zone
 
   desc "cloud_trail","aws cloud trail"
-  subcommand "cloud_trail",ZAWS::Command::Cloud_Trail
+  subcommand "cloud_trail",ZAWS::Command::CloudTrail
 
   desc "bucket","S3 storage bucket(s)"
   subcommand "bucket",ZAWS::Command::Bucket

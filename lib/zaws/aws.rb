@@ -25,6 +25,10 @@ module ZAWS
     @_s3 ||= (ZAWS::S3.new(@shellout,self))
     return @_s3
   end
+  
+  def cloud_trail
+    @_cloud_trail ||= (ZAWS::CloudTrail.new(@shellout,self))
+  end
 
   end
 end
