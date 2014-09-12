@@ -29,5 +29,20 @@ module ZAWS
       cloud_trails['trailList']
     end
 
+    def exists(name,region)
+      get_cloud_trails(region).any? {|trail| trail['Name'] === name}
+    end
+
+    def declare(name,region,bucket_name,verbose=nil)
+      if exists(name,region)
+        puts "CloudTrail already exists. Creation skipped.\n"
+      else
+        bucket_exists=@aws.s3.bucket().exists(bucket_name,region)
+        cmdline = "aws --region #{region} cloudtrail create-subscription " <<
+            "--name #{name} --s3-#{bucket_exists ? 'use' : 'new'}-bucket #{bucket_name}"
+        puts @shellout.cli(cmdline,verbose)
+      end
+    end
+
   end
 end
