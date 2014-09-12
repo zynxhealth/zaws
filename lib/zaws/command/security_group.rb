@@ -9,9 +9,10 @@ module ZAWS
       desc "view", "View security groups."
       option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
+      option :unused, :desc => "Get all security groups unused by instances", :type => :boolean, :aliases => :u, :default => false
       def view
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-        aws.ec2.security_group.view(options[:region], options[:viewtype], $stdout, (options[:verbose] ? $stdout : nil), options[:vpcid])
+        aws.ec2.security_group.view(options[:region], (options[:unused] ? 'json' : options[:viewtype]), $stdout, (options[:verbose] ? $stdout : nil), options[:vpcid], unused: options[:unused])
       end
 
       desc "exists_by_name GROUP_NAME", "Determine if a security group exists by name GROUP_NAME."

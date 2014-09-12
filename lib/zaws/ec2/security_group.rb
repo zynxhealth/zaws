@@ -11,7 +11,23 @@ module ZAWS
         @aws=aws
       end
 
-      def view(region, view, textout=nil, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil)
+      def filter_groups_by_instances(security_groups,instances)
+        security_groups_hash=JSON.parse(security_groups)
+        instances_hash=JSON.parse(instances)
+        instances_hash['Reservations'][0]['Instances'].each do |x|
+          x['SecurityGroups'].each do |y|
+            security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select {|j| not j['GroupName'] == (y['GroupName'])}
+          end
+          x['NetworkInterfaces'].each do |y|
+            y['Groups'].each do |z|
+              security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select {|j| not j['GroupName'] == (z['GroupName'])}
+            end
+          end
+        end
+        JSON.generate(security_groups_hash)
+      end
+
+      def view(region, view, textout=nil, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused: false)
         comline="aws --output #{view} --region #{region} ec2 describe-security-groups"
         if vpcid || groupname
           comline = comline + " --filter"
@@ -24,6 +40,11 @@ module ZAWS
         comline = comline + " 'Name=ip-permission.protocol,Values=#{perm_protocol}'" if perm_protocol
         comline = comline + " 'Name=ip-permission.to-port,Values=#{perm_toport}'" if perm_toport
         sgroups=@shellout.cli(comline, verbose)
+        if unused
+          instances = @aws.ec2.compute.view(region, 'json', nil, verbose)
+          sgroups = JSON.parse(filter_groups_by_instances(sgroups,instances))
+          sgroups = sgroups['SecurityGroups'].map{|x| x['GroupName']}.join("\n")
+        end
         textout.puts(sgroups) if textout
         return sgroups
       end
