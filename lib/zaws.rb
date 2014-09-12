@@ -10,6 +10,7 @@ require "zaws/command/compute"
 require "zaws/command/elasticip"
 require "zaws/command/load_balancer"
 require "zaws/command/hosted_zone"
+require "zaws/command/cloud_trail"
 require "zaws/aws"
 require "zaws/ec2"
 require "zaws/elb"
@@ -46,6 +47,9 @@ module ZAWS
 
         desc "hosted_zone","elb hosted_zone(s)"
 	subcommand "hosted_zone",ZAWS::Command::Hosted_Zone
+
+  desc "cloud_trail","aws cloud trail"
+  subcommand "cloud_trail",ZAWS::Command::Cloud_Trail
 
 	desc "version","Get the version of the Zynx AWS Automation Tool."
 	def version
