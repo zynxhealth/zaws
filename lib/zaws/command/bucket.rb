@@ -8,7 +8,7 @@ module ZAWS
     desc "declare BUCKET_NAME", "declare an S3 bucket."
     def declare(name)
       aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-      aws.s3.bucket.declare(name, $stdout)
+      aws.s3.bucket.declare(name,options[:region],$stdout)
     end
 
     desc "get BUCKET_NAME", "download the contents of an S3 bucket."
