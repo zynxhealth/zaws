@@ -19,7 +19,12 @@ module ZAWS
 	def route53
 	  @_route53 ||= (ZAWS::Route53.new(@shellout,self))
 	  return @_route53
-	end
+  end
+
+  def s3
+    @_s3 ||= (ZAWS::S3.new(@shellout,self))
+    return @_s3
+  end
 
   end
 end

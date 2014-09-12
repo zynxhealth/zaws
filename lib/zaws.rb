@@ -11,10 +11,12 @@ require "zaws/command/elasticip"
 require "zaws/command/load_balancer"
 require "zaws/command/hosted_zone"
 require "zaws/command/cloud_trail"
+require "zaws/command/bucket"
 require "zaws/aws"
 require "zaws/ec2"
 require "zaws/elb"
 require "zaws/route53"
+require "zaws/s3"
 require "zaws/ec2/subnet"
 require "zaws/ec2/security_group"
 require "zaws/ec2/route_table"
@@ -22,6 +24,7 @@ require "zaws/ec2/compute"
 require "zaws/ec2/elasticip"
 require "zaws/elb/load_balancer"
 require "zaws/route53/hosted_zone"
+require "zaws/s3/bucket"
 require "thor"
 
 module ZAWS
@@ -50,6 +53,9 @@ module ZAWS
 
   desc "cloud_trail","aws cloud trail"
   subcommand "cloud_trail",ZAWS::Command::Cloud_Trail
+
+  desc "bucket","S3 storage bucket(s)"
+  subcommand "bucket",ZAWS::Command::Bucket
 
 	desc "version","Get the version of the Zynx AWS Automation Tool."
 	def version
