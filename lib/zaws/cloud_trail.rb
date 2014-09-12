@@ -2,6 +2,7 @@ require 'json'
 
 module ZAWS
   class CloudTrail
+    DEFAULT_DAYS_TO_FETCH=7
 
     def initialize(shellout,aws)
       @shellout=shellout

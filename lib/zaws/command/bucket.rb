@@ -11,6 +11,12 @@ module ZAWS
       aws.s3.bucket.declare(name, $stdout)
     end
 
+    desc "get BUCKET_NAME", "download the contents of an S3 bucket."
+    option :dest, :type => :string, :desc => "directory to save to.", :aliases => :d
+    def get(bucket_name)
+      aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
+      aws.s3.bucket.get(options[:region], bucket_name, options[:dest])
+    end
   end
   end
 end
