@@ -27,11 +27,9 @@ module ZAWS
         end
       end
 
-      def get(region,bucket_name,dest)
+      def sync(region,bucket_name,dest)
         dir = dest ? dest : Dir.mktmpdir()
-        puts "bucket #{bucket_name}"
-        puts "dir #{dir}"
-        comLine = "aws s3 cp #{bucket_name} #{dir} --region #{region} --recursive"
+        comLine = "aws s3 sync #{bucket_name} #{dir} --region #{region}"
         puts @shellout.cli(comLine, nil)
 
         dir

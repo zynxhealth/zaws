@@ -11,11 +11,11 @@ module ZAWS
       aws.s3.bucket.declare(name,options[:region],$stdout)
     end
 
-    desc "get BUCKET_NAME", "download the contents of an S3 bucket."
+    desc "sync BUCKET_NAME[/PATH]", "download the contents of an S3 bucket."
     option :dest, :type => :string, :desc => "directory to save to.", :aliases => :d
-    def get(bucket_name)
+    def sync(bucket_name)
       aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-      aws.s3.bucket.get(options[:region], bucket_name, options[:dest])
+      aws.s3.bucket.sync(options[:region], bucket_name, options[:dest])
     end
   end
   end

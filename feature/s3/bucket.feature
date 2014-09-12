@@ -12,7 +12,7 @@ Feature: S3 Bucket
     When I run `bundle exec zaws bucket declare test-bucket --region us-west-1`
     Then the output should contain "make_bucket: s3://test-bucket"
 
-  Scenario: Move the entire contents of an s3 bucket to the specified directory
-    Given I double `aws s3 cp test-bucket /tmp/dir --region us-west-1 --recursive` with "S3Output"
-    When I run `bundle exec zaws bucket get test-bucket --dest /tmp/dir --region us-west-1`
+  Scenario: Sync the entire contents of an s3 bucket to the specified directory
+    Given I double `aws s3 sync test-bucket /tmp/dir --region us-west-1` with "S3Output"
+    When I run `bundle exec zaws bucket sync test-bucket --dest /tmp/dir --region us-west-1`
     Then the output should contain "S3Output"

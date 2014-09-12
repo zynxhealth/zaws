@@ -10,9 +10,16 @@ Feature: Cloud Trail
       ]
     }
     """
-    And I double `aws fakecall --bucket bucketName` with "FakeCallOutput"
+    And I double `aws s3 sync bucketName ~/.zaws/s3-cache/bucketName/ --region us-west-1` with "~/.zaws/s3-cache/bucketName/"
+    And a file named "~/.zaws/s3-cache/bucketName/test" with:
+    """
+    {"Results":"testResults"}
+    """
     When I run `bundle exec zaws cloud_trail view --region us-west-1`
-    Then the output should contain "FakeCallOutput"
+    Then the output should contain:
+    """
+    {"Results":"testResults"}
+    """
   
   Scenario: Get specified cloud trail for region if trail name given
     Given I double `aws cloudtrail describe-trails --region us-west-1` with stdout:
@@ -24,14 +31,56 @@ Feature: Cloud Trail
       ]
     }
     """
-    And I double `aws fakecall --bucket bucketName` with "FakeCallOutput"
+    And I double `aws s3 sync bucketName ~/.zaws/s3-cache/bucketName/ --region us-west-1` with "~/.zaws/s3-cache/bucketName/"
+    And a file named "~/.zaws/s3-cache/bucketName/test" with:
+    """
+    {"Results":"testResults"}
+    """
     When I run `bundle exec zaws cloud_trail view --region us-west-1 --trailName namedTrail`
-    Then the output should contain "FakeCallOutput"
+    Then the output should contain:
+    """
+    {"Results":"testResults"}
+    """
 
   Scenario: Get specified cloud trail for region if bucket name given
-    Given I double `aws fakecall --bucket bucketName` with "FakeCallOutput"
+    Given I double `aws s3 sync bucketName ~/.zaws/s3-cache/bucketName/ --region us-west-1` with "Not Relevant"
+    And a file named "~/.zaws/s3-cache/bucketName/someFile" with:
+    """
+    {"Results":"testResults"}
+    """
     When I run `bundle exec zaws cloud_trail view --region us-west-1 --bucket bucketName`
-    Then the output should contain "FakeCallOutput"
+    Then the output should contain:
+    """
+    {"Results":"testResults"}
+    """
+
+  Scenario: Get specified cloud trail by bucket name and consolidate all json logs into a single json
+    Given I double `aws s3 sync bucketName ~/.zaws/s3-cache/bucketName/ --region us-west-1` with "Not Relevant"
+    And a file named "~/.zaws/s3-cache/bucketName/topLevelFile" with:
+    """
+    {"Results":"firstFileResults"}
+    """
+    And a file named "~/.zaws/s3-cache/bucketName/someDir/nestedFile" with:
+    """
+    {"Results":"secondFileResults"}
+    """
+    And a file named "~/.zaws/s3-cache/bucketName/someOtherDir/anotherDir/anotherNestedFile" with:
+    """
+    {"Results":"thirdFileResults"}
+    """
+    When I run `bundle exec zaws cloud_trail view --region us-west-1 --bucket bucketName`
+    Then the output should contain:
+    """
+    {"Results":"firstFileResults"}
+    """
+    Then the output should contain:
+    """
+    {"Results":"secondFileResults"}
+    """
+    Then the output should contain:
+    """
+    {"Results":"thirdFileResults"}
+    """
 
   Scenario: Declare a CloudTrail by name but skip actual creation because it already exists
     Given I double `aws cloudtrail describe-trails --region us-west-1` with stdout:
@@ -71,3 +120,5 @@ Logs will be delivered to zaws-cloudtrail-test-cloudtrail:
     """
     When I run `bundle exec zaws cloud_trail declare test-cloudtrail --region us-west-1`
     Then the output should contain "Logs will be delivered to zaws-cloudtrail-test-cloudtrail"
+
+

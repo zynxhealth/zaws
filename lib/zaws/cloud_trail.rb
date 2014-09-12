@@ -3,6 +3,7 @@ require 'json'
 module ZAWS
   class CloudTrail
     DEFAULT_DAYS_TO_FETCH=7
+    ZAWS_S3_CACHE="~/.zaws/s3-cache"
 
     def initialize(shellout,aws)
       @shellout=shellout
@@ -10,8 +11,19 @@ module ZAWS
     end
 
     def get_cloud_trail_by_bucket(region,bucket_name)
-      comLine = "aws fakecall --bucket #{bucket_name}"
-      puts @shellout.cli(comLine, $stdout)
+      dir_name=@aws.s3.bucket.sync(region,bucket_name,"#{ZAWS_S3_CACHE}/#{bucket_name}")
+      results = []
+      Dir.open(dir_name) { |dir|
+        Dir.glob(File.join(dir, '**', '*')) { |filename|
+          File.open(filename) { |file|
+            results.push JSON.parse file.read
+          } if File.file? filename
+        }
+      }
+      json = {:Results => results}.to_json
+      puts json
+
+      json
     end
 
     def get_cloud_trail_by_name(region, trail_name)
