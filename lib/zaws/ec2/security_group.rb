@@ -27,7 +27,7 @@ module ZAWS
         JSON.generate(security_groups_hash)
       end
 
-      def view(region, view, textout=nil, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused: false)
+      def view(region, view, textout=nil, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused=false)
         comline="aws --output #{view} --region #{region} ec2 describe-security-groups"
         if vpcid || groupname
           comline = comline + " --filter"
