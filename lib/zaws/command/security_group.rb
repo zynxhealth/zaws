@@ -12,7 +12,7 @@ module ZAWS
       option :unused, :desc => "Get all security groups unused by instances", :type => :boolean, :aliases => :u, :default => false
       def view
         aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-        aws.ec2.security_group.view(options[:region], (options[:unused] ? 'json' : options[:viewtype]), $stdout, (options[:verbose] ? $stdout : nil), options[:vpcid], unused: options[:unused])
+        aws.ec2.security_group.view(options[:region], (options[:unused] ? 'json' : options[:viewtype]), $stdout, (options[:verbose] ? $stdout : nil), options[:vpcid],nil,nil,nil,nil,nil,nil, options[:unused])
       end
 
       desc "exists_by_name GROUP_NAME", "Determine if a security group exists by name GROUP_NAME."
