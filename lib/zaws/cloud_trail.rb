@@ -1,9 +1,12 @@
 require 'json'
+require 'digest/sha1'
+require 'fileutils'
+require 'zlib'
 
 module ZAWS
   class CloudTrail
     DEFAULT_DAYS_TO_FETCH=7
-    ZAWS_S3_CACHE="~/.zaws/s3-cache"
+    ZAWS_S3_CACHE="#{Dir.home}/.zaws/s3-cache"
 
     def initialize(shellout,aws)
       @shellout=shellout
@@ -11,11 +14,18 @@ module ZAWS
     end
 
     def get_cloud_trail_by_bucket(region,bucket_name)
-      dir_name=@aws.s3.bucket.sync(region,bucket_name,"#{ZAWS_S3_CACHE}/#{bucket_name}")
+      bucket_name = "s3://#{bucket_name}" if !bucket_name.match('s3://.*')
+      bucket_hash = Digest::SHA1.hexdigest("#{region}#{bucket_name}")
+
+      dir_name = "#{ZAWS_S3_CACHE}/#{bucket_hash}"
+      FileUtils.mkdir_p(dir_name)
+
+      dir_name = @aws.s3.bucket.sync(region,bucket_name,dir_name)
+
       results = []
       Dir.open(dir_name) { |dir|
         Dir.glob(File.join(dir, '**', '*')) { |filename|
-          File.open(filename) { |file|
+          Zlib::GzipReader.open(filename) { |file|
             results.push JSON.parse file.read
           } if File.file? filename
         }
