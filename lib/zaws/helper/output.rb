@@ -43,10 +43,6 @@ module ZAWS
       end
 
       def self.cloudtrail(json_data, format = "csv")
-        if format == "raw"
-          return json_data
-        end
-
         parsed = JSON.parse(json_data)
         records = parsed["Records"]
 

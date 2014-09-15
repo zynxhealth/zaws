@@ -8,12 +8,13 @@ module ZAWS
 	  desc "view","View a cloud trail"
     option :trailName, :type => :string, :desc => "Name of the cloud trail to view", :aliases => :n
     option :bucket, :type => :string, :desc => "Name of the bucket where the cloud trail is stored", :aliases => :b
+    option :raw, :type => :boolean, :desc => "Return the cloud trail in its raw, json format", :aliases => :w, :default => false
     def view
       aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
       if options[:bucket]
-        aws.cloud_trail.get_cloud_trail_by_bucket(options[:region], options[:bucket])
+        aws.cloud_trail.get_cloud_trail_by_bucket(options[:region], options[:bucket], options[:raw], options[:verbose]?$stdout:nil)
       else
-        aws.cloud_trail.get_cloud_trail_by_name(options[:region], options[:trailName] ? options[:trailName] : 'default')
+        aws.cloud_trail.get_cloud_trail_by_name(options[:region], options[:trailName] ? options[:trailName] : 'default', options[:raw], options[:verbose]?$stdout:nil)
       end
     end
 

@@ -13,41 +13,47 @@ module ZAWS
       @aws=aws
     end
 
-    def get_cloud_trail_by_bucket(region,bucket_name)
+    def get_cloud_trail_by_bucket(region,bucket_name,as_raw=false,verbose=nil)
       bucket_name = "s3://#{bucket_name}" if !bucket_name.match('s3://.*')
       bucket_hash = Digest::SHA1.hexdigest("#{region}#{bucket_name}")
 
       dir_name = "#{ZAWS_S3_CACHE}/#{bucket_hash}"
       FileUtils.mkdir_p(dir_name)
 
-      dir_name = @aws.s3.bucket.sync(region,bucket_name,dir_name)
+      dir_name = @aws.s3.bucket.sync(region,bucket_name,dir_name,verbose)
 
       results = []
       Dir.open(dir_name) { |dir|
         Dir.glob(File.join(dir, '**', '*')) { |filename|
           Zlib::GzipReader.open(filename) { |file|
-            results.push JSON.parse file.read
+            log_file = JSON.parse file.read
+            results.push log_file['Records']
           } if File.file? filename
         }
       }
-      json = {:Results => results}.to_json
-      puts json
+        json = {:Records => results.flatten(1)}.to_json
+
+      if as_raw
+        puts json
+      else
+        puts ZAWS::Helper::Output.cloudtrail(json)
+      end
 
       json
     end
 
-    def get_cloud_trail_by_name(region, trail_name)
+    def get_cloud_trail_by_name(region,trail_name,as_raw=false, verbose=nil)
       available_cloud_trails = get_cloud_trails(region)
       bucket_name = available_cloud_trails.find { |available_cloud_trail|
         available_cloud_trail['Name'] === trail_name
       }['S3BucketName']
 
-      get_cloud_trail_by_bucket(region, bucket_name)
+      get_cloud_trail_by_bucket(region, bucket_name, as_raw, verbose)
     end
 
     def get_cloud_trails(region, verbose=nil)
-      comLine = "aws cloudtrail describe-trails --region #{region}"
-      cloud_trails = JSON.parse @shellout.cli(comLine, verbose)
+      com_line   = "aws cloudtrail describe-trails --region #{region}"
+      cloud_trails = JSON.parse @shellout.cli(com_line, verbose)
       cloud_trails['trailList']
     end
 
