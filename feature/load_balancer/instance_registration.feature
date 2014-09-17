@@ -35,7 +35,7 @@ Feature: Instance Registration
 	 """
     And I double `aws --region us-west-1 elb register-instances-with-load-balancer --load-balancer-name lbname --instances i-X` with stdout:
      """
-	 { "return" : "true" } 
+	 { "Instances" : [ { "InstanceId": "i-X" } ]  } 
 	 """
     When I run `bundle exec zaws load_balancer register_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the stdout should contain "New instance registered.\n" 
