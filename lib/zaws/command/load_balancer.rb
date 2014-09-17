@@ -20,7 +20,7 @@ module ZAWS
 		return val
 	  end
 
-	  desc "create_in_subnets","Create a new load balancer in the subnets specified by the option --cidrblocks."
+	  desc "create_in_subnet LOAD_BALANCER_NAME LB_PROTOCOL LB_PORT IN_PROTOCOL IN_PORT SECURITY_GROUP","Create a new load balancer in the subnets specified by the option --cidrblocks."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  option :cidrblocks,:type => :array, :desc => "subnet cidr blocks to attach to load balancer, one per avaialability zone.", :banner => "<cidrblocks>", :aliases => :u
 	  option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
