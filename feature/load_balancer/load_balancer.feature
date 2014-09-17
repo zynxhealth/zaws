@@ -39,6 +39,7 @@ Feature: Load Balancer
 	 """
 	 When I run `bundle exec zaws load_balancer create_in_subnet newlb tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
     Then the stdout should contain "Load balancer created.\n" 
+    And the exit status should be 0
 
   Scenario: Declare load balancer in vpc, Skip creation
    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
@@ -47,6 +48,7 @@ Feature: Load Balancer
      """
     When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1`
     Then the stdout should contain "Load balancer already exists. Skipping creation.\n" 
+    And the exit status should be 0
 
   Scenario: Delete
    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:

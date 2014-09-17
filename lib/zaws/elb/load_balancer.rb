@@ -57,6 +57,7 @@ module ZAWS
 		else
 		  textout.puts "Load balancer already exists. Skipping creation."
 		end
+                exit 0
 	  end
 
 	  def delete(region,lbname,textout=nil,verbose=nil)
@@ -90,8 +91,7 @@ module ZAWS
 		  comline+=" --load-balancer-name #{lbname}"
           comline+=" --instances #{instance_id}"
 		  newinstance=JSON.parse(@shellout.cli(comline,verbose))
-		  verbose.puts "DEBUG: newinstance=#{newinstance} TODO: need to know if it is returning a json object with a return key." if verbose
-		  textout.puts "New instance registered." if newinstance["return"] == "true"
+		  textout.puts "New instance registered." if newinstance["Instances"] 
 		else
 		  textout.puts "Instance already registered. Skipping registration."
 		end
@@ -129,9 +129,9 @@ module ZAWS
      	  comline="aws --region #{region} elb create-load-balancer-listeners"
 		  comline+=" --load-balancer-name #{lbname}"
           comline+=" --listeners '#{calculated_listener(lbprotocol,lbport,inprotocol,inport)}'"
-		  newlistener=JSON.parse(@shellout.cli(comline,verbose))
-		  verbose.puts "DEBUG: newinstance=#{newlistener} TODO: need to know if it is returning a json object with a return key." if verbose
-		  textout.puts "Listener created." if newlistener["return"] == "true"
+		  @shellout.cli(comline,verbose)
+                  verbose.puts "DEBUG: There is no return value, unnormal." if verbose
+		  textout.puts "Listener created." 
 		else
           textout.puts "Listerner exists. Skipping creation."
 		end

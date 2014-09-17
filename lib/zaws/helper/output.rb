@@ -62,6 +62,8 @@ module ZAWS
 
             str_out << "\n"
           end
+        elsif format == "raw"
+          str_out=json_data 
         end
 
         return str_out
