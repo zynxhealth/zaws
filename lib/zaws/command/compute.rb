@@ -41,11 +41,12 @@ module ZAWS
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
       option :nosdcheck, :type => :boolean, :desc => "No source dest check (primarily needed for NAT instances)", :banner => "<nosdcheck>", :aliases => :s, :default => false
       option :skipruncheck, :type => :boolean, :desc => "Flag to skip the running check during testing.", :banner => "<skipruncheck>", :aliases => :r, :default => false
-      option :volume, :type => :string, :desc => "volume (ex: --volume /dev/sdf)", :banner => "<volume>", :default => false
-      option :volsize, :type => :string, :desc => "volsize", :banner => "<volsize>", :default => false
+      option :volume, :type => :string, :desc => "volume (ex: --volume /dev/sdf)", :banner => "<volume>"
+      option :volsize, :type => :string, :desc => "volsize", :banner => "<volsize>"
+      option :tenancy, :type => :string, :desc => "tenancy can be defualt|dedicated", :banner => "<tenancy>" #AWS defaults to "default" when not specified
 	  def declare(externalid,image,owner,type,root,zone,key,sgroup) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		val=aws.ec2.compute.declare(externalid,image,owner,type,root,zone,key,sgroup,options[:privateip],options[:optimized],options[:apiterminate],options[:clienttoken],options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:nagios],options[:undofile],options[:nosdcheck],options[:skipruncheck],options[:volsize],options[:volume])
+		val=aws.ec2.compute.declare(externalid,image,owner,type,root,zone,key,sgroup,options[:privateip],options[:optimized],options[:apiterminate],options[:clienttoken],options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:nagios],options[:undofile],options[:nosdcheck],options[:skipruncheck],options[:volsize],options[:volume],options[:tenancy])
 		return val
 	  end
     

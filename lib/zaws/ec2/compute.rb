@@ -75,8 +75,15 @@ module ZAWS
 	  def random_clienttoken
 		(0...8).map { (65 + rand(26)).chr }.join
 	  end
+          
+          def placement_aggregate(zone,tenancy)
+              aggregate_value=[]
+              aggregate_value << "AvailabilityZone=#{zone}" if zone
+              aggregate_value << "Tenancy=#{tenancy}" if tenancy
+              aggregate_value.join(",")
+          end
 
-	  def declare(externalid,image,owner,nodetype,root,zone,key,sgroup,privateip,optimized,apiterminate,clienttoken,region,textout,verbose,vpcid,nagios,ufile,no_sdcheck,skip_running_check,volsize,volume)
+	  def declare(externalid,image,owner,nodetype,root,zone,key,sgroup,privateip,optimized,apiterminate,clienttoken,region,textout,verbose,vpcid,nagios,ufile,no_sdcheck,skip_running_check,volsize,volume,tenancy)
 		if ufile
 		  ZAWS::Helper::ZFile.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete instance',ufile)
 		end
@@ -86,7 +93,7 @@ module ZAWS
 		  clienttoken=random_clienttoken if not clienttoken
 		  comline = "aws --region #{region} ec2 run-instances --image-id #{image} --key-name #{key} --instance-type #{nodetype}"
 		  #comline = comline + " --user-data 'file://#{options[:userdata]}'" if options[:userdata]
-		  comline = comline + " --placement AvailabilityZone=#{zone}" if zone
+		  comline = comline + " --placement #{placement_aggregate(zone,tenancy)}" if zone or tenancy
 		  comline = comline + " --block-device-mappings '#{block_device_mapping(region,owner,verbose,root,image)}'" if root
 		  comline = apiterminate ? comline + " --enable-api-termination" : comline + " --disable-api-termination"
 		  comline = comline + " --client-token #{clienttoken}"

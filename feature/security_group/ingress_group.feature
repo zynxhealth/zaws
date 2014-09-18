@@ -56,7 +56,7 @@ Feature: Security Group
      """
       {	"SecurityGroups": [] }
      """
-    And I double `aws --region us-west-1 ec2 authorize-security-group-ingress --group-id X_target_group_name --source-security-group-owner-id X_source_group_name --protocol tcp --port 443` with stdout:
+    And I double `aws --region us-west-1 ec2 authorize-security-group-ingress --group-id X_target_group_name --source-group X_source_group_name --protocol tcp --port 443` with stdout:
      """
       {	"return": "true" }
      """
@@ -174,7 +174,7 @@ Feature: Security Group
 					 "GroupId": "X_source_group_name" } ],
 			      "FromPort": 443 } ] } ] }
      """
-    And I double `aws --region us-west-1 ec2 revoke-security-group-ingress --group-id X_target_group_name --source-security-group-owner-id X_source_group_name --protocol tcp --port 443` with stdout:
+    And I double `aws --region us-west-1 ec2 revoke-security-group-ingress --group-id X_target_group_name --source-group X_source_group_name --protocol tcp --port 443` with stdout:
      """
        { "return": "true" }         
      """
