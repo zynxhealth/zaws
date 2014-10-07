@@ -153,7 +153,7 @@ module ZAWS
       def delete_ingress_group(region, vpcid, target, source, protocol, port, textout=nil, verbose=nil)
         ingress_exists, targetid, sourceid = ingress_group_exists(region, vpcid, target, source, protocol, port, nil, verbose)
         if ingress_exists
-          comline="aws --region #{region} ec2 revoke-security-group-ingress --group-id #{targetid} --source-security-group-owner-id #{sourceid} --protocol #{protocol} --port #{port}"
+          comline="aws --region #{region} ec2 revoke-security-group-ingress --group-id #{targetid} --source-group #{sourceid} --protocol #{protocol} --port #{port}"
           val=JSON.parse(@shellout.cli(comline, verbose))
           textout.puts "Security group ingress group rule deleted." if val["return"] == "true"
         else
