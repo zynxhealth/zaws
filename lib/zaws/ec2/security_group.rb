@@ -143,9 +143,9 @@ module ZAWS
         if not ingress_exists
           comline="aws --region #{region} ec2 authorize-security-group-ingress --group-id #{targetid} --cidr #{cidr} --protocol #{protocol} --port #{port}"
           ingressrule=JSON.parse(@shellout.cli(comline, verbose))
-          textout.puts "Ingress cidr rule created." if ingressrule["return"] == "true"
+          ZAWS::Helper::Output.out_change(textout, "Ingress cidr rule created.") if ingressrule["return"] == "true"
         else
-          textout.puts "Ingress cidr rule not created. Exists already."
+          ZAWS::Helper::Output.out_no_op(textout, "Ingress cidr rule not created. Exists already.")
         end
         return 0
       end
@@ -155,9 +155,9 @@ module ZAWS
         if ingress_exists
           comline="aws --region #{region} ec2 revoke-security-group-ingress --group-id #{targetid} --source-group #{sourceid} --protocol #{protocol} --port #{port}"
           val=JSON.parse(@shellout.cli(comline, verbose))
-          textout.puts "Security group ingress group rule deleted." if val["return"] == "true"
+          ZAWS::Helper::Output.out_change(textout,"Security group ingress group rule deleted.") if val["return"] == "true"
         else
-          textout.puts "Security group ingress group rule does not exist. Skipping deletion."
+          ZAWS::Helper::Output.out_no_op(textout, "Security group ingress group rule does not exist. Skipping deletion.")
         end
       end
 

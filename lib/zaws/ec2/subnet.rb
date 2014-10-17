@@ -54,7 +54,7 @@ module ZAWS
 		end
 		if not exists(region,nil,verbose,vpcid,cidrblock) 
           if nagios
-            textout.puts "CRITICAL: Subnet Does Not Exist."
+             ZAWS::Helper::Output.out_nagios_critical(textout,"CRITICAL: Subnet Does Not Exist.")
 			return 2
 		  end
 		  comline="aws --output json --region #{region} ec2 create-subnet --vpc-id #{vpcid} --cidr-block #{cidrblock} --availability-zone #{availabilityzone}"
@@ -66,16 +66,16 @@ module ZAWS
 				subnet=view(region,'json',nil,verbose,vpcid,cidrblock)
 			  end
 			end
-			textout.puts "Subnet created."
+			ZAWS::Helper::Output.out_change(textout, "Subnet created.")
 		  rescue Timeout::Error
 			throw 'Timeout before Subnet made available.'
 		  end
 		else
           if nagios
-            textout.puts "OK: Subnet Exists."
+            ZAWS::Helper::Output.out_nagios_ok(textout,"OK: Subnet Exists.")
 			return 0
 		  end
-		  textout.puts "No action needed. Subnet exists already."
+          ZAWS::Helper::Output.out_no_op(textout,"No action needed. Subnet exists already.")
 		end
 		return 0
 	  end

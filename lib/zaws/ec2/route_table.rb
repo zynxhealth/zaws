@@ -43,9 +43,9 @@ module ZAWS
 		  rtableid=rtable["RouteTable"]["RouteTableId"]
 		  tagline="aws --region #{region} ec2 create-tags --resources #{rtableid} --tags Key=externalid,Value=#{externalid}"
 		  tagresult=JSON.parse(@shellout.cli(tagline,verbose))
-		  textout.puts "Route table created with external id: my_route_table." if tagresult["return"] == "true"
+          ZAWS::Helper::Output.out_change(textout,"Route table created with external id: my_route_table.") if tagresult["return"] == "true"
 		else
-		  textout.puts "Route table exists already. Skipping Creation."
+          ZAWS::Helper::Output.out_no_op(textout,"Route table exists already. Skipping Creation.")
 		end
 		return 0
 	  end

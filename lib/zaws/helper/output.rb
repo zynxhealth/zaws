@@ -14,6 +14,22 @@ module ZAWS
   module Helper
     class Output
 
+	  def self.out_nagios_ok(output, text)
+        output.puts colorize(text,AWS_consts::COLOR_GREEN) if output
+	  end
+
+	  def self.out_nagios_critical(output, text)
+        output.puts colorize(text,AWS_consts::COLOR_RED) if output
+	  end
+
+	  def self.out_no_op(output, text)
+        output.puts colorize(text,AWS_consts::COLOR_GREEN) if output
+	  end
+
+      def self.out_change(output, text)
+        output.puts colorize(text,AWS_consts::COLOR_YELLOW) if output
+	  end
+
       def self.colorize(text, color_code)
         "\e[#{color_code}m#{text}\e[0m"
       end
@@ -34,10 +50,10 @@ module ZAWS
 
       def self.binary_nagios_check(ok_condition, ok_msg, critical_msg, textout=nil)
         if ok_condition
-          textout.puts ok_msg if textout
-          return 0
+          out_nagios_ok(textout, ok_msg) if textout
+		  return 0
         else
-          textout.puts critical_msg if textout
+          out_nagios_critical(textout, critical_msg) if textout
           return 2
         end
       end
