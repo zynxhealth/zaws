@@ -102,14 +102,14 @@ module ZAWS
 		  comline = comline + " --iam-instance-profile Name='#{profilename}'" if profilename
 		  comline = optimized ? comline + " --ebs-optimized" : comline + " --no-ebs-optimized"
 		  newinstance=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Instance created." if (newinstance["Instances"] and newinstance["Instances"][0]["InstanceId"])
+		  ZAWS::Helper::Output.out_change(textout,"Instance created.") if (newinstance["Instances"] and newinstance["Instances"][0]["InstanceId"])
 		  new_instanceid=newinstance["Instances"][0]["InstanceId"]
 		  tag_resource(region,new_instanceid,externalid,verbose)
 		  instance_running?(region,vpcid,externalid,60,5,verbose) if not skip_running_check
 		  add_volume(region,new_instanceid,externalid,privateip,volume,zone,volsize,verbose) if volume
 		  nosdcheck(region,new_instanceid,verbose) if no_sdcheck # Needed for NAT instances.
 		else
-		  textout.puts "Instance already exists. Creation skipped."
+		  ZAWS::Helper::Output.out_no_op(textout,"Instance already exists. Creation skipped.")
 		end
 
 	  end
@@ -119,9 +119,9 @@ module ZAWS
 		if compute_exists
 		  comline = "aws --region #{region} ec2 terminate-instances --instance-ids #{instance_id}"
 		  delinstance=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Instance deleted." if delinstance["TerimatingInstances"]
+		  ZAWS::Helper::Output.out_change(textout,"Instance deleted.") if delinstance["TerimatingInstances"]
 		else
-		  textout.puts "Instance does not exist. Skipping deletion." 
+		  ZAWS::Helper::Output.out_no_op(textout,"Instance does not exist. Skipping deletion.")
 		end
 	  end
 
@@ -147,9 +147,9 @@ module ZAWS
 		  comline = "aws --region #{region} ec2 modify-instance-attribute --instance-id #{instance_id} --groups #{sgroupid}"
 		  verbose.puts "comline=#{comline}" if verbose
 		  assocsgroup=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Security Group Association Changed." if assocsgroup["return"]=="true"
+		  ZAWS::Helper::Output.out_change(textout,"Security Group Association Changed.") if assocsgroup["return"]=="true"
 		else
-		  textout.puts "Security Group Association Not Changed." 	
+		  ZAWS::Helper::Output.out_no_op(textout,"Security Group Association Not Changed.")
 		end
 	  end
 
@@ -230,9 +230,9 @@ module ZAWS
 		  comline = "aws --output json --region #{region} ec2 assign-private-ip-addresses --network-interface-id '#{network_interface}' --private-ip-addresses '#{ip}'"
 		  $stdout.puts comline
 		  assignreturn = JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Secondary ip assigned." if assignreturn["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Secondary ip assigned.") if assignreturn["return"] == "true"
 		else
-		  textout.puts "Secondary ip already exists. Skipping assignment." 
+		  ZAWS::Helper::Output.out_no_op(textout,"Secondary ip already exists. Skipping assignment.")
 		end
 	  end
 
@@ -241,9 +241,9 @@ module ZAWS
 		if secondary_ip_exists and compute_exists
 		  comline = "aws --output json --region #{region} ec2 unassign-private-ip-addresses --network-interface-id '#{network_interface}' --private-ip-addresses '#{ip}'"
 		  assignreturn = JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Secondary ip deleted." if assignreturn["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Secondary ip deleted.") if assignreturn["return"] == "true"
 		else
-		  textout.puts "Secondary IP does not exists, skipping deletion." 
+		  ZAWS::Helper::Output.out_no_op(textout,"Secondary IP does not exists, skipping deletion.")
 		end
 	  end
 
