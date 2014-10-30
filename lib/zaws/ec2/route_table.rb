@@ -55,9 +55,9 @@ module ZAWS
         if rtable_exists
           comline="aws --region #{region} ec2 delete-route-table --route-table-id #{rtable_id}"
           deletion=JSON.parse(@shellout.cli(comline,verbose))
-          textout.puts "Route table deleted." if deletion["return"] == "true"
+          ZAWS::Helper::Output.out_change(textout,"Route table deleted.") if deletion["return"] == "true"
 		else
-		  textout.puts "Route table does not exist. Skipping deletion."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route table does not exist. Skipping deletion.")
 		end
 	  end
 
@@ -82,9 +82,9 @@ module ZAWS
 		if not route_exists
 		  comline="aws --region #{region} ec2 create-route --route-table-id #{rtable_id} --destination-cidr-block #{cidrblock} --instance-id #{instance_id}"
 		  routereturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Route created to instance." if routereturn["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Route created to instance.") if routereturn["return"] == "true"
 		else
-		  textout.puts "Route not created to instance. Skip creation."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route not created to instance. Skip creation.")
 		end
 		return 0
 	  end
@@ -96,9 +96,9 @@ module ZAWS
         if val
           comline="aws --region #{region} ec2 delete-route --route-table-id #{rtable_id} --destination-cidr-block #{cidrblock}"
           deletion=JSON.parse(@shellout.cli(comline,verbose))
-          textout.puts "Route deleted." if deletion["return"] == "true"
+          ZAWS::Helper::Output.out_change(textout,"Route deleted.") if deletion["return"] == "true"
 		else
-		  textout.puts "Route does not exist. Skipping deletion."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route does not exist. Skipping deletion.")
 		end
 	  end
 
@@ -122,9 +122,9 @@ module ZAWS
 		if not route_exists
 		  comline="aws --region #{region} ec2 create-route --route-table-id #{rtable_id} --destination-cidr-block #{cidrblock} --gateway-id #{gatewayid}"
 		  routereturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Route created to gateway." if routereturn["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Route created to gateway.") if routereturn["return"] == "true"
 		else
-		  textout.puts "Route to gateway exists. Skipping creation."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route to gateway exists. Skipping creation.")
 		end
 		return 0
 	  end
@@ -148,9 +148,9 @@ module ZAWS
 		if not assoc_exists
 		  comline="aws --region #{region} ec2 associate-route-table --subnet-id #{subnetid} --route-table-id #{rtableid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Route table associated to subnet." if assocreturn["AssociationId"] 
+		  ZAWS::Helper::Output.out_change(textout,"Route table associated to subnet.") if assocreturn["AssociationId"] 
 		else
-		  textout.puts "Route table already associated to subnet. Skipping association."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route table already associated to subnet. Skipping association.")
 		end
 		return 0
 	  end
@@ -160,9 +160,9 @@ module ZAWS
         if assoc_exists
 		  comline="aws --region #{region} ec2 disassociate-route-table --association-id #{rtassocid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Route table association to subnet deleted." if assocreturn["return"]  == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Route table association to subnet deleted.") if assocreturn["return"]  == "true"
 		else
-		  textout.puts "Route table association to subnet not deleted because it does not exist."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route table association to subnet not deleted because it does not exist.")
 		end
 	  end
 
@@ -183,9 +183,9 @@ module ZAWS
 		if not propagation_exists
 		  comline="aws --region #{region} ec2 enable-vgw-route-propagation --route-table-id #{rtableid} --gateway-id #{vgatewayid}"
 		  propreturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Route propagation from gateway enabled." if propreturn["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Route propagation from gateway enabled.") if propreturn["return"] == "true"
 		else
-		  textout.puts "Route propagation from gateway already enabled. Skipping propagation."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route propagation from gateway already enabled. Skipping propagation.")
 		end
 		return 0
 	  end
@@ -195,9 +195,9 @@ module ZAWS
         if propagation_exists
 		  comline="aws --region #{region} ec2 disable-vgw-route-propagation --route-table-id #{rtableid} --gateway-id #{vgatewayid}"
 		  assocreturn=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Deleted route propagation from gateway." if assocreturn["return"]  == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Deleted route propagation from gateway.") if assocreturn["return"]  == "true"
 		else
-		  textout.puts "Route propagation from gateway does not exist, skipping deletion."
+		  ZAWS::Helper::Output.out_no_op(textout,"Route propagation from gateway does not exist, skipping deletion.")
 		end
 	  end
 

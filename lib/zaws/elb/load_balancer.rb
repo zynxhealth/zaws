@@ -53,9 +53,9 @@ module ZAWS
 		  sgroup_exists,sgroupid = @aws.ec2.security_group.exists(region,nil,nil,vpcid,securitygroup)
 		  comline+=" --security-groups #{sgroupid}"
 		  newlb=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Load balancer created." if newlb["DNSName"]
+		  ZAWS::Helper::Output.out_change(textout,"Load balancer created.") if newlb["DNSName"]
 		else
-		  textout.puts "Load balancer already exists. Skipping creation."
+		  ZAWS::Helper::Output.out_no_op(textout,"Load balancer already exists. Skipping creation.")
 		end
                 exit 0
 	  end
@@ -66,9 +66,9 @@ module ZAWS
 		  comline="aws --region #{region} elb delete-load-balancer"
 		  comline+=" --load-balancer-name #{lbname}"
 		  deletelb=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Load balancer deleted." if deletelb["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Load balancer deleted.") if deletelb["return"] == "true"
 		else
-		  textout.puts "Load balancer does not exist. Skipping deletion." 
+		  ZAWS::Helper::Output.out_no_op(textout,"Load balancer does not exist. Skipping deletion." )
 		end
 	  end
 
@@ -91,9 +91,9 @@ module ZAWS
 		  comline+=" --load-balancer-name #{lbname}"
           comline+=" --instances #{instance_id}"
 		  newinstance=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "New instance registered." if newinstance["Instances"] 
+		  ZAWS::Helper::Output.out_change(textout,"New instance registered.") if newinstance["Instances"] 
 		else
-		  textout.puts "Instance already registered. Skipping registration."
+		  ZAWS::Helper::Output.out_no_op(textout,"Instance already registered. Skipping registration.")
 		end
 	  end
 
@@ -105,9 +105,9 @@ module ZAWS
           comline+=" --instances #{instance_id}"
 		  newinstance=JSON.parse(@shellout.cli(comline,verbose))
 		  verbose.puts "DEBUG: newinstance=#{newinstance} TODO: need to know if it is returning a json object with a return key." if verbose
-		  textout.puts "Instance deregistered." if newinstance["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Instance deregistered.") if newinstance["return"] == "true"
 		else
-		  textout.puts "Instance not registered. Skipping deregistration."
+		  ZAWS::Helper::Output.out_no_op(textout,"Instance not registered. Skipping deregistration.")
 		end
 	  end
 
@@ -131,9 +131,9 @@ module ZAWS
           comline+=" --listeners '#{calculated_listener(lbprotocol,lbport,inprotocol,inport)}'"
 		  @shellout.cli(comline,verbose)
                   verbose.puts "DEBUG: There is no return value, unnormal." if verbose
-		  textout.puts "Listener created." 
+		  ZAWS::Helper::Output.out_change(textout,"Listener created.")
 		else
-          textout.puts "Listerner exists. Skipping creation."
+          ZAWS::Helper::Output.out_no_op(textout,"Listerner exists. Skipping creation.")
 		end
 	  end
 
@@ -145,9 +145,9 @@ module ZAWS
           comline+=" --load-balancer-ports '#{lbport}'"
 		  dellistener=JSON.parse(@shellout.cli(comline,verbose))
 		  verbose.puts "DEBUG: newinstance=#{dellistener} TODO: need to know if it is returning a json object with a return key." if verbose
-		  textout.puts "Listerner deleted." if dellistener["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Listerner deleted.") if dellistener["return"] == "true"
 		else
-           textout.puts "Listener does not exist. Skipping deletion."
+           ZAWS::Helper::Output.out_no_op(textout,"Listener does not exist. Skipping deletion.")
 		end
 	  end
 

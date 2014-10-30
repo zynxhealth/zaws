@@ -20,7 +20,7 @@ describe ZAWS::EC2 do
 	textout=double('outout')
 	shellout=double('ZAWS::Helper::Shell')
     shellout.stub(:cli).with(anything(),anything()).and_return(empty_subnets,create_subnet_return,describe_subnets)
-	expect(textout).to receive(:puts).with('Subnet created.')
+	expect(textout).to receive(:puts).with(/Subnet created./)
 	aws=ZAWS::AWS.new(shellout)
 	aws.ec2.subnet.declare('us-west-1','vpc-XXXXXX','10.0.0.0/24','us-west-1a',30,textout)
 

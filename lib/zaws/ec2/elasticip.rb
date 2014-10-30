@@ -51,10 +51,10 @@ module ZAWS
 		  if allocation["AllocationId"]
 			comline="aws --region #{region} ec2 associate-address --instance-id #{instance_id} --allocation-id #{allocation["AllocationId"]}"
 			association=JSON.parse(@shellout.cli(comline,verbose))
-			textout.puts "New elastic ip associated to instance." if association["return"] == "true"
+			ZAWS::Helper::Output.out_change(textout,"New elastic ip associated to instance.") if association["return"] == "true"
 		  end
 		else
-		  textout.puts "instance already has an elastic ip. Skipping creation."
+		  ZAWS::Helper::Output.out_no_op(textout,"instance already has an elastic ip. Skipping creation.")
 		end
 	  end
 
@@ -66,10 +66,10 @@ module ZAWS
 		  if disassociation["return"]=="true"
 			comline="aws --region #{region} ec2 release-address --allocation-id #{allocation_id}"
 			release=JSON.parse(@shellout.cli(comline,verbose))
-			textout.puts "Deleted elasticip." if release["return"] == "true"
+			ZAWS::Helper::Output.out_change(textout,"Deleted elasticip.") if release["return"] == "true"
 		  end
 		else
-		  textout.puts "Elasticip does not exist. Skipping deletion."
+		 ZAWS::Helper::Output.out_no_op(textout,"Elasticip does not exist. Skipping deletion.")
 		end
 	  end
 

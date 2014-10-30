@@ -97,9 +97,9 @@ module ZAWS
 		if subnetid 
 		  comline="aws --region #{region} ec2 delete-subnet --subnet-id #{subnetid}"
           val=JSON.parse(@shellout.cli(comline,verbose))
-		  textout.puts "Subnet deleted." if val["return"] == "true"
+		  ZAWS::Helper::Output.out_change(textout,"Subnet deleted.") if val["return"] == "true"
 		else
-		  textout.puts "Subnet does not exist. Skipping deletion."
+		  ZAWS::Helper::Output.out_no_op(textout,"Subnet does not exist. Skipping deletion.")
 		end
 	  end
 
