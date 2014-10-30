@@ -45,9 +45,10 @@ module ZAWS
       option :volsize, :type => :string, :desc => "volsize", :banner => "<volsize>"
       option :tenancy, :type => :string, :desc => "tenancy can be defualt|dedicated", :banner => "<tenancy>" #AWS defaults to "default" when not specified
 	  option :profilename, :type => :string, :desc => "instance profile name", :banner => "<profilename>"
+	  option :userdata, :type => :string, :desc => "instance userdata yml filename", :banner => "<userdata>"
 	  def declare(externalid,image,owner,type,root,zone,key,sgroup) 
 		aws=(ZAWS::AWS.new(ZAWS::Helper::Shell.new))
-		val=aws.ec2.compute.declare(externalid,image,owner,type,root,zone,key,sgroup,options[:privateip],options[:optimized],options[:apiterminate],options[:clienttoken],options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:nagios],options[:undofile],options[:nosdcheck],options[:skipruncheck],options[:volsize],options[:volume],options[:tenancy],options[:profilename])
+		val=aws.ec2.compute.declare(externalid,image,owner,type,root,zone,key,sgroup,options[:privateip],options[:optimized],options[:apiterminate],options[:clienttoken],options[:region],$stdout,(options[:verbose]?$stdout:nil),options[:vpcid],options[:nagios],options[:undofile],options[:nosdcheck],options[:skipruncheck],options[:volsize],options[:volume],options[:tenancy],options[:profilename],options[:userdata])
 		return val
 	  end
     

@@ -83,7 +83,7 @@ module ZAWS
               aggregate_value.join(",")
           end
 
-	  def declare(externalid,image,owner,nodetype,root,zone,key,sgroup,privateip,optimized,apiterminate,clienttoken,region,textout,verbose,vpcid,nagios,ufile,no_sdcheck,skip_running_check,volsize,volume,tenancy,profilename)
+	  def declare(externalid,image,owner,nodetype,root,zone,key,sgroup,privateip,optimized,apiterminate,clienttoken,region,textout,verbose,vpcid,nagios,ufile,no_sdcheck,skip_running_check,volsize,volume,tenancy,profilename,userdata)
 		if ufile
 		  ZAWS::Helper::ZFile.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS",'#Delete instance',ufile)
 		end
@@ -100,6 +100,8 @@ module ZAWS
 		  comline = comline + " --network-interfaces '#{network_interface_json(region,verbose,vpcid,privateip[0],sgroup)}'" if privateip # Difference between vpc and classic
 		  #comline = comline + " --security-groups '#{options[:securitygroup]}'" if not options[:privateip]
 		  comline = comline + " --iam-instance-profile Name='#{profilename}'" if profilename
+		  comline = comline + " --user-data 'file://#{userdata}'" if userdata
+
 		  comline = optimized ? comline + " --ebs-optimized" : comline + " --no-ebs-optimized"
 		  newinstance=JSON.parse(@shellout.cli(comline,verbose))
 		  textout.puts "Instance created." if (newinstance["Instances"] and newinstance["Instances"][0]["InstanceId"])
@@ -155,9 +157,9 @@ module ZAWS
 
 	  def tag_resource(region,resourceid,externalid,verbose=nil)
 		comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags Key=externalid,Value=#{externalid}"
-		tag_creation=JSON.parse(@shellout.cli(comline,verbose))
+		tag_creation=@shellout.cli(comline,verbose)
 		comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags Key=Name,Value=#{externalid}"
-		tag_creation=JSON.parse(@shellout.cli(comline,verbose))
+		tag_creation=@shellout.cli(comline,verbose)
 	  end
 
 	  def nosdcheck(region,instanceid,verbose=nil)
