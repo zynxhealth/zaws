@@ -100,7 +100,7 @@ module ZAWS
           sgroups=JSON.parse(view(region, 'json', nil, verbose, vpcid, nil, targetid, sourceid, protocol, port))
           if (sgroups["SecurityGroups"].count > 0)
             # Additionally filter out the sgroups that do not have the source group  and port in the same ip permissions
-            sgroups["SecurityGroups"]=sgroups["SecurityGroups"].select { |x| x['IpPermissions'].any? { |y| y['ToPort'] and y['FromPort'] and y['ToPort']==port.to_i and y['FromPort']==port.to_i and y['UserIdGroupPairs'].any? { |z| z['GroupId']=="#{sourceid}" } } }
+            sgroups["SecurityGroups"]=sgroups["SecurityGroups"].select { |x| x['IpPermissions'].any? { |y| y['ToPort'] and y['FromPort'] and y['IpProtocol']==protocol and y['ToPort']==port.to_i and y['FromPort']==port.to_i and y['UserIdGroupPairs'].any? { |z| z['GroupId']=="#{sourceid}" } } }
           end
           val = (sgroups["SecurityGroups"].count > 0)
           textout.puts val.to_s if textout
