@@ -114,7 +114,7 @@ module ZAWS
           sgroups=JSON.parse(view(region, 'json', nil, verbose, vpcid, nil, targetid, nil, protocol, port, cidr))
           if (sgroups["SecurityGroups"].count > 0)
             # Additionally filter out the sgroups that do not have the cidr and port in the same ip permissions
-            sgroups["SecurityGroups"]=sgroups["SecurityGroups"].select { |x| x['IpPermissions'].any? { |y| y['ToPort'] and y['FromPort'] and y['ToPort']==port.to_i and y['FromPort']==port.to_i and y['IpRanges'].any? { |z| z['CidrIp']=="#{cidr}" } } }
+            sgroups["SecurityGroups"]=sgroups["SecurityGroups"].select { |x| x['IpPermissions'].any? { |y| y['ToPort'] and y['FromPort'] and y['IpProtocol']==protocol and y['ToPort']==port.to_i and y['FromPort']==port.to_i and y['IpRanges'].any? { |z| z['CidrIp']=="#{cidr}" } } }
           end
           val = (sgroups["SecurityGroups"].count > 0)
           textout.puts val.to_s if textout
