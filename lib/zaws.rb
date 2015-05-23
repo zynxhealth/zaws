@@ -27,6 +27,7 @@ require "zaws/elb/load_balancer"
 require "zaws/route53/hosted_zone"
 require "zaws/s3/bucket"
 require "thor"
+require "zaws/awscli"
 
 module ZAWS
   class ZAWSCLI < Thor
