@@ -12,15 +12,11 @@ module ZAWS
 	  end
 
 	  def view(region,view,textout=nil,verbose=nil,vpcid=nil,cidrblock=nil)
-		comline="aws --output #{view} --region #{region} ec2 describe-subnets"
-		if vpcid || cidrblock
-		  comline = comline + " --filter"
-		end
-		comline = comline + " 'Name=vpc-id,Values=#{vpcid}'" if vpcid 
-		comline = comline + " 'Name=cidr,Values=#{cidrblock}'" if cidrblock 
-		subnets=@shellout.cli(comline,verbose)
-		textout.puts(subnets) if textout
-		return subnets
+		filters = {}
+		filters["vpc-id"] = "#{vpcid}" if vpcid 
+        filters["cidr"] = "#{cidrblock}" if vpcid 
+		@aws.awscli.command_ec2.DescribeSubnet.execute(region,view,filters,textout,verbose)
+		@aws.awscli.data_ec2.subnet.view()
 	  end
 
 	  def id_by_ip(region,textout=nil,verbose=nil,vpcid,ip)
@@ -49,35 +45,43 @@ module ZAWS
 	  end
 
 	  def declare(region,vpcid,cidrblock,availabilityzone,statetimeout,textout=nil,verbose=nil,nagios=false,ufile=nil)
+
+		subnet_exists=exists(region,nil,verbose,vpcid,cidrblock) 
+
         if ufile
           ZAWS::Helper::ZFile.prepend("zaws subnet delete #{cidrblock} #{vpcid} --region #{region} $XTRA_OPTS",'#Delete subnet',ufile)
 		end
-		if not exists(region,nil,verbose,vpcid,cidrblock) 
-          if nagios
-             ZAWS::Helper::Output.out_nagios_critical(textout,"CRITICAL: Subnet Does Not Exist.")
-			return 2
-		  end
-		  comline="aws --output json --region #{region} ec2 create-subnet --vpc-id #{vpcid} --cidr-block #{cidrblock} --availability-zone #{availabilityzone}"
-		  subnet=@shellout.cli(comline,verbose)
-		  begin
-			Timeout.timeout(statetimeout) do
-			  until available(subnet,verbose)
-				sleep(1)
-				subnet=view(region,'json',nil,verbose,vpcid,cidrblock)
-			  end
-			end
-			ZAWS::Helper::Output.out_change(textout, "Subnet created.")
-		  rescue Timeout::Error
-			throw 'Timeout before Subnet made available.'
-		  end
-		else
-          if nagios
-            ZAWS::Helper::Output.out_nagios_ok(textout,"OK: Subnet Exists.")
-			return 0
-		  end
-          ZAWS::Helper::Output.out_no_op(textout,"No action needed. Subnet exists already.")
+	
+		if nagios
+           if not subnet_exists
+			 ZAWS::Helper::Output.out_nagios_critical(textout,"CRITICAL: Subnet Does Not Exist.")
+			 return 2
+		   else
+		     ZAWS::Helper::Output.out_nagios_ok(textout,"OK: Subnet Exists.")
+		   	 return 0
+           end
 		end
+
+		if subnet_exists
+          ZAWS::Helper::Output.out_no_op(textout,"No action needed. Subnet exists already.")
+		  return 0
+        end
+
+		@aws.awscli.command_ec2.CreateSubnet.execute(region,vpcid,cidrblock,availabilityzone,verbose)
+		begin
+		  Timeout.timeout(statetimeout) do
+			until @aws.awscli.data_ec2.subnet.available()
+			  sleep(1)
+			  @aws.awscli.command_ec2.DescribeSubnet.execute(region,vpcid,cidrblock,verbose)
+			end
+		  end
+		  ZAWS::Helper::Output.out_change(textout, "Subnet created.")
+		rescue Timeout::Error
+		  throw 'Timeout before Subnet made available.'
+		end
+		
 		return 0
+
 	  end
 
 	  def available(subnet,verbose)

@@ -28,6 +28,7 @@ require "zaws/route53/hosted_zone"
 require "zaws/s3/bucket"
 require "thor"
 require "zaws/awscli"
+Dir["#{File.dirname(__FILE__)}/zaws/awscli/**/*.rb"].each { |item| load(item)}
 
 module ZAWS
   class ZAWSCLI < Thor
