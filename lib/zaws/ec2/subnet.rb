@@ -14,7 +14,7 @@ module ZAWS
 	  def view(region,view,textout=nil,verbose=nil,vpcid=nil,cidrblock=nil)
 		filters = {}
 		filters["vpc-id"] = "#{vpcid}" if vpcid 
-        filters["cidr"] = "#{cidrblock}" if vpcid 
+        filters["cidr"] = "#{cidrblock}" if cidrblock 
 		@aws.awscli.command_ec2.DescribeSubnet.execute(region,view,filters,textout,verbose)
 		@aws.awscli.data_ec2.subnet.view()
 	  end
@@ -72,7 +72,7 @@ module ZAWS
 		  Timeout.timeout(statetimeout) do
 			until @aws.awscli.data_ec2.subnet.available()
 			  sleep(1)
-			  @aws.awscli.command_ec2.DescribeSubnet.execute(region,vpcid,cidrblock,verbose)
+			  view(region,'json',nil,verbose,vpcid,cidrblock)
 			end
 		  end
 		  ZAWS::Helper::Output.out_change(textout, "Subnet created.")

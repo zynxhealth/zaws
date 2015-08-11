@@ -19,7 +19,7 @@ module ZAWS
 
 		  def load(command,data,textout)
 			@subnet_raw_data = data 
-			textout.puts(@subnet_raw_data) if textout
+			textout.puts(@subnet_raw_data) if textout 
 			@subnet_hash=nil
 			begin
 			  @subnet_hash =JSON.parse(data)
