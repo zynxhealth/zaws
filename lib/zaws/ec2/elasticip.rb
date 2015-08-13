@@ -51,7 +51,7 @@ module ZAWS
 		  if allocation["AllocationId"]
 			comline="aws --region #{region} ec2 associate-address --instance-id #{instance_id} --allocation-id #{allocation["AllocationId"]}"
 			association=JSON.parse(@shellout.cli(comline,verbose))
-			ZAWS::Helper::Output.out_change(textout,"New elastic ip associated to instance.") if association["AssociationId"] == "true"
+			ZAWS::Helper::Output.out_change(textout,"New elastic ip associated to instance.") if association["AssociationId"] 
 		  end
 		else
 		  ZAWS::Helper::Output.out_no_op(textout,"instance already has an elastic ip. Skipping creation.")

@@ -39,7 +39,7 @@ Feature: Elasticip
 	 """
 	 And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --allocation-id eipalloc-abcd1234` with stdout:
      """
-	 {  "return": "true" }
+	 { "AssociationId": "xxx" }
 	 """
     When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --verbose`
 	Then the output should contain "New elastic ip associated to instance.\n" 
@@ -127,7 +127,7 @@ Feature: Elasticip
 	 """
 	And I double `aws --region us-west-1 ec2 associate-address --instance-id i-abc1234 --allocation-id eipalloc-abcd1234` with stdout:
      """
-	 {  "return": "true" }
+	 { "AssociationId": "xxx" }
 	 """
     Given an empty file named "undo.sh.1" 
 	When I run `bundle exec zaws elasticip declare my_instance --region us-west-1 --vpcid my_vpc_id --undofile undo.sh.1 --verbose`
