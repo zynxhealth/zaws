@@ -13,7 +13,7 @@ module ZAWS
 
 	  def view(region,view,textout=nil,verbose=nil,vpcid=nil,instanceid=nil)
 		comline="aws --output #{view} --region #{region} ec2 describe-addresses"
-		if vpcid 
+		if vpcid or instanceid 
 		  comline = comline + " --filter"
 		end
 		comline = comline + " 'Name=domain,Values=vpc'" if vpcid 
@@ -51,7 +51,7 @@ module ZAWS
 		  if allocation["AllocationId"]
 			comline="aws --region #{region} ec2 associate-address --instance-id #{instance_id} --allocation-id #{allocation["AllocationId"]}"
 			association=JSON.parse(@shellout.cli(comline,verbose))
-			ZAWS::Helper::Output.out_change(textout,"New elastic ip associated to instance.") if association["return"] == "true"
+			ZAWS::Helper::Output.out_change(textout,"New elastic ip associated to instance.") if association["AssociationId"] == "true"
 		  end
 		else
 		  ZAWS::Helper::Output.out_no_op(textout,"instance already has an elastic ip. Skipping creation.")
