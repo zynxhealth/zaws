@@ -4,13 +4,10 @@ module ZAWS
      class EC2
        class Subnet
 
-		  attr_accessor
-		  
           def initialize(shellout,ec2)
                 @shellout=shellout
                 @ec2=ec2
-			@subnet_hash=nil
-
+		     	@subnet_hash=nil
           end
 
 		  def validJSON

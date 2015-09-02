@@ -40,10 +40,11 @@ describe ZAWS::EC2Services::Subnet do
 
   let(:vac_create_subnet) {"aws --output json --region #{vap_region} ec2 create-subnet --vpc-id #{vap_vpcid} --cidr-block #{vap_cidr} --availability-zone #{vap_az}"}
 
+  let(:var_subnet_pending) {'{ "Subnet": { "State": "pending" } }'}
+
   let(:var_subnet_available) {'{ "Subnet": { "State": "available" } }'}
   
 
-  
   let(:options) { {:region => vap_region, 
 				   :verbose => nil,
                    :availabilitytimeout => 30,
@@ -101,25 +102,11 @@ describe ZAWS::EC2Services::Subnet do
 	  end
 	end
 
-	it "declare subnet " do
-
-	  empty_subnets = <<-eos
-		{   "Subnets": []  }
-	  eos
-
-	  create_subnet_return = <<-eos
-		{ "Subnet": { "State": "pending" } }        
-	  eos
-	  
-	  # example output for: aws ec2 escribe-subnets
-	  describe_subnets = <<-eos
-		{ "Subnets": [  {  "State": "available"  }  ] }
-	  eos
-
-	  @shellout.stub(:cli).with(anything(),anything()).and_return(empty_subnets,create_subnet_return,describe_subnets)
-	  expect(@textout).to receive(:puts).with(/Subnet created./)
-	  @aws.ec2.subnet.declare('us-west-1','vpc-XXXXXX','10.0.0.0/24','us-west-1a',30,@textout)
-
+	it "declare subnet and wait through pending state" do
+	  expect(@shellout).to receive(:cli).with(anything(),anything()).and_return(var_subnets_not_exist,var_subnet_pending,var_subnet_available)
+	  expect(@textout).to receive(:puts).with(subnet_created)
+      expect(@textout).to receive(:puts).with(0)
+	  @command_subnet.declare(vap_cidr,vap_az,vap_vpcid)
 	end
 
   end
