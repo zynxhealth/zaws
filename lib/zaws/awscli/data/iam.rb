@@ -7,9 +7,9 @@ module ZAWS
 		  @aws=aws
 		end
 
-		def rolePolicy 
-		  @_RolePolicy ||= (ZAWS::AWSCLI::Data::IAM::RolePolicy.new(@shellout,self))
-		  return @_RolePolicy
+		def role_policy 
+		  @_role_policy ||= (ZAWS::AWSCLI::Data::IAM::RolePolicy.new(@shellout,self))
+		  return @_role_policy
 		end
 
 	  end

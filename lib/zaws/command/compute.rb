@@ -99,26 +99,30 @@ module ZAWS
 		@aws.ec2.compute.delete_secondary_ip(options[:region],ip,@out,(options[:verbose]?@out:nil),options[:vpcid],externalid)
 	  end
 
-	  def interval_eligable(hours,name)
-
+	  desc "interval_eligible","present a list of instances by name eligible for start stop"
+      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
+      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+	  def interval_eligible
+        @aws.ec2.compute.interval_eligible(options[:role],options[:policy],options[:region],@out,(options[:verbose]?@out:nil))
 	  end
 
-	  def start_interval(hours,name)
-
-	  end
-
-	  def interval_cron(hours,name)
-
-	  end
-
-	  def start(name)
-
-	  end
-
-	  def stop(name)
-		
-	  end
-
+      #
+	  #def start_interval(hours,name)
+      #
+	  # end
+      #
+	  #def interval_cron()
+      # 
+	  #end
+      #
+	  # def start(name)
+      #
+	  # end
+      #
+	  # def stop(name)
+		#
+	  # end
+      #
 	end
   end
 end

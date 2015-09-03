@@ -21,9 +21,19 @@ module ZAWS
 	  return @_command_ec2
     end
 
+	def command_iam 
+	  @_command_iam ||= (ZAWS::AWSCLI::Commands::IAM.new(@shellout,self))
+	  return @_command_iam
+    end
+
 	def data_ec2
 	  @_data_ec2 ||= (ZAWS::AWSCLI::Data::EC2.new(@shellout,self))
 	  return @_data_ec2
+	end
+
+	def data_iam
+	  @_data_iam ||= (ZAWS::AWSCLI::Data::IAM.new(@shellout,self))
+	  return @_data_iam
 	end
 
   end

@@ -249,6 +249,13 @@ module ZAWS
 		end
 	  end
 
+	  def interval_eligible(role=nil,policy=nil,region,textout,verbose)
+		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
+		instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+        @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
+		instancenames = @aws.awscli.data_ec2.instance.names_by_ids(instanceids)
+		textout.puts(instancenames)
+	  end
 
 	end
   end

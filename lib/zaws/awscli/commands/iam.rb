@@ -7,7 +7,7 @@ module ZAWS
 		  @aws=aws
 		end
 
-		def GetRolePolicy 
+		def getRolePolicy 
 		  # http://docs.aws.amazon.com/cli/latest/reference/iam/get-role-policy.html
 		  @_getRolePolicy ||= (ZAWS::AWSCLI::Commands::IAM::GetRolePolicy.new(@shellout,@aws))
 		  return @_getRolePolicy

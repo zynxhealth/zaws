@@ -12,6 +12,12 @@ module ZAWS
 		  return @_Subnet
 		end
 
+		def instance 
+		  @_Instance ||= (ZAWS::AWSCLI::Data::EC2::Instance.new(@shellout,self))
+		  return @_Instance
+		end
+
+
 	  end
 	end
   end

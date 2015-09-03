@@ -31,6 +31,11 @@ module ZAWS
 	  @_cloud_trail ||= (ZAWS::CloudTrail.new(@shellout,self))
 	end
 
+	def iam
+	  @_iam ||= (ZAWS::IAM.new(@shellout,self))
+	end
+
+
   end
 end
 
