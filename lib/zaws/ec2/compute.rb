@@ -254,7 +254,75 @@ module ZAWS
 		instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
         @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
 		instancenames = @aws.awscli.data_ec2.instance.names_by_ids(instanceids)
-		textout.puts(instancenames)
+		textout.puts(instancenames) if textout
+	  end
+
+	  def set_interval(role=nil,policy=nil,name=nil,externalid=nil,hours,email,region,textout,verbose,overridebasetime)
+		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
+		allowed_instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+        @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
+		target_instanceid = @aws.awscli.data_ec2.instance.instanceid(name,externalid)
+        if allowed_instanceids =~ /#{target_instanceid}/
+		  now_time = overridebasetime ? overridebasetime.to_i : Time.now.to_i
+		  interval_time = now_time + (hours*60*60)
+		  tag_value="#{now_time};#{interval_time};#{email}"
+          @aws.awscli.command_ec2.createTags.execute(target_instanceid,region,'interval',tag_value,textout,verbose)
+   		  textout.puts("Instance #{name ? name : externalid} tagged: Key=interval,Value=#{tag_value}") if textout
+		else
+		  textout.puts("Target instance is not in the allowed list accoring to the specified role policy.")
+		end
+	  end
+
+	  def interval_cron(role=nil,policy=nil,region,textout,verbose,overridebasetime)
+		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
+		allowed_instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+        @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
+		allowed_instanceids.split("\n").each do |id|
+           instance_name = @aws.awscli.data_ec2.instance.name(id)
+		   instance_externalid = @aws.awscli.data_ec2.instance.name(id)
+           instance_status = @aws.awscli.data_ec2.instance.status(instance_name,instance_externalid)
+           if @aws.awscli.data_ec2.instance.has_interval?(id)
+               interval_start = @aws.awscli.data_ec2.instance.interval_start(id)
+               interval_end = @aws.awscli.data_ec2.instance.interval_end(id)
+               interval_email = @aws.awscli.data_ec2.instance.interval_email(id)
+               now_time = overridebasetime ? overridebasetime.to_i : Time.now.to_i
+			   if now_time > interval_end.to_i and instance_status == "running"
+        		  @aws.awscli.command_ec2.stopInstances.execute(id,region,textout,verbose)
+                  textout.puts("Instance #{instance_name} stopped.") if textout and instance_name
+			   end
+			   if now_time < interval_end.to_i and instance_status == "stopped"
+				  @aws.awscli.command_ec2.runInstances.execute(id,region,textout,verbose)
+                  textout.puts("Instance #{instance_name} started.") if textout and instance_name
+			   end
+		   else
+               textout.puts("Instance #{instance_name} does not have an interval set.")
+		   end
+		end
+	  end
+
+	  def start(name=nil,externalid=nil,region,textout,verbose,skip_running_check)
+        @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
+		instance_status = @aws.awscli.data_ec2.instance.status(name,externalid)
+        instance_id = @aws.awscli.data_ec2.instance.instanceid(name,externalid)
+		externalid = @aws.awscli.data_ec2.instance.externalid(instance_id)
+		case instance_status
+		when "stopped" 
+		  @aws.awscli.command_ec2.runInstances.execute(instance_id,region,textout,verbose)
+          instance_running?(region,nil,externalid,60,5,verbose) if not skip_running_check
+		  textout.puts("Instance #{name} started.") if textout and name
+		end
+	  end
+
+	  def stop(name=nil,externalid=nil,region,textout,verbose,skip_running_check)
+        @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
+		instance_status = @aws.awscli.data_ec2.instance.status(name,externalid)
+        instance_id = @aws.awscli.data_ec2.instance.instanceid(name,externalid)
+		externalid = @aws.awscli.data_ec2.instance.externalid(instance_id)
+		case instance_status
+		when "running" 
+		  @aws.awscli.command_ec2.stopInstances.execute(instance_id,region,textout,verbose)
+		  textout.puts("Instance #{name} stopped.") if textout and name
+		end
 	  end
 
 	end

@@ -6,12 +6,46 @@ describe ZAWS::EC2Services::Compute do
   let(:vap_role) {"my_role"}
   let(:vap_policy) {"my_policy"}
 
+  let(:vap_my_instance_id1) {"i-abcdefg1"}
+  let(:vap_my_instance_name1) {"my-name1"}
+  let(:vap_my_instance_id2) {"i-abcdefg2"}
+  let(:vap_my_instance_name2) {"my-name2"}
+  let(:vap_my_instance_id3) {"i-abcdefg3"}
+  let(:vap_my_instance_name3) {"my-name3"}
+
+
+
   let(:options) { {:region => vap_region,:viewtype => 'json'}}
   let(:options_role_policy) { {:region => vap_region,
 							   :viewtype => 'json',
 							   :role => vap_role,
 							   :policy => vap_policy,
                                :verbose => nil}}
+
+  let(:options_start_name) { {:region => vap_region,
+							  :name => vap_my_instance_name1,
+                              :verbose => nil,
+                              :skipruncheck => true}}
+
+  let(:options_stop_name) { {:region => vap_region,
+							  :name => vap_my_instance_name2,
+                              :verbose => nil,
+                              :skipruncheck => 0}}
+
+  let(:options_set_interval) { {:region => vap_region,
+                               :name => vap_my_instance_name2,
+							   :viewtype => 'json',
+							   :role => vap_role,
+							   :policy => vap_policy,
+                               :verbose => nil,
+                               :overridebasetime => 0}}
+
+  let(:options_interval_cron) { {:region => vap_region,
+							   :viewtype => 'json',
+							   :role => vap_role,
+							   :policy => vap_policy,
+                               :verbose => nil,
+                               :overridebasetime => 3601}}
 
   let(:var_policy) { <<-eos
 	  {
@@ -25,8 +59,8 @@ describe ZAWS::EC2Services::Compute do
 						  "ec2:StopInstances"
 					  ],
 					  "Resource": [
-						  "arn:aws:ec2:us-east-1:939117536548:instance/i-abcdefg1",
-					      "arn:aws:ec2:us-east-1:939117536548:instance/i-abcdefg2"
+						  "arn:aws:ec2:us-east-1:123456789012:instance/#{vap_my_instance_id1}",
+					      "arn:aws:ec2:us-east-1:123456789012:instance/#{vap_my_instance_id2}"
 					  ],
 					  "Effect": "Allow"
 				  }
@@ -41,7 +75,7 @@ describe ZAWS::EC2Services::Compute do
 		{
 			"Reservations": [
 				{
-					"OwnerId": "939117536548",
+					"OwnerId": "123456789012",
 					"ReservationId": "r-88ef5d66",
 					"Groups": [],
 					"Instances": [
@@ -50,11 +84,41 @@ describe ZAWS::EC2Services::Compute do
 								"Code": 80,
 								"Name": "stopped"
 							},
-							"InstanceId": "i-abcdefg1",
+							"InstanceId": "#{vap_my_instance_id1}",
 							"Tags": [
 								{
-									"Value": "my-name1",
+									"Value": "#{vap_my_instance_name1}",
 									"Key": "Name"
+								},
+								{
+									"Value": "0;7200;test@test.com",
+									"Key": "interval"
+								}
+
+							],
+							"AmiLaunchIndex": 0
+						}
+					]
+				},
+				{
+					"OwnerId": "123456789012",
+					"ReservationId": "r-88ef5d66",
+					"Groups": [],
+					"Instances": [
+						{
+							"State": {
+								"Code": 80,
+								"Name": "running"
+							},
+							"InstanceId": "#{vap_my_instance_id2}",
+							"Tags": [
+								{
+									"Value": "#{vap_my_instance_name2}",
+									"Key": "Name"
+								},
+								{
+									"Value": "0;3600;test@test.com",
+									"Key": "interval"
 								}
 							],
 							"AmiLaunchIndex": 0
@@ -62,7 +126,7 @@ describe ZAWS::EC2Services::Compute do
 					]
 				},
 				{
-					"OwnerId": "939117536548",
+					"OwnerId": "123456789012",
 					"ReservationId": "r-88ef5d66",
 					"Groups": [],
 					"Instances": [
@@ -71,10 +135,10 @@ describe ZAWS::EC2Services::Compute do
 								"Code": 80,
 								"Name": "stopped"
 							},
-							"InstanceId": "i-abcdefg2",
+							"InstanceId": "#{vap_my_instance_id3}",
 							"Tags": [
 								{
-									"Value": "my-name2",
+									"Value": "#{vap_my_instance_name3}",
 									"Key": "Name"
 								}
 							],
@@ -83,6 +147,7 @@ describe ZAWS::EC2Services::Compute do
 					]
 				}
 
+
 			]
 		}	
  	  eos
@@ -90,7 +155,6 @@ describe ZAWS::EC2Services::Compute do
 
   let(:vap_list_instance_ids) {"i-abcdefg1\ni-abcdefg2"}
   let(:var_list_instance_names) {"my-name1\nmy-name2"}
-
  
   before(:each) {
 	@textout=double('outout')
@@ -118,7 +182,6 @@ describe ZAWS::EC2Services::Compute do
   end
 
   describe "#tag_resource" do 
-
 	it "tags an instance when created" do
 	  tag_created = <<-eos
 		{ "return":"true" }
@@ -144,5 +207,71 @@ describe ZAWS::EC2Services::Compute do
  	  end
 	end
   end
+
+  describe "#start" do
+    context "the instance is stopped, the name as been provided and the name exists" do
+	  it "will start the instance" do
+		 @command_compute = ZAWS::Command::Compute.new([],options_start_name,{});
+		 @command_compute.aws=@aws
+		 @command_compute.out=@textout
+		 @command_compute.print_exit_code = true
+
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 start-instances --instance-ids #{vap_my_instance_id1}",nil).and_return(var_describe_instance)
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name1} started.")
+		 @command_compute.start()
+ 	  end
+	end
+  end
+
+  describe "#stop" do
+    context "the instance is running, the name as been provided and the name exists" do
+	  it "will stop the instance" do
+		 @command_compute = ZAWS::Command::Compute.new([],options_stop_name,{});
+		 @command_compute.aws=@aws
+		 @command_compute.out=@textout
+		 @command_compute.print_exit_code = true
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 stop-instances --instance-ids #{vap_my_instance_id2}",nil).and_return(var_describe_instance)
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} stopped.")
+		 @command_compute.stop()
+ 	  end
+	end
+  end
+
+  describe "#set_interval" do
+    context "the instance exists" do
+	  it "will tag instance with interval" do
+		 @command_compute = ZAWS::Command::Compute.new([],options_set_interval,{});
+		 @command_compute.aws=@aws
+		 @command_compute.out=@textout
+		 @command_compute.print_exit_code = true
+         expect(@shellout).to receive(:cli).with("aws --output json iam get-role-policy --role-name #{vap_role} --policy-name #{vap_policy}",nil).and_return(var_policy)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 create-tags --resources #{vap_my_instance_id2} --tags Key=interval,Value=0;3600;test@test.com",nil).and_return(var_describe_instance)
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} tagged: Key=interval,Value=0;3600;test@test.com")
+		 @command_compute.set_interval(1,"test@test.com")
+ 	  end
+	end
+  end
+
+  describe "#interval_cron" do
+    context "one instance set to start that is stopped, one vice versa, one other" do
+	  it "will start one, stop one, and nothing one" do
+		 @command_compute = ZAWS::Command::Compute.new([],options_interval_cron,{});
+		 @command_compute.aws=@aws
+		 @command_compute.out=@textout
+		 @command_compute.print_exit_code = true
+         expect(@shellout).to receive(:cli).with("aws --output json iam get-role-policy --role-name #{vap_role} --policy-name #{vap_policy}",nil).and_return(var_policy)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 start-instances --instance-ids #{vap_my_instance_id1}",nil).and_return(var_describe_instance)
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 stop-instances --instance-ids #{vap_my_instance_id2}",nil).and_return(var_describe_instance)
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name1} started.")
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} stopped.")
+		 @command_compute.interval_cron()
+ 	  end
+	end
+  end
+
 
 end

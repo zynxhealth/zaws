@@ -106,23 +106,40 @@ module ZAWS
         @aws.ec2.compute.interval_eligible(options[:role],options[:policy],options[:region],@out,(options[:verbose]?@out:nil))
 	  end
 
-      #
-	  #def start_interval(hours,name)
-      #
-	  # end
-      #
-	  #def interval_cron()
-      # 
-	  #end
-      #
-	  # def start(name)
-      #
-	  # end
-      #
-	  # def stop(name)
-		#
-	  # end
-      #
+      desc "set_interval",""
+      option :name, :type => :string, :desc => "Name", :banner => "<role>",  :default => nil
+      option :externalid, :type => :string, :desc => "Externalid", :banner => "<policy>",  :default => nil
+      option :overridebasetime, :type => :string, :desc => "Override basetime for testing, it will be used instead of now", :banner => "<overridebasetime>",  :default => nil
+      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
+      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+	  def set_interval(hours,email)
+         @aws.ec2.compute.set_interval(options[:role],options[:policy],options[:name],options[:externalid],hours,email,options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
+	  end
+      
+	  desc "interval_cron","This job will search through the hosts and stop and start hosts accourding to their interval tag setting"
+      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
+      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+      option :overridebasetime, :type => :string, :desc => "Override basetime for testing, it will be used instead of now", :banner => "<overridebasetime>",  :default => nil
+	  def interval_cron()
+          @aws.ec2.compute.interval_cron(options[:role],options[:policy],options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
+	  end
+      
+	  desc "start","start instance specified"
+      option :name, :type => :string, :desc => "Name", :banner => "<role>",  :default => nil
+      option :externalid, :type => :string, :desc => "Externalid", :banner => "<policy>",  :default => nil
+      option :skipruncheck, :type => :boolean, :desc => "Flag to skip the running check during testing.", :banner => "<skipruncheck>", :aliases => :r, :default => false
+	  def start()
+         @aws.ec2.compute.start(options[:name],options[:externalid],options[:region],@out,(options[:verbose]?@out:nil),options[:skipruncheck])
+	  end
+    
+	  desc "stop","stop instance specified"
+      option :name, :type => :string, :desc => "Name", :banner => "<role>",  :default => nil
+      option :externalid, :type => :string, :desc => "Externalid", :banner => "<policy>",  :default => nil
+      option :skipruncheck, :type => :boolean, :desc => "Flag to skip the running check during testing.", :banner => "<skipruncheck>", :aliases => :r, :default => false
+	  def stop()
+		 @aws.ec2.compute.stop(options[:name],options[:externalid],options[:region],@out,(options[:verbose]?@out:nil),options[:skipruncheck])
+	  end
+      
 	end
   end
 end

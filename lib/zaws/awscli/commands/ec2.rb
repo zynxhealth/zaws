@@ -22,6 +22,21 @@ module ZAWS
 		  return @_describeInstances
 		end
 
+		def runInstances 
+		  @_runInstances ||= (ZAWS::AWSCLI::Commands::EC2::RunInstances.new(@shellout,@aws))
+		  return @_runInstances
+		end
+
+		def stopInstances 
+		  @_stopInstances ||= (ZAWS::AWSCLI::Commands::EC2::StopInstances.new(@shellout,@aws))
+		  return @_stopInstances
+		end
+
+		def createTags 
+		  @_createTags ||= (ZAWS::AWSCLI::Commands::EC2::CreateTags.new(@shellout,@aws))
+		  return @_createTags
+		end
+
 
 	  end
 	end
