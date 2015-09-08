@@ -10,7 +10,7 @@ describe ZAWS::AWSCLI::Data::EC2::Instance do
 		{
 			"Reservations": [
 				{
-					"OwnerId": "939117536548",
+					"OwnerId": "123456789abc",
 					"ReservationId": "r-88ef5d66",
 					"Groups": [],
 					"Instances": [
@@ -31,7 +31,7 @@ describe ZAWS::AWSCLI::Data::EC2::Instance do
 					]
 				},
 				{
-					"OwnerId": "939117536548",
+					"OwnerId": "123456789abc",
 					"ReservationId": "r-88ef5d66",
 					"Groups": [],
 					"Instances": [

@@ -117,15 +117,15 @@ module ZAWS
 		  end
 
           def interval_start(instanceid)
-			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(";")[0] : "-1" 
+			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(":")[0] : "-1" 
 		  end
 
           def interval_end(instanceid)
-			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(";")[1] : "-1" 
+			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(":")[1] : "-1" 
 		  end
 
           def interval_email(instanceid)
-			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(";")[2] : "-1" 
+			return @ids_interval[instanceid] ?  @ids_interval[instanceid].split(":")[2] : "-1" 
 		  end
 
 		  def names_by_ids(instanceids)

@@ -100,28 +100,25 @@ module ZAWS
 	  end
 
 	  desc "interval_eligible","present a list of instances by name eligible for start stop"
-      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
-      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+      option :policy_arn, :type => :string, :desc => "Policy Arn", :banner => "<policy>",  :default => nil
 	  def interval_eligible
-        @aws.ec2.compute.interval_eligible(options[:role],options[:policy],options[:region],@out,(options[:verbose]?@out:nil))
+        @aws.ec2.compute.interval_eligible(options[:policy_arn],options[:region],@out,(options[:verbose]?@out:nil))
 	  end
 
-      desc "set_interval",""
+      desc "set_interval HOURS EMAIL",""
       option :name, :type => :string, :desc => "Name", :banner => "<role>",  :default => nil
       option :externalid, :type => :string, :desc => "Externalid", :banner => "<policy>",  :default => nil
       option :overridebasetime, :type => :string, :desc => "Override basetime for testing, it will be used instead of now", :banner => "<overridebasetime>",  :default => nil
-      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
-      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+      option :policy_arn, :type => :string, :desc => "Policy Arn", :banner => "<policy>",  :default => nil
 	  def set_interval(hours,email)
-         @aws.ec2.compute.set_interval(options[:role],options[:policy],options[:name],options[:externalid],hours,email,options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
+         @aws.ec2.compute.set_interval(options[:policy_arn],options[:name],options[:externalid],hours,email,options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
 	  end
       
-	  desc "interval_cron","This job will search through the hosts and stop and start hosts accourding to their interval tag setting"
-      option :role, :type => :string, :desc => "Role Name", :banner => "<role>",  :default => nil
-      option :policy, :type => :string, :desc => "Policy Name", :banner => "<policy>",  :default => nil
+	  desc "interval_cron POLICY_ARN","This job will search through the hosts and stop and start hosts accourding to their interval tag setting"
+      option :policy_arn, :type => :string, :desc => "Policy Arn", :banner => "<policy>",  :default => nil
       option :overridebasetime, :type => :string, :desc => "Override basetime for testing, it will be used instead of now", :banner => "<overridebasetime>",  :default => nil
 	  def interval_cron()
-          @aws.ec2.compute.interval_cron(options[:role],options[:policy],options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
+          @aws.ec2.compute.interval_cron(options[:policy_arn],options[:region],@out,(options[:verbose]?@out:nil),options[:overridebasetime])
 	  end
       
 	  desc "start","start instance specified"

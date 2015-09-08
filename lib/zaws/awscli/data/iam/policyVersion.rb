@@ -20,7 +20,14 @@ module ZAWS
 			@policy_ver_hash=nil
 			begin
 			  @policy_ver_hash =JSON.parse(data)
+			  push_policy_document(command,verbose)
 			rescue JSON::ParserError => e
+			end
+		  end
+
+		  def push_policy_document(command,verbose)
+			if @policy_ver_hash and @policy_ver_hash["PolicyVersion"] and @policy_ver_hash["PolicyVersion"]["Document"]
+               @iam.policy_document.load(command,@policy_ver_hash["PolicyVersion"]["Document"].to_json,verbose)
 			end
 		  end
 

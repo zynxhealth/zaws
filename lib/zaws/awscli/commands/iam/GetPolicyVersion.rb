@@ -9,7 +9,7 @@ module ZAWS
                 @awscli=awscli
           end
 
-          def execute(policy_arn,versoin,view,verbose)
+          def execute(policy_arn,version,view,verbose)
               comline="aws --output #{view} iam get-policy-version --policy-arn #{policy_arn} --version-id #{version}"
 			  @awscli.data_iam.policy_version.load(comline,@shellout.cli(comline,verbose),verbose)
 		  end

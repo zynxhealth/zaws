@@ -44,7 +44,7 @@ describe ZAWS::EC2Services::SecurityGroup do
 			  {
 				  "GroupName": "default",
 				  "VpcId": "vpc-1f6bb57a",
-				  "OwnerId": "939117536548",
+				  "OwnerId": "123456789012",
 				  "GroupId": "sg-B2345678"
 			  },
 			  {
@@ -82,7 +82,7 @@ describe ZAWS::EC2Services::SecurityGroup do
 		   ] }
 	  eos
 
-	  security_groups_filtered = '{"SecurityGroups":[{"GroupName":"default","VpcId":"vpc-1f6bb57a","OwnerId":"939117536548","GroupId":"sg-B2345678"},{"GroupName":"my_unused_group","VpcId":"vpc-12345678","OwnerId":"123456789012","GroupId":"sg-A2345678"}]}'
+	  security_groups_filtered = '{"SecurityGroups":[{"GroupName":"default","VpcId":"vpc-1f6bb57a","OwnerId":"123456789012","GroupId":"sg-B2345678"},{"GroupName":"my_unused_group","VpcId":"vpc-12345678","OwnerId":"123456789012","GroupId":"sg-A2345678"}]}'
 
 	  expect(@aws.ec2.security_group.filter_groups_by_instances(security_groups_raw,instances_raw)).to eq(security_groups_filtered)
 

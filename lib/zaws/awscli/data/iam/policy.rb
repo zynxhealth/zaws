@@ -25,10 +25,10 @@ module ZAWS
 		  end
 
 		  def view()
-			return @policy_doc_raw_data 
+			return @policy_raw_data 
 		  end
 
-		  def version()
+		  def defaultVersion()
 	        if @policy_hash and @policy_hash["Policy"] and @policy_hash["Policy"]["DefaultVersionId"]
 			  return @policy_hash["Policy"]["DefaultVersionId"]
 		    end

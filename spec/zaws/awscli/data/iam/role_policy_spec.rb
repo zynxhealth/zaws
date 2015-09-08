@@ -17,8 +17,8 @@ describe ZAWS::AWSCLI::Data::IAM do
 						  "ec2:StopInstances"
 					  ],
 					  "Resource": [
-						  "arn:aws:ec2:us-east-1:939117536548:instance/i-abcdefg1",
-					      "arn:aws:ec2:us-east-1:939117536548:instance/i-abcdefg2"
+						  "arn:aws:ec2:us-east-1:123456789abc:instance/i-abcdefg1",
+					      "arn:aws:ec2:us-east-1:123456789abc:instance/i-abcdefg2"
 					  ],
 					  "Effect": "Allow"
 				  }

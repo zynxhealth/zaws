@@ -13,13 +13,75 @@ describe ZAWS::EC2Services::Compute do
   let(:vap_my_instance_id3) {"i-abcdefg3"}
   let(:vap_my_instance_name3) {"my-name3"}
 
+  let(:vap_policy_arn) {"arn:aws:iam::123456789abc:policy/#{vap_policy}"}
+  let(:vap_policy_version) {"v2"}
 
+  let(:var_policy_doc) { <<-eos
+    {
+		"Version": "2012-10-17",
+		"Statement": [
+			{
+				"Action": [
+					"ec2:StartInstances",
+					"ec2:StopInstances",
+					"ec2:CreateTags"
+				],
+				"Resource": [
+					"arn:aws:ec2:us-east-1:123456789abc:instance/#{vap_my_instance_id1}",
+					"arn:aws:ec2:us-east-1:123456789abc:instance/#{vap_my_instance_id2}"
+				],
+				"Effect": "Allow"
+			},
+			{
+				"Action": [
+					"iam:GetPolicy",
+					"iam:GetPolicyVersion"
+				],
+				"Resource": [
+					"*"
+				],
+				"Effect": "Allow"
+			}
+		]
+	}
+  eos
+  }
+
+  let(:var_policy_version_doc) { <<-eos
+  {
+    "PolicyVersion": {
+        "CreateDate": "2015-09-08T06:14:59Z",
+        "VersionId": "v2",
+        "Document": #{var_policy_doc},
+        "IsDefaultVersion": true
+    }
+  }
+  eos
+  }
+
+  let(:var_policy_meta_data) { <<-eos
+	{
+		"Policy": {
+			"PolicyName": "#{vap_policy}",
+			"CreateDate": "2015-09-08T05:21:54Z",
+			"AttachmentCount": 1,
+			"IsAttachable": true,
+			"PolicyId": "123456789012345678901",
+			"DefaultVersionId": "#{vap_policy_version}",
+			"Path": "/",
+			"Arn": "#{vap_policy_arn}",
+			"UpdateDate": "2015-09-08T06:14:59Z"
+		}
+	} 
+  eos
+  }
+
+ 
 
   let(:options) { {:region => vap_region,:viewtype => 'json'}}
-  let(:options_role_policy) { {:region => vap_region,
+  let(:options_policy_arn) { {:region => vap_region,
 							   :viewtype => 'json',
-							   :role => vap_role,
-							   :policy => vap_policy,
+							   :policy_arn => vap_policy_arn,
                                :verbose => nil}}
 
   let(:options_start_name) { {:region => vap_region,
@@ -35,15 +97,13 @@ describe ZAWS::EC2Services::Compute do
   let(:options_set_interval) { {:region => vap_region,
                                :name => vap_my_instance_name2,
 							   :viewtype => 'json',
-							   :role => vap_role,
-							   :policy => vap_policy,
+    						   :policy_arn => vap_policy_arn,
                                :verbose => nil,
                                :overridebasetime => 0}}
 
   let(:options_interval_cron) { {:region => vap_region,
 							   :viewtype => 'json',
-							   :role => vap_role,
-							   :policy => vap_policy,
+    						   :policy_arn => vap_policy_arn,
                                :verbose => nil,
                                :overridebasetime => 3601}}
 
@@ -155,7 +215,8 @@ describe ZAWS::EC2Services::Compute do
 
   let(:vap_list_instance_ids) {"i-abcdefg1\ni-abcdefg2"}
   let(:var_list_instance_names) {"my-name1\nmy-name2"}
- 
+  let(:interval_val) {"0:3600:test@test.com"}
+
   before(:each) {
 	@textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
@@ -196,11 +257,12 @@ describe ZAWS::EC2Services::Compute do
   describe "#interval_eligible" do
     context "role policy exists" do
 	  it "lists the names of the instances" do
-		 @command_compute = ZAWS::Command::Compute.new([],options_role_policy,{});
+		 @command_compute = ZAWS::Command::Compute.new([],options_policy_arn,{});
 		 @command_compute.aws=@aws
 		 @command_compute.out=@textout
 		 @command_compute.print_exit_code = true
-         expect(@shellout).to receive(:cli).with("aws --output json iam get-role-policy --role-name #{vap_role} --policy-name #{vap_policy}",nil).and_return(var_policy)
+		 expect(@shellout).to receive(:cli).with("aws --output json iam get-policy --policy-arn #{vap_policy_arn}",nil).ordered.and_return(var_policy_meta_data)
+	     expect(@shellout).to receive(:cli).with("aws --output json iam get-policy-version --policy-arn #{vap_policy_arn} --version-id #{vap_policy_version}",nil).ordered.and_return(var_policy_version_doc)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
 		 expect(@textout).to receive(:puts).with("my-name1\nmy-name2")
 		 @command_compute.interval_eligible()
@@ -215,7 +277,6 @@ describe ZAWS::EC2Services::Compute do
 		 @command_compute.aws=@aws
 		 @command_compute.out=@textout
 		 @command_compute.print_exit_code = true
-
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 start-instances --instance-ids #{vap_my_instance_id1}",nil).and_return(var_describe_instance)
 		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name1} started.")
@@ -246,10 +307,11 @@ describe ZAWS::EC2Services::Compute do
 		 @command_compute.aws=@aws
 		 @command_compute.out=@textout
 		 @command_compute.print_exit_code = true
-         expect(@shellout).to receive(:cli).with("aws --output json iam get-role-policy --role-name #{vap_role} --policy-name #{vap_policy}",nil).and_return(var_policy)
+		 expect(@shellout).to receive(:cli).with("aws --output json iam get-policy --policy-arn #{vap_policy_arn}",nil).ordered.and_return(var_policy_meta_data)
+	     expect(@shellout).to receive(:cli).with("aws --output json iam get-policy-version --policy-arn #{vap_policy_arn} --version-id #{vap_policy_version}",nil).ordered.and_return(var_policy_version_doc)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
-         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 create-tags --resources #{vap_my_instance_id2} --tags Key=interval,Value=0;3600;test@test.com",nil).and_return(var_describe_instance)
-		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} tagged: Key=interval,Value=0;3600;test@test.com")
+         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 create-tags --resources #{vap_my_instance_id2} --tags Key=interval,Value=#{interval_val}",nil).and_return(var_describe_instance)
+		 expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} tagged: Key=interval,Value=#{interval_val}")
 		 @command_compute.set_interval(1,"test@test.com")
  	  end
 	end
@@ -262,7 +324,8 @@ describe ZAWS::EC2Services::Compute do
 		 @command_compute.aws=@aws
 		 @command_compute.out=@textout
 		 @command_compute.print_exit_code = true
-         expect(@shellout).to receive(:cli).with("aws --output json iam get-role-policy --role-name #{vap_role} --policy-name #{vap_policy}",nil).and_return(var_policy)
+         expect(@shellout).to receive(:cli).with("aws --output json iam get-policy --policy-arn #{vap_policy_arn}",nil).ordered.and_return(var_policy_meta_data)
+	     expect(@shellout).to receive(:cli).with("aws --output json iam get-policy-version --policy-arn #{vap_policy_arn} --version-id #{vap_policy_version}",nil).ordered.and_return(var_policy_version_doc)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances",nil).and_return(var_describe_instance)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 start-instances --instance-ids #{vap_my_instance_id1}",nil).and_return(var_describe_instance)
          expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 stop-instances --instance-ids #{vap_my_instance_id2}",nil).and_return(var_describe_instance)

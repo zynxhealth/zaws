@@ -249,33 +249,39 @@ module ZAWS
 		end
 	  end
 
-	  def interval_eligible(role=nil,policy=nil,region,textout,verbose)
-		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
-		instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+	  def interval_eligible(policy_arn=nil,region,textout,verbose)
+        @aws.awscli.command_iam.getPolicy.execute(policy_arn,'json',verbose)
+		version=@aws.awscli.data_iam.policy.defaultVersion
+		@aws.awscli.command_iam.getPolicyVersion.execute(policy_arn,version,'json',verbose)
+		instanceids = @aws.awscli.data_iam.policy_document.resource_instance_ids()
         @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
 		instancenames = @aws.awscli.data_ec2.instance.names_by_ids(instanceids)
 		textout.puts(instancenames) if textout
 	  end
 
-	  def set_interval(role=nil,policy=nil,name=nil,externalid=nil,hours,email,region,textout,verbose,overridebasetime)
-		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
-		allowed_instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+	  def set_interval(policy_arn=nil,name=nil,externalid=nil,hours,email,region,textout,verbose,overridebasetime)
+        @aws.awscli.command_iam.getPolicy.execute(policy_arn,'json',verbose)
+		version=@aws.awscli.data_iam.policy.defaultVersion
+		@aws.awscli.command_iam.getPolicyVersion.execute(policy_arn,version,'json',verbose)
+		allowed_instanceids = @aws.awscli.data_iam.policy_document.resource_instance_ids()
         @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
 		target_instanceid = @aws.awscli.data_ec2.instance.instanceid(name,externalid)
         if allowed_instanceids =~ /#{target_instanceid}/
 		  now_time = overridebasetime ? overridebasetime.to_i : Time.now.to_i
-		  interval_time = now_time + (hours*60*60)
-		  tag_value="#{now_time};#{interval_time};#{email}"
+		  interval_time = now_time + (hours.to_i*60*60)
+		  tag_value="#{now_time}:#{interval_time}:#{email}"
           @aws.awscli.command_ec2.createTags.execute(target_instanceid,region,'interval',tag_value,textout,verbose)
    		  textout.puts("Instance #{name ? name : externalid} tagged: Key=interval,Value=#{tag_value}") if textout
 		else
-		  textout.puts("Target instance is not in the allowed list accoring to the specified role policy.")
+		  textout.puts("Target instance is not in the allowed list accoring to the specified policy.")
 		end
 	  end
 
-	  def interval_cron(role=nil,policy=nil,region,textout,verbose,overridebasetime)
-		@aws.awscli.command_iam.getRolePolicy.execute(role,policy,'json',verbose)
-		allowed_instanceids = @aws.awscli.data_iam.role_policy.resource_instance_ids()
+	  def interval_cron(policy_arn=nil,region,textout,verbose,overridebasetime)
+        @aws.awscli.command_iam.getPolicy.execute(policy_arn,'json',verbose)
+		version=@aws.awscli.data_iam.policy.defaultVersion
+		@aws.awscli.command_iam.getPolicyVersion.execute(policy_arn,version,'json',verbose)
+		allowed_instanceids = @aws.awscli.data_iam.policy_document.resource_instance_ids()
         @aws.awscli.command_ec2.describeInstances.execute(region,'json',{},textout,verbose)
 		allowed_instanceids.split("\n").each do |id|
            instance_name = @aws.awscli.data_ec2.instance.name(id)
@@ -286,6 +292,9 @@ module ZAWS
                interval_end = @aws.awscli.data_ec2.instance.interval_end(id)
                interval_email = @aws.awscli.data_ec2.instance.interval_email(id)
                now_time = overridebasetime ? overridebasetime.to_i : Time.now.to_i
+			   verbose.puts "DEBUG: instance_name=#{instance_name},instance_externalid=#{instance_externalid}" if verbose
+			   verbose.puts "DEBUG: instance_status=#{instance_status},interval_email=#{interval_email}" if verbose
+			   verbose.puts "DEBUG: interval_start=#{interval_start},interval_end=#{interval_end}" if verbose
 			   if now_time > interval_end.to_i and instance_status == "running"
         		  @aws.awscli.command_ec2.stopInstances.execute(id,region,textout,verbose)
                   textout.puts("Instance #{instance_name} stopped.") if textout and instance_name

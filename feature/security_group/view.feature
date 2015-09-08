@@ -59,7 +59,7 @@ Feature: Security Group
           {
               "GroupName": "default",
               "VpcId": "vpc-1f6bb57a",
-              "OwnerId": "939117536548",
+              "OwnerId": "123456789012",
               "GroupId": "sg-B2345678"
           },
           {

@@ -23,8 +23,8 @@ describe ZAWS::IAMServices::Policy do
 					"ec2:CreateTags"
 				],
 				"Resource": [
-					"arn:aws:ec2:us-east-1:939117536548:instance/i-88b83d72",
-					"arn:aws:ec2:us-east-1:939117536548:instance/i-e1f62836"
+					"arn:aws:ec2:us-east-1:123456789012:instance/i-88b83d72",
+					"arn:aws:ec2:us-east-1:123456789012:instance/i-e1f62836"
 				],
 				"Effect": "Allow"
 			},
@@ -85,12 +85,12 @@ describe ZAWS::IAMServices::Policy do
 	@command_iam.print_exit_code = true
   }
 
-  describe "#view_latest_policy" do
-	it "view latest policy" do
+  describe "#view_default_policy_version" do
+	it "view default policy version" do
 	  expect(@shellout).to receive(:cli).with("aws --output json iam get-policy --policy-arn #{vap_policy_arn}",nil).ordered.and_return(var_policy_meta_data)
 	  expect(@shellout).to receive(:cli).with("aws --output json iam get-policy-version --policy-arn #{vap_policy_arn} --version-id #{vap_policy_version}",nil).ordered.and_return(var_policy_version_doc)
-	  expect(@textout).to receive(:puts).with().ordered
-	  @command_iam.view_latest_policy(vap_role,vap_policy)
+	  expect(@textout).to receive(:puts).with(var_policy_version_doc).ordered
+	  @command_iam.view_default_policy_version(vap_policy_arn)
 	end
   end
 
