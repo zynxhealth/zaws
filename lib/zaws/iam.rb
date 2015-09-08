@@ -15,6 +15,11 @@ module ZAWS
 	  return @_role
 	end
 	
+	def policy 
+	  @_policy ||= (ZAWS::IAMServices::Policy.new(@shellout,@aws))
+	  return @_policy
+	end
+	
   end
 end
 

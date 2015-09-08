@@ -18,10 +18,16 @@ module ZAWS
 		@print_exit_code = false
 	  end
 
-	  desc "view_role_policy","View compute instances."
+	  desc "view_role_policy ROLE POLICY","View inline role policy."
 	  option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
 	  def view_role_policy(role,policy)
 		@aws.iam.role.view_policy(role,policy,options[:viewtype],@out,options[:verbose]?@out:nil)
+	  end
+
+	  desc "view_default_policy POLICY_ARN","View default policy."
+	  option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
+	  def view_default_policy(policy_arn)
+		@aws.iam.policy.view_latest_policy(policy_arn,options[:viewtype],@out,options[:verbose]?@out:nil)
 	  end
 
 	end
