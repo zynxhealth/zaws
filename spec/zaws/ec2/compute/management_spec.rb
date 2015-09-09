@@ -151,7 +151,7 @@ describe ZAWS::EC2Services::Compute do
 									"Key": "Name"
 								},
 								{
-									"Value": "0;7200;test@test.com",
+									"Value": "0:7200:test@test.com",
 									"Key": "interval"
 								}
 
@@ -177,7 +177,7 @@ describe ZAWS::EC2Services::Compute do
 									"Key": "Name"
 								},
 								{
-									"Value": "0;3600;test@test.com",
+									"Value": "0:3600:test@test.com",
 									"Key": "interval"
 								}
 							],
