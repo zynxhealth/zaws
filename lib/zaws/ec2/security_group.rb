@@ -130,9 +130,10 @@ module ZAWS
         return ZAWS::Helper::Output.binary_nagios_check(ingress_exists, "OK: Security group ingress group rule exists.", "CRITICAL: Security group ingress group rule does not exist.", textout) if nagios
         if not ingress_exists
           comline="aws --region #{region} ec2 authorize-security-group-ingress --group-id #{targetid} --source-group #{sourceid} --protocol #{protocol} --port #{port}"
-          ingressrule=JSON.parse(@shellout.cli(comline, verbose))
-          ZAWS::Helper::Output.out_change(textout,"Ingress group rule created.") if ingressrule["return"] == "true"
-        else
+          # aws cli not returning json causes error.
+          @shellout.cli(comline, verbose)
+          ZAWS::Helper::Output.out_change(textout,"Ingress group rule created.") 
+		else
           ZAWS::Helper::Output.out_no_op(textout,"Ingress group rule not created. Exists already.")
         end
         return 0
@@ -146,8 +147,9 @@ module ZAWS
         return ZAWS::Helper::Output.binary_nagios_check(ingress_exists, "OK: Security group ingress cidr rule exists.", "CRITICAL: Security group ingress cidr rule does not exist.", textout) if nagios
         if not ingress_exists
           comline="aws --region #{region} ec2 authorize-security-group-ingress --group-id #{targetid} --cidr #{cidr} --protocol #{protocol} --port #{port}"
-          ingressrule=JSON.parse(@shellout.cli(comline, verbose))
-          ZAWS::Helper::Output.out_change(textout, "Ingress cidr rule created.") if ingressrule["return"] == "true"
+          # aws cli not returning json causes error.
+          @shellout.cli(comline, verbose)
+          ZAWS::Helper::Output.out_change(textout, "Ingress cidr rule created.") 
         else
           ZAWS::Helper::Output.out_no_op(textout, "Ingress cidr rule not created. Exists already.")
         end
