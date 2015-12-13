@@ -10,6 +10,11 @@ module ZAWS
 	  @aws=aws
 	end
 
+	def vpc
+	  @_vpc ||= (ZAWS::Services::EC2::VPC.new(@shellout,@aws))
+	  return @_vpc
+	end
+
 	def subnet 
 	  @_subnet ||= (ZAWS::Services::EC2::Subnet.new(@shellout,@aws))
 	  return @_subnet

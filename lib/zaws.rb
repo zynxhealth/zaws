@@ -33,41 +33,44 @@ Dir["#{File.dirname(__FILE__)}/zaws/**/*.rb"].each { |item| load(item) }
 module ZAWS
   class ZAWSCLI < Thor
 
-	desc "subnet","ec2 subnet(s)"
-	subcommand "subnet",ZAWS::Command::Subnet
+    desc "subnet", "ec2 subnet(s)"
+    subcommand "subnet", ZAWS::Command::Subnet
 
-	desc "security_group","ec2 security group(s)"
-	subcommand "security_group",ZAWS::Command::Security_Group
+    desc "security_group", "ec2 security group(s)"
+    subcommand "security_group", ZAWS::Command::Security_Group
 
-	desc "route_table","ec2 route table(s)"
-	subcommand "route_table",ZAWS::Command::Route_Table
+    desc "route_table", "ec2 route table(s)"
+    subcommand "route_table", ZAWS::Command::Route_Table
 
-	desc "compute","ec2 compute instance(s)"
-	subcommand "compute",ZAWS::Command::Compute
+    desc "compute", "ec2 compute instance(s)"
+    subcommand "compute", ZAWS::Command::Compute
 
-    desc "elasticip","ec2 elasticip(s)"
-	subcommand "elasticip",ZAWS::Command::Elasticip
+    desc "elasticip", "ec2 elasticip(s)"
+    subcommand "elasticip", ZAWS::Command::Elasticip
 
-    desc "load_balancer","elb load balancer(s)"
-	subcommand "load_balancer",ZAWS::Command::Load_Balancer
+    desc "load_balancer", "elb load balancer(s)"
+    subcommand "load_balancer", ZAWS::Command::Load_Balancer
 
-    desc "hosted_zone","elb hosted_zone(s)"
-	subcommand "hosted_zone",ZAWS::Command::Hosted_Zone
+    desc "hosted_zone", "elb hosted_zone(s)"
+    subcommand "hosted_zone", ZAWS::Command::Hosted_Zone
 
-	desc "cloud_trail","aws cloud trail"
-	subcommand "cloud_trail",ZAWS::Command::CloudTrail
+    desc "cloud_trail", "aws cloud trail"
+    subcommand "cloud_trail", ZAWS::Command::CloudTrail
 
-	desc "bucket","S3 storage bucket(s)"
-	subcommand "bucket",ZAWS::Command::Bucket
+    desc "bucket", "S3 storage bucket(s)"
+    subcommand "bucket", ZAWS::Command::Bucket
 
-	desc "iam","iam access control"
-	subcommand "iam",ZAWS::Command::IAM
-   
-	desc "version","Get the version of the Zynx AWS Automation Tool."
+    desc "iam", "iam access control"
+    subcommand "iam", ZAWS::Command::IAM
 
-	def version
-	  puts "zaws version #{ZAWS::VERSION}"
-	end
+    desc "vpc", "virtual private cloud (or vpc)"
+    subcommand "vpc", ZAWS::Command::VPC
+
+    desc "version", "Get the version of the Zynx AWS Automation Tool."
+
+    def version
+      puts "zaws version #{ZAWS::VERSION}"
+    end
 
   end
 end
