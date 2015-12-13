@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::EC2Services::Compute do 
+describe ZAWS::Services::EC2::Compute do
 
   let(:vap_region) {"us-west-1"}
   let(:vap_role) {"my_role"}

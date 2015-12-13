@@ -7,7 +7,7 @@ module ZAWS
     end
 
     def bucket()
-      @_bucket ||= (ZAWS::S3Services::Bucket.new(@shellout, @aws))
+      @_bucket ||= (ZAWS::Services::S3::Bucket.new(@shellout, @aws))
       return @_bucket
     end
 

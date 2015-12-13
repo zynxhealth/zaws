@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::EC2Services::Subnet do
+describe ZAWS::Services::EC2::Subnet do
   # var_ - Version A. awscli 1.2.13 Return
   # vap_ - Version A. awscli 1.2.13 Parameter 
   # vac_ - Version A. awscli 1.2.13 Command 

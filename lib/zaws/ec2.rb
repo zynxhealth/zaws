@@ -11,27 +11,27 @@ module ZAWS
 	end
 
 	def subnet 
-	  @_subnet ||= (ZAWS::EC2Services::Subnet.new(@shellout,@aws))
+	  @_subnet ||= (ZAWS::Services::EC2::Subnet.new(@shellout,@aws))
 	  return @_subnet
 	end
 	
 	def security_group
-	  @_security_group ||= (ZAWS::EC2Services::SecurityGroup.new(@shellout,@aws))
+	  @_security_group ||= (ZAWS::Services::EC2::SecurityGroup.new(@shellout,@aws))
 	  return @_security_group
 	end
 
 	def route_table 
-	  @_route_table ||= (ZAWS::EC2Services::RouteTable.new(@shellout,@aws))
+	  @_route_table ||= (ZAWS::Services::EC2::RouteTable.new(@shellout,@aws))
 	  return @_route_table
 	end
 	
 	def compute 
-	  @_compute ||= (ZAWS::EC2Services::Compute.new(@shellout,@aws))
+	  @_compute ||= (ZAWS::Services::EC2::Compute.new(@shellout,@aws))
 	  return @_compute
 	end
 		
 	def elasticip 
-	  @_elasticip ||= (ZAWS::EC2Services::Elasticip.new(@shellout,@aws))
+	  @_elasticip ||= (ZAWS::Services::EC2::Elasticip.new(@shellout,@aws))
 	  return @_elasticip
 	end
 	

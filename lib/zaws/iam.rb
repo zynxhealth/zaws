@@ -11,12 +11,12 @@ module ZAWS
 	end
 
 	def role 
-	  @_role ||= (ZAWS::IAMServices::Role.new(@shellout,@aws))
+	  @_role ||= (ZAWS::Services::IAM::Role.new(@shellout,@aws))
 	  return @_role
 	end
 	
 	def policy 
-	  @_policy ||= (ZAWS::IAMServices::Policy.new(@shellout,@aws))
+	  @_policy ||= (ZAWS::Services::IAM::Policy.new(@shellout,@aws))
 	  return @_policy
 	end
 	

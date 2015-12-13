@@ -11,7 +11,7 @@ module ZAWS
 	end
 
 	def load_balancer 
-	  @_load_balancer ||= (ZAWS::ELBServices::LoadBalancer.new(@shellout,@aws))
+	  @_load_balancer ||= (ZAWS::Services::ELB::LoadBalancer.new(@shellout,@aws))
 	  return @_load_balancer
 	end
 

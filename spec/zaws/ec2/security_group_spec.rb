@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::EC2Services::SecurityGroup do
+describe ZAWS::Services::EC2::SecurityGroup do
  
   before(:each) {
 	@textout=double('outout')

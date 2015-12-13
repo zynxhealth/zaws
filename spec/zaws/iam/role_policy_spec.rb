@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::IAMServices::Role do
+describe ZAWS::Services::IAM::Role do
   # var_ - Version A. awscli 1.2.13 Return
   # vap_ - Version A. awscli 1.2.13 Parameter 
   # vac_ - Version A. awscli 1.2.13 Command 

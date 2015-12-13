@@ -11,7 +11,7 @@ module ZAWS
 	end
 
 	def hosted_zone 
-	  @_hosted_zone ||= (ZAWS::Route53Services::HostedZone.new(@shellout,@aws))
+	  @_hosted_zone ||= (ZAWS::Services::Route53::HostedZone.new(@shellout,@aws))
 	  return @_hosted_zone
 	end
 		

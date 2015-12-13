@@ -1,6 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::EC2Services::Compute do 
+describe ZAWS::Services::EC2::Compute do
 
   volumes = <<-eos
 	{ "VolumeId": "vol-1234abcd" }
