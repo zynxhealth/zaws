@@ -17,9 +17,14 @@ module ZAWS
 		  return @_describeSubnet
 		end
 
-		def DescribeVPCs
+		def describeVPCs
 		  @_describeVPCs ||= (ZAWS::AWSCLI::Commands::EC2::DescribeVPCs.new(@shellout,@aws))
 		  return @_describeVPCs
+		end
+
+		def createVPC
+		  @_createVPC ||= (ZAWS::AWSCLI::Commands::EC2::CreateVPC.new(@shellout,@aws))
+		  return @_createVPC
 		end
 
 		def describeInstances 

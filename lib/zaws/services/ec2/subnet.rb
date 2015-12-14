@@ -17,7 +17,7 @@ module ZAWS
           filters["vpc-id"] = "#{vpcid}" if vpcid
           filters["cidr"] = "#{cidrblock}" if cidrblock
           @aws.awscli.command_ec2.DescribeSubnet.execute(region, view, filters, textout, verbose)
-          @aws.awscli.data_ec2.subnet.view()
+          @aws.awscli.data_ec2.subnet.view
         end
 
         def id_by_ip(region, textout=nil, verbose=nil, vpcid, ip)
@@ -71,7 +71,7 @@ module ZAWS
           @aws.awscli.command_ec2.CreateSubnet.execute(region, vpcid, cidrblock, availabilityzone, verbose)
           begin
             Timeout.timeout(statetimeout) do
-              until @aws.awscli.data_ec2.subnet.available()
+              until @aws.awscli.data_ec2.subnet.available
                 sleep(1)
                 view(region, 'json', nil, verbose, vpcid, cidrblock)
               end
