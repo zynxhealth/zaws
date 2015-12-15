@@ -14,7 +14,12 @@ module ZAWS
 
         def view(region, view, textout=nil, verbose=nil)
           @aws.awscli.command_ec2.describeVPCs.execute(region, view, {},verbose)
-          textout.puts @aws.awscli.data_ec2.vpc.view()
+          textout.puts @aws.awscli.data_ec2.vpc.view
+        end
+
+        def view_peering(region, view, textout=nil, verbose=nil)
+          @aws.awscli.command_ec2.describeVpcPeeringConnections.execute(region, view, {},verbose)
+          textout.puts @aws.awscli.data_ec2.vpc.view
         end
 
         def check_management_data(region, textout,verbose=nil,profile=nil)

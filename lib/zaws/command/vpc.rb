@@ -40,6 +40,12 @@ module ZAWS
 		    @out.puts(exitcode)
       end
 
+      desc "view_peering", "View peering connections between vpcs."
+      option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
+      def view_peering
+        @aws.ec2.vpc.view_peering(options[:region], options[:viewtype], @out, (options[:verbose] ? @out : nil))
+      end
+
     end
   end
 end

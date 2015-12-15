@@ -22,6 +22,11 @@ module ZAWS
 		  return @_describeVPCs
 		end
 
+		def describeVpcPeeringConnections
+		  @_describeVpcPeeringConnections ||= (ZAWS::AWSCLI::Commands::EC2::DescribeVpcPeeringConnections.new(@shellout,@aws))
+		  return @_describeVpcPeeringConnections
+		end
+
 		def createVPC
 		  @_createVPC ||= (ZAWS::AWSCLI::Commands::EC2::CreateVPC.new(@shellout,@aws))
 		  return @_createVPC

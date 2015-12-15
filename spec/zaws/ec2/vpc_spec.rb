@@ -166,8 +166,15 @@ describe ZAWS::Services::EC2::VPC do
       expect(@textout).to receive(:puts).with(0)
       @command_vpc.declare(p_cidr,p_externalid)
     end
-
   end
 
+  describe "#view_peering" do
+    it "display peering information in json" do
+      aws_statement="aws --output json --region #{p_region} ec2 describe-vpc-peering-connections"
+      expect(@shellout).to receive(:cli).with(aws_statement, nil).ordered.and_return('test output')
+      expect(@textout).to receive(:puts).with('test output').ordered
+      @command_vpc.view_peering
+    end
+  end
 
 end

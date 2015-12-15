@@ -23,6 +23,8 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "mixlib-shellout", "~> 1.1.0"
   spec.add_runtime_dependency "json", "~> 1.5.0"
 
+  spec.add_development_dependency "debase"
+  spec.add_development_dependency "ruby-debug-ide"
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "bundler"
   spec.add_development_dependency "rake"
