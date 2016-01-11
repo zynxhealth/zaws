@@ -17,8 +17,8 @@ module ZAWS
           if vpcid || externalid
             comline = comline + " --filter"
           end
-          comline = comline + " 'Name=vpc-id,Values=#{vpcid}'" if vpcid
-          comline = comline + " 'Name=tag:externalid,Values=#{externalid}'" if externalid
+          comline = comline + " \"Name=vpc-id,Values=#{vpcid}\"" if vpcid
+          comline = comline + " \"Name=tag:externalid,Values=#{externalid}\"" if externalid
           instances=@shellout.cli(comline, verbose)
           textout.puts(instances) if textout
           return instances
@@ -56,18 +56,19 @@ module ZAWS
           return new_hash.to_json
         end
 
-        def block_device_mapping(region, owner, verbose, rootsize, imageid)
-          image_descriptions=JSON.parse(view_images(region, 'json', owner, imageid, nil, verbose))
+        def block_device_mapping(region, owner, verbose, root_size, image_id)
+          image_descriptions=JSON.parse(view_images(region, 'json', owner, image_id, nil, verbose))
           image_mappings=image_descriptions['Images'][0]["BlockDeviceMappings"]
           image_root=image_descriptions['Images'][0]["RootDeviceName"]
           image_mappings.each do |x|
             if x["DeviceName"]==image_root
-              if x["Ebs"]["VolumeSize"].to_i > rootsize.to_i
-                raiseerror "The image root size is greater than the specified root size. image=#{x["Ebs"]["VolumeSize"]} > rootsize=#{rootsize}"
+              if x["Ebs"]["VolumeSize"].to_i > root_size.to_i
+                raise "The image root size is greater than the specified root size. image=#{x["Ebs"]["VolumeSize"]} > rootsize=#{root_size}"
                 exit 1
               end
-              x["Ebs"]["VolumeSize"]=rootsize.to_i
-              x["Ebs"].delete("Encrypted") if x["Ebs"]["SnapshotId"] #You cannot specify the encrypted flag if specifying a snapshot id in a block device mapping. -AWS
+              x["Ebs"]["VolumeSize"]=root_size.to_i
+              #You cannot specify the encrypted flag if specifying a snapshot id in a block device mapping. -AWS
+              x["Ebs"].delete("Encrypted") if x["Ebs"]["SnapshotId"]
             end
           end
           return image_mappings.to_json
@@ -95,13 +96,13 @@ module ZAWS
             comline = "aws --region #{region} ec2 run-instances --image-id #{image} --key-name #{key} --instance-type #{nodetype}"
             #comline = comline + " --user-data 'file://#{options[:userdata]}'" if options[:userdata]
             comline = comline + " --placement #{placement_aggregate(zone, tenancy)}" if zone or tenancy
-            comline = comline + " --block-device-mappings '#{block_device_mapping(region, owner, verbose, root, image)}'" if root
+            comline = comline + " --block-device-mappings \"#{block_device_mapping(region, owner, verbose, root, image).gsub("\"","\\\"")}\"" if root
             comline = apiterminate ? comline + " --enable-api-termination" : comline + " --disable-api-termination"
             comline = comline + " --client-token #{clienttoken}"
-            comline = comline + " --network-interfaces '#{network_interface_json(region, verbose, vpcid, privateip[0], sgroup)}'" if privateip # Difference between vpc and classic
+            comline = comline + " --network-interfaces \"#{network_interface_json(region, verbose, vpcid, privateip[0], sgroup).gsub("\"","\\\"")}\"" if privateip # Difference between vpc and classic
             #comline = comline + " --security-groups '#{options[:securitygroup]}'" if not options[:privateip]
-            comline = comline + " --iam-instance-profile Name='#{profilename}'" if profilename
-            comline = comline + " --user-data 'file://#{userdata}'" if userdata
+            comline = comline + " --iam-instance-profile Name=\"#{profilename}\"" if profilename
+            comline = comline + " --user-data \"file://#{userdata}\"" if userdata
 
             comline = optimized ? comline + " --ebs-optimized" : comline + " --no-ebs-optimized"
             newinstance=JSON.parse(@shellout.cli(comline, verbose))

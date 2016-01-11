@@ -33,13 +33,13 @@ module ZAWS
           if vpcid || groupname
             comline = comline + " --filter"
           end
-          comline = comline + " 'Name=vpc-id,Values=#{vpcid}'" if vpcid
-          comline = comline + " 'Name=group-name,Values=#{groupname}'" if groupname
-          comline = comline + " 'Name=group-id,Values=#{groupid}'" if groupid
-          comline = comline + " 'Name=ip-permission.group-id,Values=#{perm_groupid}'" if perm_groupid
-          comline = comline + " 'Name=ip-permission.cidr,Values=#{cidr}'" if cidr
-          comline = comline + " 'Name=ip-permission.protocol,Values=#{perm_protocol}'" if perm_protocol
-          comline = comline + " 'Name=ip-permission.to-port,Values=#{perm_toport}'" if perm_toport
+          comline = comline + " \"Name=vpc-id,Values=#{vpcid}\"" if vpcid
+          comline = comline + " \"Name=group-name,Values=#{groupname}\"" if groupname
+          comline = comline + " \"Name=group-id,Values=#{groupid}\"" if groupid
+          comline = comline + " \"Name=ip-permission.group-id,Values=#{perm_groupid}\"" if perm_groupid
+          comline = comline + " \"Name=ip-permission.cidr,Values=#{cidr}\"" if cidr
+          comline = comline + " \"Name=ip-permission.protocol,Values=#{perm_protocol}\"" if perm_protocol
+          comline = comline + " \"Name=ip-permission.to-port,Values=#{perm_toport}\"" if perm_toport
           sgroups=@shellout.cli(comline, verbose)
           if unused
             instances = @aws.ec2.compute.view(region, 'json', nil, verbose)

@@ -13,7 +13,7 @@ module ZAWS
             comline="aws --output #{view} --region #{region} ec2 describe-subnets"
             comline = comline + " --filter" if filters.length > 0
             filters.each do |key, item|
-              comline = comline + " 'Name=#{key},Values=#{item}'"
+              comline = comline + " \"Name=#{key},Values=#{item}\""
             end
             @awscli.data_ec2.subnet.load(comline, @shellout.cli(comline, verbose), textout)
           end
