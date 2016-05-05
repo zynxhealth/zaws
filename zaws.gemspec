@@ -22,6 +22,7 @@ Gem::Specification.new do |spec|
   spec.add_runtime_dependency "netaddr", "~> 1.5.0"
   spec.add_runtime_dependency "mixlib-shellout", "~> 1.1.0"
   spec.add_runtime_dependency "json", "~> 1.5.0"
+  spec.add_runtime_dependency "excon"
 
   spec.add_development_dependency "coveralls"
   spec.add_development_dependency "bundler"

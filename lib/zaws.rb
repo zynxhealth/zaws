@@ -66,6 +66,18 @@ module ZAWS
     desc "vpc", "virtual private cloud (or vpc)"
     subcommand "vpc", ZAWS::Command::VPC
 
+    desc "nessus", "tennable nessus"
+    subcommand "nessus", ZAWS::Command::Nessus
+
+    desc "ai", "artificial intelligence"
+    subcommand "ai", ZAWS::Command::AI
+
+    desc "sumo", "sumologic"
+    subcommand "sumo", ZAWS::Command::Sumo
+
+    desc "newrelic", "newrelic"
+    subcommand "newrelic", ZAWS::Command::Newrelic
+
     desc "version", "Get the version of the Zynx AWS Automation Tool."
 
     def version
