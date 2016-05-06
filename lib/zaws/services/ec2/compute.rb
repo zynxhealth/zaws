@@ -12,14 +12,22 @@ module ZAWS
           @aws=aws
         end
 
-        def view(region, viewtype, textout=nil, verbose=nil, vpcid=nil, externalid=nil)
-          comline="aws --output #{viewtype} --region #{region} ec2 describe-instances"
-          if vpcid || externalid
-            comline = comline + " --filter"
-          end
-          comline = comline + " \"Name=vpc-id,Values=#{vpcid}\"" if vpcid
-          comline = comline + " \"Name=tag:externalid,Values=#{externalid}\"" if externalid
-          instances=@shellout.cli(comline, verbose)
+        def view(region, viewtype, textout=nil, verbose=nil, vpcid=nil, externalid=nil,profile=nil,home=nil)
+          # comline="aws --output #{viewtype} --region #{region} ec2 describe-instances"
+          # if vpcid || externalid
+          #   comline = comline + " --filter"
+          # end
+          # comline = comline + " \"Name=vpc-id,Values=#{vpcid}\"" if vpcid
+          # comline = comline + " \"Name=tag:externalid,Values=#{externalid}\"" if externalid
+          # instances=@shellout.cli(comline, verbose)
+          # textout.puts(instances) if textout
+          # return instances
+          filters= {}
+          filters['vpc-id']=vpcid if vpcid
+          filters['tag:externalid']=externalid if externalid
+          @aws.awscli.home=home
+          @aws.awscli.command_ec2.describeInstances.execute(region, 'json',filters, textout, verbose,profile)
+          instances = @aws.awscli.data_ec2.instance.view
           textout.puts(instances) if textout
           return instances
         end

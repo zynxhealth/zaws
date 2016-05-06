@@ -29,6 +29,7 @@ module ZAWS
           end
           return @instance_raw_data
         end
+
       end
     end
   end

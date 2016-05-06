@@ -1,10 +1,19 @@
 
 module ZAWS
   class AWSCLI
+  attr_accessor :home
 
 	def initialize(shellout)
 	  @shellout=shellout
 	end
+
+  def filestore
+    @filestore ||= ZAWS::Repository::Filestore.new()
+		@home ||= ENV['HOME']
+    @filestore.location="#{@home}/.awsdata"
+    @filestore.timeout = 600
+    return @filestore
+  end
 
 	def version 
 	  if ! @version

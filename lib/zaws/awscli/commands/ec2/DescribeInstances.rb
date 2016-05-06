@@ -9,13 +9,16 @@ module ZAWS
             @awscli=awscli
           end
 
-          def execute(region, view, filters={}, textout=nil, verbose=nil)
+          def execute(region, view, filters={}, textout=nil, verbose=nil,profile=nil)
             comline="aws --output #{view} --region #{region} ec2 describe-instances"
+            comline = comline + " --profile #{profile}" if profile
             comline = comline + " --filter" if filters.length > 0
             filters.each do |key, item|
               comline = comline + " 'Name=#{key},Values=#{item}'"
             end
-            @awscli.data_ec2.instance.load(comline, @shellout.cli(comline, verbose), verbose)
+            unless @awscli.data_ec2.instance.load_cached(comline, verbose)
+              @awscli.data_ec2.instance.load(comline, @shellout.cli(comline, verbose), verbose)
+            end
           end
 
         end

@@ -2,9 +2,14 @@ module ZAWS
   class AWSCLI
     class Data
       class EC2
+
         def initialize(shellout, aws)
           @shellout=shellout
           @aws=aws
+        end
+
+        def filestore
+          @aws.filestore
         end
 
         def subnet

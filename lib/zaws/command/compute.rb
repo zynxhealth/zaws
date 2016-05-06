@@ -22,9 +22,16 @@ module ZAWS
       desc "view", "View compute instances."
       option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-
+      option :profile, :type => :string, :desc => "AWS Profile", :banner => "<profile>", :aliases => :p, :default => nil
+      option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
       def view
-        @aws.ec2.compute.view(options[:region], options[:viewtype], @out, (options[:verbose] ? @out : nil), options[:vpcid])
+        region =options[:region]
+        viewtype=options[:viewtype]
+        verbose=(options[:verbose] ? @out : nil)
+        vpcid=options[:vpcid]
+        profile=options[:profile]
+        home=options[:home]
+        @aws.ec2.compute.view(region, viewtype, @out, verbose, vpcid,nil, profile,home)
       end
 
       desc "view_images", "View images, by default the images are owned by self (your account))."

@@ -14,13 +14,24 @@ module ZAWS
             return (@instance_hash.nil?)
           end
 
-          def load(command, data, verbose)
+          def load_cached(command,verbose)
+            fileinstances = @ec2.filestore.retrieve("instance",command)
+            if fileinstances.nil?
+              return false
+            else
+              load(command,fileinstances,verbose,false)
+              return true
+            end
+          end
+
+          def load(command, data, verbose,cache=true)
             @instance_raw_data = data
             verbose.puts(@instance_raw_data) if verbose
             @instance_hash=nil
             begin
               @instance_hash =JSON.parse(data)
               create_lookup_hashes()
+              @ec2.filestore.store("instance",@instance_raw_data,Time.now + @ec2.filestore.timeout,command) if cache
             rescue JSON::ParserError => e
             end
           end
