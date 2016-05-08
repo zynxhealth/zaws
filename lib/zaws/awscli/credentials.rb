@@ -1,10 +1,8 @@
 module ZAWS
   class AWSCLI
     class Credentials
-      def initialize(shellout, aws, filename)
-        @shellout=shellout
-        @aws=aws
-        @awsconfig=Inifile.new(filename)
+      def initialize(filename)
+        @awsconfig=ZAWS::Helper::IniFile.new(:filename=>filename)
       end
 
       def profiles

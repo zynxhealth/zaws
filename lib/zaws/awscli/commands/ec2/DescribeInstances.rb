@@ -10,7 +10,9 @@ module ZAWS
           end
 
           def execute(region, view, filters={}, textout=nil, verbose=nil,profile=nil)
-            comline="aws --output #{view} --region #{region} ec2 describe-instances"
+            comline = "aws"
+            comline = comline + " --output #{view}" 
+            comline = comline + " --region #{region} ec2 describe-instances"
             comline = comline + " --profile #{profile}" if profile
             comline = comline + " --filter" if filters.length > 0
             filters.each do |key, item|

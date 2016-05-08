@@ -25,9 +25,10 @@ module ZAWS
           filters= {}
           filters['vpc-id']=vpcid if vpcid
           filters['tag:externalid']=externalid if externalid
+          view=viewtype=='yaml'? 'json':viewtype
           @aws.awscli.home=home
-          @aws.awscli.command_ec2.describeInstances.execute(region, 'json',filters, textout, verbose,profile)
-          instances = @aws.awscli.data_ec2.instance.view
+          @aws.awscli.command_ec2.describeInstances.execute(region,view ,filters, textout, verbose,profile)
+          instances = @aws.awscli.data_ec2.instance.view(viewtype)
           textout.puts(instances) if textout
           return instances
         end

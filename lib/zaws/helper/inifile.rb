@@ -2,7 +2,10 @@
 
 # This class represents the INI file and can be used to parse, modify,
 # and write INI files.
-class IniFile
+
+module ZAWS
+  module Helper
+  class IniFile
   include Enumerable
 
   class Error < StandardError; end
@@ -625,3 +628,5 @@ class IniFile
   end
 
 end  # IniFile
+end
+end

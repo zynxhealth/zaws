@@ -36,8 +36,14 @@ module ZAWS
             end
           end
 
-          def view()
-            return @instance_raw_data
+          def view(view=nil)
+            if view=="yaml"
+               return @instance_hash.to_yaml
+            elsif view=="hash"
+               return @instance_hash
+            else
+               return @instance_raw_data
+            end
           end
 
           def hash_identification(single_instance_hash)

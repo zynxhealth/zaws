@@ -49,7 +49,38 @@ module ZAWS
           end
           out.puts(results.to_yaml)
         end
-
+        
+        def all_aws(out,verbose=nil,value)
+          profile_creds=ZAWS::AWSCLI::Credentials.new("#{@ai.awscli.home}/.aws/credentials")
+          item = []
+          verbose.puts("DEBUG: regions: " + @ai.awscli.main_regions.join(",")) if verbose
+          verbose.puts("DEBUG: profiles: " +profile_creds.profiles.join(",")) if verbose
+          profile_creds.profiles.each do |profile|
+            verbose.puts("DEBUG: Iterating over profile: "+ profile) if verbose
+            @ai.awscli.main_regions.each do |region|
+              filters= {}
+              verbose.puts("DRBUG: Calling describe instances") if verbose
+              @ai.awscli.command_ec2.describeInstances.execute(region,'json' ,filters, nil, verbose,profile)
+              res = @ai.awscli.data_ec2.instance.view('hash')
+              res['profile']=profile
+              item << res
+            end 
+          end
+          results = {}
+          results['awscli']= []
+          item.each do |reservations|
+            reservations['Reservations'].each do |reservation|
+              reservation['Instances'].each do |instance|
+                if instance['PrivateIpAddress'] and instance['PrivateIpAddress'].include?(value)
+                  instance['progile']=reservations['profile']
+                  results['awscli'] << instance
+                end
+              end
+            end
+          end
+          out.puts(results.to_yaml)
+        end        
+            
       end
     end
   end
