@@ -1,33 +1,4 @@
-# require "zaws/version"
-# require "zaws/helper/option"
-# require "zaws/helper/output"
-# require "zaws/helper/shell"
-# require "zaws/helper/zfile"
-# require "zaws/command/subnet"
-# require "zaws/command/security_group"
-# require "zaws/command/route_table"
-# require "zaws/command/compute"
-# require "zaws/command/elasticip"
-# require "zaws/command/load_balancer"
-# require "zaws/command/hosted_zone"
-# require "zaws/command/cloud_trail"
-# require "zaws/command/bucket"
-# require "zaws/aws"
-# require "zaws/cloud_trail"
-# require "zaws/ec2"
-# require "zaws/elb"
-# require "zaws/route53"
-# require "zaws/s3"
-# require "zaws/ec2/subnet"
-# require "zaws/ec2/security_group"
-# require "zaws/ec2/route_table"
-# require "zaws/ec2/compute"
-# require "zaws/ec2/elasticip"
-# require "zaws/elb/load_balancer"
-# require "zaws/route53/hosted_zone"
-# require "zaws/s3/bucket"
 require "thor"
-#require "zaws/awscli"
 Dir["#{File.dirname(__FILE__)}/zaws/**/*.rb"].each { |item| load(item) }
 
 module ZAWS
@@ -77,6 +48,9 @@ module ZAWS
 
     desc "newrelic", "newrelic"
     subcommand "newrelic", ZAWS::Command::Newrelic
+
+    desc "config", "config"
+    subcommand "config", ZAWS::Command::Config
 
     desc "version", "Get the version of the Zynx AWS Automation Tool."
 

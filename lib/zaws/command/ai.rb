@@ -25,7 +25,7 @@ module ZAWS
       option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
       def query(value)
         @ai.awscli.home=options[:home]
-        @ai.query.all(@out, (options[:verbose] ? @out : nil),value)
+        @ai.query.all(options[:home],@out, (options[:verbose] ? @out : nil),value)
       end
 
       desc "query_aws", "query_aws"

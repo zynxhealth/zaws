@@ -10,8 +10,20 @@ module ZAWS
     def filestore
       @filestore ||= ZAWS::Repository::Filestore.new()
       @filestore.location="#{@home}/.sumoapi"
+      unless File.directory?(@filestore.location)
+			  FileUtils.mkdir_p(@filestore.location)
+		  end
       @filestore.timeout = 600
       return @filestore
+    end
+
+    def remove_creds
+      if File.directory?("#{@home}/.sumoapi")
+        FileUtils.rmtree("#{@home}/.sumoapi")
+      end
+      if File.exist?("#{@home}/.sumo.yml")
+        File.delete("#{@home}/.sumo.yml")
+      end
     end
 
     def resource_collectors

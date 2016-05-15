@@ -10,8 +10,20 @@ module ZAWS
     def filestore
       @filestore ||= ZAWS::Repository::Filestore.new()
       @filestore.location="#{@home}/.nessusapi"
+      unless File.directory?(@filestore.location)
+			  FileUtils.mkdir_p(@filestore.location)
+		  end
       @filestore.timeout = 600
       return @filestore
+    end
+
+    def remove_creds
+      if File.directory?("#{@home}/.nessusapi")
+        FileUtils.rmtree("#{@home}/.nessusapi")
+      end
+      if File.exist?("#{@home}/.nessus.yml")
+        File.delete("#{@home}/.nessus.yml")
+      end
     end
 
     def resource_scanners

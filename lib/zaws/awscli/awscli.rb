@@ -1,3 +1,4 @@
+require 'fileutils'
 
 module ZAWS
   class AWSCLI
@@ -11,9 +12,21 @@ module ZAWS
     @filestore ||= ZAWS::Repository::Filestore.new()
 		@home ||= ENV['HOME']
     @filestore.location="#{@home}/.awsdata"
+		unless File.directory?(@filestore.location)
+			FileUtils.mkdir_p(@filestore.location)
+		end
     @filestore.timeout = 600
     return @filestore
   end
+
+  def remove_creds
+		if File.directory?("#{@home}/.awsdata")
+			FileUtils.rmtree("#{@home}/.awsdata")
+		end
+	  if File.exist?("#{@home}/.aws/credentials")
+			File.delete("#{@home}/.aws/credentials")
+		end
+	end
 
 	def version 
 	  if ! @version
