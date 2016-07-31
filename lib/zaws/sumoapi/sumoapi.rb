@@ -31,6 +31,11 @@ module ZAWS
       return @_resource_collectors
     end
 
+    def resource_sources
+      @_resource_sources ||= (ZAWS::Sumoapi::Resources::Sources.new(@shellout, self))
+      return @_resource_sources
+    end
+
     def client
       fail("Home is null! Make sure its set before getting the client.") if @home== nil
       creds = ZAWS::Sumoapi::SumoCreds::Creds::YamlFile.new(@home)
@@ -40,6 +45,11 @@ module ZAWS
     def data_collectors
       @_data_collectors ||= (ZAWS::Sumoapi::Data::Collectors.new(@shellout, self))
       return @_data_collectors
+    end
+
+    def data_sources
+      @_data_sources ||= (ZAWS::Sumoapi::Data::Sources.new(@shellout, self))
+      return @_data_sources
     end
 
   end
