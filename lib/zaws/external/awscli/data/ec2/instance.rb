@@ -4,9 +4,9 @@ module ZAWS
       class EC2
         class Instance
 
-          def initialize(shellout, ec2)
+          def initialize(shellout, filestore)
             @shellout=shellout
-            @ec2=ec2
+            @filestore=filestore
             @instance_hash=nil
           end
 
@@ -15,7 +15,7 @@ module ZAWS
           end
 
           def load_cached(command,verbose)
-            fileinstances = @ec2.filestore.retrieve("instance",command)
+            fileinstances = @filestore.retrieve("instance",command)
             if fileinstances.nil?
               return false
             else
@@ -31,7 +31,7 @@ module ZAWS
             begin
               @instance_hash =JSON.parse(data)
               create_lookup_hashes()
-              @ec2.filestore.store("instance",@instance_raw_data,Time.now + @ec2.filestore.timeout,command) if cache
+              @filestore.store("instance",@instance_raw_data,Time.now + @filestore.timeout,command) if cache
             rescue JSON::ParserError => e
             end
           end

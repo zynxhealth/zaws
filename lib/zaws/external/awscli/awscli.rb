@@ -4,18 +4,20 @@ module ZAWS
   class AWSCLI
   attr_accessor :home
 
-	def initialize(shellout)
+	def initialize(shellout,keep_filestore_empty=false)
 	  @shellout=shellout
+		@keep_filestore_empty=keep_filestore_empty
 	end
 
   def filestore
-    @filestore ||= ZAWS::Repository::Filestore.new()
+    @filestore ||= ZAWS::Repository::Filestore.new(@keep_filestore_empty)
+		@filestore.timeout = 600
+		return @filestore if @keep_filestore_empty
 		@home ||= ENV['HOME']
     @filestore.location="#{@home}/.awsdata"
 		unless File.directory?(@filestore.location)
 			FileUtils.mkdir_p(@filestore.location)
 		end
-    @filestore.timeout = 600
     return @filestore
   end
 

@@ -61,13 +61,16 @@ describe ZAWS::AWSCLI::Data::EC2::Instance do
   before(:each) {
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @data_instance = ZAWS::AWSCLI::Data::EC2::Instance.new(@shellout, nil)
+    @filestore=double('ZAWS::Repository::Filestore')
+    @data_instance = ZAWS::AWSCLI::Data::EC2::Instance.new(@shellout, @filestore)
   }
 
   describe '#names_by_ids' do
 
     context 'the name/id data is loaded' do
       it 'returns instance ids as list of strings' do
+        expect(@filestore).to receive(:timeout).with(any_args).and_return(0)
+        expect(@filestore).to receive(:store).with(any_args)
         @data_instance.load(nil, vap_describe_instance, nil)
         expect(@data_instance.names_by_ids(vap_list_instance_ids)).to eq(var_list_instance_names)
       end

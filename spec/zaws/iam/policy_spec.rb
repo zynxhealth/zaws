@@ -79,7 +79,7 @@ describe ZAWS::Services::IAM::Policy do
 	@textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
 	@command_iam = ZAWS::Command::IAM.new([],options,{});
-	@aws=ZAWS::AWS.new(@shellout,ZAWS::AWSCLI.new(@shellout))
+	@aws=ZAWS::AWS.new(@shellout,ZAWS::AWSCLI.new(@shellout,true))
     @command_iam.aws=@aws
 	@command_iam.out=@textout
 	@command_iam.print_exit_code = true

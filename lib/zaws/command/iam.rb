@@ -12,7 +12,7 @@ module ZAWS
 	  def initialize(*args)
 		super
         shellout=ZAWS::Helper::Shell.new
-		awscli = ZAWS::AWSCLI.new(shellout)
+		awscli = ZAWS::AWSCLI.new(shellout,false)
 		@aws = ZAWS::AWS.new(shellout,awscli)
 		@out = $stdout
 		@print_exit_code = false

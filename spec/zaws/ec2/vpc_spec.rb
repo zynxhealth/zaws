@@ -106,7 +106,7 @@ describe ZAWS::Services::EC2::VPC do
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
     @command_vpc = ZAWS::Command::VPC.new([], options, {});
-    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout))
+    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout,true))
     @command_vpc.aws=@aws
     @command_vpc.out=@textout
     @command_vpc.print_exit_code = true

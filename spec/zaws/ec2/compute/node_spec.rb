@@ -5,7 +5,7 @@ describe ZAWS::Services::EC2::Compute do
   before(:each) {
 	@textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @aws=ZAWS::AWS.new(@shellout,ZAWS::AWSCLI.new(@shellout))
+    @aws=ZAWS::AWS.new(@shellout,ZAWS::AWSCLI.new(@shellout,true))
   }
 
   describe "#placement_aggregate" do
@@ -44,7 +44,7 @@ describe ZAWS::Services::EC2::Compute do
 	   ] } 
 	eos
 
-	comline="aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'"
+	comline="aws --output json --region us-west-1 ec2 describe-instances --filter \"Name=vpc-id,Values=my_vpc_id\" \"Name=tag:externalid,Values=my_instance\""
 	expect(@shellout).to receive(:cli).with(comline,nil).and_return(compute_instances_without,compute_instances)
 	@aws.ec2.compute.instance_running?('us-west-1','my_vpc_id','my_instance',3,1,nil)
 
@@ -58,7 +58,7 @@ describe ZAWS::Services::EC2::Compute do
 	   ] } 
 	eos
 
-	comline="aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'"
+	comline="aws --output json --region us-west-1 ec2 describe-instances --filter \"Name=vpc-id,Values=my_vpc_id\" \"Name=tag:externalid,Values=my_instance\""
 	expect(@shellout).to receive(:cli).with(comline,nil).and_return(compute_instances_without,compute_instances_without)
 	expect {@aws.ec2.compute.instance_running?('us-west-1','my_vpc_id','my_instance',5,2,nil)}.to raise_error(StandardError, 'Timeout before instance state code set to running(16).')
 

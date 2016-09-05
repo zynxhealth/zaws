@@ -167,9 +167,9 @@ module ZAWS
         end
 
         def tag_resource(region, resourceid, externalid, verbose=nil)
-          comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags Key=externalid,Value=#{externalid}"
+          comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags \"Key=externalid,Value=#{externalid}\""
           tag_creation=@shellout.cli(comline, verbose)
-          comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags Key=Name,Value=#{externalid}"
+          comline="aws --output json --region #{region} ec2 create-tags --resources #{resourceid} --tags \"Key=Name,Value=#{externalid}\""
           tag_creation=@shellout.cli(comline, verbose)
         end
 

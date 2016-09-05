@@ -5,7 +5,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
   before(:each) {
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout))
+    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout,false))
   }
 
   describe "#calculated_listener" do

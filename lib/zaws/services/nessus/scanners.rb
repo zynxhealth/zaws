@@ -8,9 +8,9 @@ module ZAWS
           @nessus=nessus
         end
 
-        def view(home,out,verbose=nil)
-          @nessus.nessusapi.home=home
-          @nessus.nessusapi.data_scanners.view(verbose)
+        def view(params)
+          @nessus.nessusapi.home=params['home']
+          @nessus.nessusapi.data_scanners.view(nil).to_yaml
         end
 
       end

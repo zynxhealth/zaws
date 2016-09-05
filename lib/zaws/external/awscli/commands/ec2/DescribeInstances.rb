@@ -16,7 +16,7 @@ module ZAWS
             comline = comline + " --profile #{profile}" if profile
             comline = comline + " --filter" if filters.length > 0
             filters.each do |key, item|
-              comline = comline + " 'Name=#{key},Values=#{item}'"
+              comline = comline + " \"Name=#{key},Values=#{item}\""
             end
             unless @awscli.data_ec2.instance.load_cached(comline, verbose)
               @awscli.data_ec2.instance.load(comline, @shellout.cli(comline, verbose), verbose)

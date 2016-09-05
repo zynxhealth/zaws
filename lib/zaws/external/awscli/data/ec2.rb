@@ -18,7 +18,7 @@ module ZAWS
         end
 
         def instance
-          @_Instance ||= (ZAWS::AWSCLI::Data::EC2::Instance.new(@shellout, self))
+          @_Instance ||= (ZAWS::AWSCLI::Data::EC2::Instance.new(@shellout, self.filestore))
           return @_Instance
         end
 

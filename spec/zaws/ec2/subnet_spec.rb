@@ -14,7 +14,7 @@ describe ZAWS::Services::EC2::Subnet do
   let(:vap_az) { "us-west-1b" }
 
 
-  let(:vac_describe_subnets) { "aws --output json --region #{vap_region} ec2 describe-subnets --filter 'Name=vpc-id,Values=#{vap_vpcid}' 'Name=cidr,Values=#{vap_cidr}'" }
+  let(:vac_describe_subnets) { "aws --output json --region #{vap_region} ec2 describe-subnets --filter \"Name=vpc-id,Values=#{vap_vpcid}\" \"Name=cidr,Values=#{vap_cidr}\"" }
 
   let(:var_subnets_exist) { <<-eos
 		{   "Subnets": [
@@ -57,8 +57,8 @@ describe ZAWS::Services::EC2::Subnet do
   before(:each) {
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @command_subnet = ZAWS::Command::Subnet.new([], options, {});
-    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout))
+    @command_subnet = ZAWS::Command::Subnet.new([], options, {})
+    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout,true))
     @command_subnet.aws=@aws
     @command_subnet.out=@textout
     @command_subnet.print_exit_code = true
@@ -168,8 +168,8 @@ describe ZAWS::Services::EC2::Subnet do
 	   }
       eos
 
-      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=vpc-XXXXXX' 'Name=cidr,Values=10.0.0.0/24'", nil).and_return(subnets_10_0_0_0_24)
-      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=vpc-XXXXXX' 'Name=cidr,Values=10.0.1.0/24'", nil).and_return(subnets_10_0_1_0_24)
+      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter \"Name=vpc-id,Values=vpc-XXXXXX\" \"Name=cidr,Values=10.0.0.0/24\"", nil).and_return(subnets_10_0_0_0_24)
+      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter \"Name=vpc-id,Values=vpc-XXXXXX\" \"Name=cidr,Values=10.0.1.0/24\"", nil).and_return(subnets_10_0_1_0_24)
       expect(@aws.ec2.subnet.id_array_by_cidrblock_array('us-west-1', nil, nil, 'vpc-XXXXXX', ["10.0.0.0/24", "10.0.1.0/24"])).to eql(["subnet-YYYYYYYY", "subnet-ZZZZZZZZ"])
 
     end
@@ -205,7 +205,7 @@ describe ZAWS::Services::EC2::Subnet do
 	   }
       eos
 
-      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=vpc-XXXXXX'", nil).and_return(subnets)
+      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter \"Name=vpc-id,Values=vpc-XXXXXX\"", nil).and_return(subnets)
       expect(@textout).to receive(:puts).with('subnet-YYYYYY')
       @aws.ec2.subnet.id_by_ip('us-west-1', @textout, nil, 'vpc-XXXXXX', '10.0.0.24')
     end
@@ -233,7 +233,7 @@ describe ZAWS::Services::EC2::Subnet do
 	   }
       eos
 
-      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=vpc-XXXXXX' 'Name=cidr,Values=10.0.0.0/24'", nil).and_return(subnets)
+      expect(@shellout).to receive(:cli).with("aws --output json --region us-west-1 ec2 describe-subnets --filter \"Name=vpc-id,Values=vpc-XXXXXX\" \"Name=cidr,Values=10.0.0.0/24\"", nil).and_return(subnets)
       expect(@textout).to receive(:puts).with('subnet-YYYYYY')
       @aws.ec2.subnet.id_by_cidrblock('us-west-1', @textout, nil, 'vpc-XXXXXX', '10.0.0.0/24')
 

@@ -8,10 +8,12 @@ module ZAWS
       attr_accessor :location
       attr_accessor :timeout
 
-      def initialize()
+      def initialize(empty=false)
+        @empty=empty
       end
 
       def store(key,value,expires,command=nil)
+        return if @empty
          storage = {}
          storage['value']=value
          storage['expires']=expires.strftime('%s')
@@ -27,6 +29,7 @@ module ZAWS
       end
 
       def retrieve(key,command=nil)
+        return if @empty
         if command.nil?
            filename=key
         else
