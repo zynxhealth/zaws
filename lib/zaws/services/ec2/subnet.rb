@@ -7,9 +7,11 @@ module ZAWS
     module EC2
       class Subnet
 
-        def initialize(shellout, aws)
+        def initialize(shellout, aws,undofile=nil)
           @shellout=shellout
           @aws=aws
+          @undofile=undofile
+          @undofile ||= ZAWS::Helper::ZFile.new
         end
 
         def view(region, view, textout=nil, verbose=nil, vpcid=nil, cidrblock=nil)
@@ -50,7 +52,7 @@ module ZAWS
           subnet_exists=exists(region, nil, verbose, vpcid, cidrblock)
 
           if ufile
-            ZAWS::Helper::ZFile.prepend("zaws subnet delete #{cidrblock} #{vpcid} --region #{region} $XTRA_OPTS", '#Delete subnet', ufile)
+            @undofile.prepend("zaws subnet delete #{cidrblock} #{vpcid} --region #{region} $XTRA_OPTS", '#Delete subnet', ufile)
           end
 
           if nagios

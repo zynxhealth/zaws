@@ -8,6 +8,7 @@ module ZAWS
               def initialize
                 @group_name=nil
                 @vpc_id=nil
+                @cidr=nil
                 @tags=nil
                 self
               end
@@ -19,6 +20,11 @@ module ZAWS
 
               def vpc_id(vpc_id)
                 @vpc_id=vpc_id
+                self
+              end
+
+              def cidr(cidr)
+                @cidr=cidr
                 self
               end
 
@@ -34,6 +40,7 @@ module ZAWS
                   command = "--filter "
                   command = "#{command}\"Name=vpc-id,Values=#{@vpc_id}\" " if @vpc_id
                   command = "#{command}\"Name=group-name,Values=#{@group_name}\" " if @group_name
+                  command = "#{command}\"Name=cidr,Values=#{@cidr}\" " if @cidr
                   if @tags
                   @tags.each do |x|
                     command = "#{command}\"Name=tag:#{x['Key']},Values=#{x['Value']}\" " if @tags

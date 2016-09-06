@@ -1,9 +1,10 @@
 module ZAWS
   class AWS
 
-    def initialize(shellout, awscli)
+    def initialize(shellout, awscli,undofile=nil)
       @shellout=shellout
       @_awscli= awscli ? awscli : ZAWS::AWSCLI.new(@shellout)
+      @undofile=undofile
     end
 
     def awscli
@@ -11,7 +12,7 @@ module ZAWS
     end
 
     def ec2
-      @_ec2 ||= (ZAWS::EC2.new(@shellout, self))
+      @_ec2 ||= (ZAWS::EC2.new(@shellout, self,@undofile))
     end
 
     def elb

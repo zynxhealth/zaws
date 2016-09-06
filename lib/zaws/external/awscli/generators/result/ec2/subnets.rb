@@ -59,6 +59,11 @@ module ZAWS
                 end
               end
 
+              def add(subnets)
+                 @subnets["Subnets"].concat(subnets.get_subnets_array)
+                 self
+              end
+
               def get_json
                 @subnets.to_json
               end

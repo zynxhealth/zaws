@@ -47,10 +47,10 @@ module ZAWS
 
       desc "declare CIDRBLOCK AVAILABILITY_ZONE VPCID", "Create a subnet if it does not exist already"
       option :availabilitytimeout, :type => :numeric, :desc => "Timeout before exiting from waiting for state to change from pending to available.", :banner => "<azone>", :aliases => :t, :default => 30
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
       def declare(cidrblock, availabilityzone, vpcid)
-        exitcode=@aws.ec2.subnet.declare(options[:region], vpcid, cidrblock, availabilityzone, options[:availabilitytimeout], @out, (options[:verbose] ? @out : nil), options[:nagios], options[:undofile])
+        exitcode=@aws.ec2.subnet.declare(options[:region], vpcid, cidrblock, availabilityzone, options[:availabilitytimeout], @out, (options[:verbose] ? @out : nil), options[:check], options[:undofile])
         exit exitcode if not @print_exit_code
         @out.puts(exitcode)
       end

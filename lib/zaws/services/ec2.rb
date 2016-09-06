@@ -5,9 +5,10 @@ require 'timeout'
 module ZAWS
   class EC2
 
-	def initialize(shellout,aws)
+	def initialize(shellout,aws,undofile=nil)
 	  @shellout=shellout
 	  @aws=aws
+		@undofile=undofile
 	end
 
 	def vpc
@@ -16,7 +17,7 @@ module ZAWS
 	end
 
 	def subnet 
-	  @_subnet ||= (ZAWS::Services::EC2::Subnet.new(@shellout,@aws))
+	  @_subnet ||= (ZAWS::Services::EC2::Subnet.new(@shellout,@aws,@undofile))
 	  return @_subnet
 	end
 	
