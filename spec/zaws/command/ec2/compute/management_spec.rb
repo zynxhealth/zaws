@@ -236,13 +236,12 @@ describe ZAWS::Services::EC2::Compute do
       instances = instances.tags(0, tags)
       compute_instances=instances.get_json
 
-      filter=ZAWS::External::AWSCLI::Commands::EC2::Filter.new
       desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
-      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
-      desc_instances = desc_instances.filter(filter.vpc_id("my_vpc_id").tags(tags))
-      aws_command = aws_command.output("json").region("us-west-1").subcommand(desc_instances)
+      desc_instances.filter.vpc_id("my_vpc_id").tags(tags)
+      desc_instances.aws.output("json").region("us-west-1")
 
-      expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(compute_instances)
+
+      expect(@shellout).to receive(:cli).with(desc_instances.aws.get_command, nil).and_return(compute_instances)
       instanceid = @aws.ec2.compute.instance_id_by_external_id('us-west-1', 'my_instance', 'my_vpc_id', nil, nil)
       expect(instanceid).to eq("i-XXXXXXX")
     end

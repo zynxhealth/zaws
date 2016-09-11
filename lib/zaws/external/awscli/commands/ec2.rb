@@ -48,7 +48,7 @@ module ZAWS
 		end
 
 		def describeInstances 
-		  @_describeInstances ||= (ZAWS::AWSCLI::Commands::EC2::DescribeInstances.new(@shellout,@aws))
+		  @_describeInstances ||= (ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new(@shellout,@aws))
 		  return @_describeInstances
 		end
 

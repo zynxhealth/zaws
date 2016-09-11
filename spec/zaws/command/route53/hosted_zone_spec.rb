@@ -58,6 +58,43 @@ describe ZAWS::Services::Route53::HostedZone do
     end
   end
 
+
+  describe "#view_records" do
+    it "Get records for hosted zone in a human readable table. " do
+      hosted_zones=ZAWS::External::AWSCLI::Generators::Result::Route53::HostedZones.new
+      hosted_zones.name(0,"abc.com.").id(0,"id-???")
+
+      list_hosted_zones= ZAWS::External::AWSCLI::Commands::Route53::ListHostedZones.new
+      list_hosted_zones.aws.output(@var_output_json)
+      expect(@shellout).to receive(:cli).with(list_hosted_zones.aws.get_command, nil).ordered.and_return(hosted_zones.get_json)
+
+      list_resource_record_sets= ZAWS::External::AWSCLI::Commands::Route53::ListResourceRecordSets.new
+      list_resource_record_sets.hosted_zone_id("id-???")
+      list_resource_record_sets.aws.output(@var_output_table)
+      expect(@shellout).to receive(:cli).with(list_resource_record_sets.aws.get_command, nil).ordered.and_return('test output')
+
+      expect(@textout).to receive(:puts).with('test output').ordered
+      @command_hosted_zone.view_records("abc.com.")
+    end
+
+    it "Get records for hosted zone in a JSON form. " do
+      hosted_zones=ZAWS::External::AWSCLI::Generators::Result::Route53::HostedZones.new
+      hosted_zones.name(0,"abc.com.").id(0,"id-???")
+
+      list_hosted_zones= ZAWS::External::AWSCLI::Commands::Route53::ListHostedZones.new
+      list_hosted_zones.aws.output(@var_output_json)
+      expect(@shellout).to receive(:cli).with(list_hosted_zones.aws.get_command, nil).ordered.and_return(hosted_zones.get_json)
+
+      list_resource_record_sets= ZAWS::External::AWSCLI::Commands::Route53::ListResourceRecordSets.new
+      list_resource_record_sets.hosted_zone_id("id-???")
+      list_resource_record_sets.aws.output(@var_output_json)
+      expect(@shellout).to receive(:cli).with(list_resource_record_sets.aws.get_command, nil).ordered.and_return('test output')
+
+      expect(@textout).to receive(:puts).with('test output').ordered
+      @command_hosted_zone_json.view_records("abc.com.")
+    end
+  end
+
 end
 
 
