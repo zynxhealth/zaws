@@ -4,6 +4,13 @@ Dir["#{File.dirname(__FILE__)}/zaws/**/*.rb"].each { |item| load(item) }
 module ZAWS
   class ZAWSCLI < Thor
 
+    attr_accessor :out
+
+    def initialize(*args)
+      super
+      @out = $stdout
+    end
+
     desc "subnet", "ec2 subnet(s)"
     subcommand "subnet", ZAWS::Command::Subnet
 
@@ -55,7 +62,7 @@ module ZAWS
     desc "version", "Get the version of the Zynx AWS Automation Tool."
 
     def version
-      puts "zaws version #{ZAWS::VERSION}"
+      @out.puts "zaws version #{ZAWS::VERSION}"
     end
 
   end

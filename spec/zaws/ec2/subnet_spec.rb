@@ -18,79 +18,81 @@ describe ZAWS::Services::EC2::Subnet do
   let(:check_ok_subnet) { ZAWS::Helper::Output.colorize("OK: Subnet Exists.", AWS_consts::COLOR_GREEN) }
 
   let(:aws_create_subnet) {
-    create_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::CreateSubnet.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
+    create_subnets = ZAWS::External::AWSCLI::Commands::EC2::CreateSubnet.new
+    aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
     create_subnets = create_subnets.vpc_id(vap_vpcid).cidr(vap_cidr).availability_zone(vap_az)
-    aws_command.with_output("json").with_region(vap_region).with_subcommand(create_subnets)
+    aws_command.output("json").region(vap_region).subcommand(create_subnets)
   }
 
   let(:aws_delete_subnet) {
-    delete_subnet = ZAWS::External::AWSCLI::Generators::API::EC2::DeleteSubnet.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    delete_subnet = delete_subnet.subnet_id("subnet-YYYYYY")
-    aws_command.with_region(vap_region).with_subcommand(delete_subnet)
+    delete_subnet = ZAWS::External::AWSCLI::Commands::EC2::DeleteSubnet.new
+    delete_subnet.subnet_id("subnet-YYYYYY")
+    delete_subnet.aws.region(vap_region).subcommand(delete_subnet)
   }
 
   let(:aws_desc_subnets_by_vpcid_and_cidr) {
-    filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-    desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    desc_subnets = desc_subnets.filter(filter.vpc_id(vap_vpcid).cidr(vap_cidr))
-    aws_command.with_output("json").with_region(vap_region).with_subcommand(desc_subnets)
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vap_vpcid).cidr(vap_cidr)
+    desc_subnets.aws.output("json").region(vap_region)
   }
 
   let(:aws_desc_subnets_by_vpcid_and_cidr_2) {
-    filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-    desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    desc_subnets = desc_subnets.filter(filter.vpc_id(vap_vpcid).cidr("10.0.1.0/24"))
-    aws_command.with_output("json").with_region(vap_region).with_subcommand(desc_subnets)
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vap_vpcid).cidr("10.0.1.0/24")
+    desc_subnets.aws.output("json").region(vap_region)
   }
 
   let(:aws_desc_subnets_table) {
-    desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    aws_command.with_output("table").with_region(vap_region).with_subcommand(desc_subnets)
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.aws.output("table").region(vap_region)
   }
 
   let(:aws_desc_subnets_json) {
-    desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    aws_command.with_output("json").with_region(vap_region).with_subcommand(desc_subnets)
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.aws.output("json").region(vap_region)
   }
 
   let(:aws_desc_subnets_json_by_vpcid) {
-    filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-    desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-    aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-    desc_subnets = desc_subnets.filter(filter.vpc_id(vap_vpcid))
-    aws_command.with_output("json").with_region(vap_region).with_subcommand(desc_subnets)
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vap_vpcid)
+    desc_subnets.aws.output("json").region(vap_region)
   }
 
   before(:each) {
-
     options = {:region => vap_region,
-               :verbose => nil,
+               :verbose => false,
                :availabilitytimeout => 30,
                :check => false,
-               :undofile => false}
+               :undofile => false,
+               :viewtype => 'table'
+    }
+
+    options_viewtype_json = {:region => vap_region,
+                             :verbose => false,
+                             :availabilitytimeout => 30,
+                             :check => false,
+                             :undofile => false,
+                             :viewtype => 'json',
+                             :vpcid => 'vpc-XXXXXX'}
 
     options_check = {:region => vap_region,
-                     :verbose => nil,
+                     :verbose => false,
                      :availabilitytimeout => 30,
                      :check => true,
-                     :undofile => false}
+                     :undofile => false,
+                     :viewtype => 'json'}
 
     options_undofile = {:region => vap_region,
-                        :verbose => nil,
+                        :verbose => false,
                         :availabilitytimeout => 30,
                         :check => false,
                         :undofile => "undo.txt"}
 
-    @textout=double('outout')
+    @textout=double('output')
     @shellout=double('ZAWS::Helper::Shell')
     @undofile=double('ZAWS::Helper::ZFile')
     @command_subnet = ZAWS::Command::Subnet.new([], options, {})
+    @command_subnet_viewtype_json= ZAWS::Command::Subnet.new([], options_viewtype_json, {})
     @command_subnet_check = ZAWS::Command::Subnet.new([], options_check, {})
     @command_subnet_undofile = ZAWS::Command::Subnet.new([], options_undofile, {})
     @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, true), @undofile)
@@ -103,6 +105,9 @@ describe ZAWS::Services::EC2::Subnet do
     @command_subnet_undofile.aws=@aws
     @command_subnet_undofile.out=@textout
     @command_subnet_undofile.print_exit_code = true
+    @command_subnet_viewtype_json.aws=@aws
+    @command_subnet_viewtype_json.out=@textout
+    @command_subnet_viewtype_json.print_exit_code = true
 
     subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
     subnets = subnets.vpc_id(0, vap_vpcid).cidr_block(0, vap_cidr).map_public_ip_on_launch(0, false)
@@ -125,27 +130,21 @@ describe ZAWS::Services::EC2::Subnet do
 
   describe "#view" do
     it "view subnets, table view" do
-      expect(@shellout).to receive(:cli).with(aws_desc_subnets_table.get_command, nil).ordered.and_return('test output')
+      expect(@shellout).to receive(:cli).with(aws_desc_subnets_table.get_command, @verbose).ordered.and_return('test output')
       expect(@textout).to receive(:puts).with('test output').ordered
-      @aws.ec2.subnet.view('us-west-1', 'table', @textout)
+      @command_subnet.view
     end
 
-    it "view subnets, json view" do
-      expect(@shellout).to receive(:cli).with(aws_desc_subnets_json.get_command, nil).ordered.and_return('test output')
+    it "view subnets,  json view" do
+      expect(@shellout).to receive(:cli).with(aws_desc_subnets_json.get_command, @verbose).ordered.and_return('test output')
       expect(@textout).to receive(:puts).with('test output').ordered
-      @aws.ec2.subnet.view('us-west-1', 'json', @textout)
-    end
-
-    it "view subnets with verbose" do
-      expect(@shellout).to receive(:cli).with(aws_desc_subnets_table.get_command, @textout).ordered.and_return('test output')
-      expect(@textout).to receive(:puts).with('test output').ordered
-      @aws.ec2.subnet.view('us-west-1', 'table', @textout, @textout)
+      @command_subnet_check.view
     end
 
     it "view subnets, json view, specific VPC" do
-      expect(@shellout).to receive(:cli).with(aws_desc_subnets_json_by_vpcid.get_command, nil).ordered.and_return('test output')
+      expect(@shellout).to receive(:cli).with(aws_desc_subnets_json_by_vpcid.get_command, @verbose).ordered.and_return('test output')
       expect(@textout).to receive(:puts).with('test output').ordered
-      @aws.ec2.subnet.view('us-west-1', 'json', @textout, nil, "vpc-XXXXXX")
+      @command_subnet_viewtype_json.view
     end
   end
 
@@ -153,14 +152,14 @@ describe ZAWS::Services::EC2::Subnet do
     context "in which the target subnet has been created" do
       it "returns true" do
         expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, nil).and_return(@subnets_exists.get_json)
-        expect(@textout).to receive(:puts).with('true')
+        expect(@textout).to receive(:puts).with("true")
         @command_subnet.exists(vap_cidr, vap_vpcid)
       end
     end
 
     context "in which the target subnet has NOT been created" do
       it "returns false" do
-        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, nil).and_return(@subnets_not_exists.get_json)
+        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, @verbose).and_return(@subnets_not_exists.get_json)
         expect(@textout).to receive(:puts).with('false')
         @command_subnet.exists(vap_cidr, vap_vpcid)
       end
@@ -170,7 +169,7 @@ describe ZAWS::Services::EC2::Subnet do
   describe "#declare" do
     context "in which the target subnet has been created" do
       it "does not attempt to create it, instead informs caller of it existance" do
-        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, nil).and_return(@subnets_exists.get_json)
+        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, @verbose).and_return(@subnets_exists.get_json)
         expect(@textout).to receive(:puts).with(no_action_subnet_exists)
         expect(@textout).to receive(:puts).with(0)
         @command_subnet.declare(vap_cidr, vap_az, vap_vpcid)
@@ -251,23 +250,21 @@ describe ZAWS::Services::EC2::Subnet do
     it "Provides an array of subnet ids if given an array of subnet cidr blocks" do
       expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, nil).and_return(@subnets_exists.get_json)
       expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr_2.get_command, nil).and_return(@subnets_exists2.get_json)
-      expect(@aws.ec2.subnet.id_array_by_cidrblock_array('us-west-1', nil, nil, 'vpc-XXXXXX', ["10.0.0.0/24", "10.0.1.0/24"])).to eql(["subnet-YYYYYY", "subnet-ZZZZZZ"])
+      expect(@aws.ec2.subnet.id_array_by_cidrblock_array('us-west-1', nil, 'vpc-XXXXXX', ["10.0.0.0/24", "10.0.1.0/24"])).to eql(["subnet-YYYYYY", "subnet-ZZZZZZ"])
     end
   end
 
   describe "#id_by_ip" do
     it "get subnet id by ip" do
       expect(@shellout).to receive(:cli).with(aws_desc_subnets_json_by_vpcid.get_command, nil).and_return(@subnets_exists.get_json)
-      expect(@textout).to receive(:puts).with('subnet-YYYYYY')
-      @aws.ec2.subnet.id_by_ip('us-west-1', @textout, nil, 'vpc-XXXXXX', '10.0.0.24')
+      expect(@aws.ec2.subnet.id_by_ip('us-west-1', nil, 'vpc-XXXXXX', '10.0.0.24')).to eq('subnet-YYYYYY')
     end
   end
 
   describe "#id_by_cidrblock" do
     it "subnet id by cidr block" do
       expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.get_command, nil).and_return(@subnets_exists.get_json)
-      expect(@textout).to receive(:puts).with('subnet-YYYYYY')
-      @aws.ec2.subnet.id_by_cidrblock('us-west-1', @textout, nil, 'vpc-XXXXXX', '10.0.0.0/24')
+      expect(@aws.ec2.subnet.id_by_cidrblock('us-west-1', nil, 'vpc-XXXXXX', '10.0.0.0/24')).to eq('subnet-YYYYYY')
     end
   end
 

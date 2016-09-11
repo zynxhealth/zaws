@@ -14,9 +14,9 @@ module ZAWS
             return (@subnet_hash.nil?)
           end
 
-          def load(command, data, textout)
+          def load(command, data,verbose)
             @subnet_raw_data = data
-            textout.puts(@subnet_raw_data) if textout
+            verbose.puts(@subnet_raw_data) if verbose
             @subnet_hash=nil
             begin
               @subnet_hash =JSON.parse(data)
@@ -38,6 +38,20 @@ module ZAWS
             return false
           end
 
+          def id_by_ip(ip,verbose=nil)
+            return nil if not @subnet_hash["Subnets"]
+            subnet_id=nil
+            @subnet_hash["Subnets"].each { |x| subnet_id = x["SubnetId"] if (NetAddr::CIDR.create(x["CidrBlock"])).contains?(ip) }
+            verbose.puts subnet_id if verbose
+            return subnet_id
+          end
+
+          def id_by_cidrblock(verbose=nil)
+            return nil if not @subnet_hash["Subnets"]
+            subnet_id= @subnet_hash["Subnets"].count == 1 ? @subnet_hash["Subnets"][0]["SubnetId"] : nil
+            verbose.puts subnet_id if verbose
+            return subnet_id
+          end
         end
       end
     end

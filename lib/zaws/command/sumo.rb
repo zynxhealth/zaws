@@ -21,7 +21,7 @@ module ZAWS
       desc "view_collectors", "View Collectors."
       option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
       def view_collectors
-        @sumo..view(options[:home], @out, (options[:verbose] ? @out : nil))
+        @sumo.view(options[:home], @out, (options[:verbose] ? @out : nil))
       end
 
     end

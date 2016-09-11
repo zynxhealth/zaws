@@ -22,9 +22,8 @@ module ZAWS
       desc "view", "View subnets."
       option :viewtype, :type => :string, :desc => "View type, json or table", :banner => "<viewtype>", :aliases => :w, :default => "table"
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-
       def view
-        @aws.ec2.subnet.view(options[:region], options[:viewtype], @out, (options[:verbose] ? @out : nil), options[:vpcid])
+        @out.puts(@aws.ec2.subnet.view(options[:region], options[:viewtype], (options[:verbose] ? @out : nil), options[:vpcid]))
       end
 
       desc "id_by_ip PRIVATE_IP VPCID", "get subnet id by specifying PRIVATE_IP address in subnet"
@@ -42,7 +41,7 @@ module ZAWS
       desc "exists CIDRBLOCK VPCID", "Determine if a subnet exists by CIDRBLOCK."
 
       def exists(cidrblock, vpcid)
-        @aws.ec2.subnet.exists(options[:region], @out, (options[:verbose] ? @out : nil), vpcid, cidrblock)
+        @out.puts(@aws.ec2.subnet.exists(options[:region], (options[:verbose] ? @out : nil), vpcid, cidrblock).to_s)
       end
 
       desc "declare CIDRBLOCK AVAILABILITY_ZONE VPCID", "Create a subnet if it does not exist already"

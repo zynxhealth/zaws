@@ -37,10 +37,10 @@ describe ZAWS::Services::EC2::Compute do
     it "sets no source/destination check for instances intended to be NAT instances" do
       nosd_check_result = '{ "return":"true" }'
 
-      mod_inst_attribute = ZAWS::External::AWSCLI::Generators::API::EC2::ModifyInstanceAttribute.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
+      mod_inst_attribute = ZAWS::External::AWSCLI::Commands::EC2::ModifyInstanceAttribute.new
+      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
       mod_inst_attribute = mod_inst_attribute.instance_id("id-X").no_source_dest_check
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(mod_inst_attribute)
+      aws_command = aws_command.output("json").region("us-west-1").subcommand(mod_inst_attribute)
 
       expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(nosd_check_result)
       @aws.ec2.compute.nosdcheck('us-west-1', 'id-X')
@@ -60,28 +60,25 @@ describe ZAWS::Services::EC2::Compute do
       end
       subnets= subnets.get_json
 
-      filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-      desc_subnets = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSubnets.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-      desc_subnets = desc_subnets.filter(filter.vpc_id("my_vpc_id"))
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(desc_subnets)
+      desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
+      desc_subnets.filter.vpc_id("my_vpc_id")
+      desc_subnets.aws.output("json").region("us-west-1").subcommand(desc_subnets)
 
-      expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(subnets)
+      expect(@shellout).to receive(:cli).with(desc_subnets.aws.get_command, nil).and_return(subnets)
 
       security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
       security_groups = security_groups.description(0, "My security group").group_name(0, "my_security_group_name")
       security_groups = security_groups.owner_id(0, "123456789012").group_id(0, "sg-903004f8")
       sgroups = security_groups.get_json
 
-      filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-      desc_sec_grps = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeSecurityGroups.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
-      desc_sec_grps = desc_sec_grps.filter(filter.vpc_id("my_vpc_id").group_name("my_security_group_name"))
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(desc_sec_grps)
+      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+      desc_sec_grps.filter.vpc_id("my_vpc_id").group_name("my_security_group_name")
+      desc_sec_grps.aws.output("json").region("us-west-1")
 
-      expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(sgroups)
+      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).and_return(sgroups)
 
-      network_interfaces=ZAWS::External::AWSCLI::Generators::API::EC2::NetworkInterfaces.new
+      network_interfaces=ZAWS::External::AWSCLI::Commands::EC2::NetworkInterfaces.new
       network_interfaces=network_interfaces.add_group(0, "sg-903004f8").private_ip_address(0, "10.0.0.6")
       network_interfaces=network_interfaces.device_index(0, 0).subnet_id(0, "subnet-YYYYYY")
 

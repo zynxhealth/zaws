@@ -58,7 +58,7 @@ module ZAWS
 
         def network_interface_json(region, verbose, vpcid, ip, groupname)
           ec2_dir = File.dirname(__FILE__)
-          ip_to_subnet_id = @aws.ec2.subnet.id_by_ip(region, nil, verbose, vpcid, ip)
+          ip_to_subnet_id = @aws.ec2.subnet.id_by_ip(region, verbose, vpcid, ip)
           subnet_id=ip_to_subnet_id
           security_group_id= @aws.ec2.security_group.id_by_name(region, nil, verbose, vpcid, groupname)
           new_hash= [{"Groups" => [security_group_id], "PrivateIpAddress" => "#{ip}", "DeviceIndex" => 0, "SubnetId" => ip_to_subnet_id}]

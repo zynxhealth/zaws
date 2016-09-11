@@ -17,10 +17,10 @@ module ZAWS
           if vpcid || externalid
             comline = comline + " --filter"
           end
-          comline = comline + " 'Name=vpc-id,Values=#{vpcid}'" if vpcid
-          comline = comline + " 'Name=tag:externalid,Values=#{externalid}'" if externalid
+          comline = comline + " \"Name=vpc-id,Values=#{vpcid}\"" if vpcid
+          comline = comline + " \"Name=tag:externalid,Values=#{externalid}\"" if externalid
           rtables=@shellout.cli(comline, verbose)
-          textout.puts(rtables) if textout
+          verbose.puts(rtables) if verbose
           return rtables
         end
 

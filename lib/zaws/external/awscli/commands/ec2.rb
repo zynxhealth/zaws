@@ -7,14 +7,29 @@ module ZAWS
 		  @aws=aws
 		end
 
-		def CreateSubnet 
-		  @_createSubnet ||= (ZAWS::AWSCLI::Commands::EC2::CreateSubnet.new(@shellout,@aws))
+		def createSubnet
+		  @_createSubnet ||= (ZAWS::External::AWSCLI::Commands::EC2::CreateSubnet.new(@shellout,@aws))
 		  return @_createSubnet
 		end
 
-		def DescribeSubnet 
-		  @_describeSubnet ||= (ZAWS::AWSCLI::Commands::EC2::DescribeSubnet.new(@shellout,@aws))
-		  return @_describeSubnet
+		def describeSubnets
+		  @_describeSubnets ||= (ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new(@shellout,@aws))
+		  return @_describeSubnets
+		end
+
+		def describeSecurityGroups
+		  @_describeSecurityGroups ||= (ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new(@shellout,@aws))
+		  return @_describeSecurityGroups
+		end
+
+		def deleteSubnet
+		  @_deleteSubnet ||= (ZAWS::External::AWSCLI::Commands::EC2::DeleteSubnet.new(@shellout,@aws))
+		  return @_deleteSubnet
+		end
+
+				def deleteSecurityGroup
+		  @_deleteSecurityGroup ||= (ZAWS::External::AWSCLI::Commands::EC2::DeleteSecurityGroup.new(@shellout,@aws))
+		  return @_deleteSecurityGroup
 		end
 
 		def describeVPCs
@@ -48,7 +63,7 @@ module ZAWS
 		end
 
 		def createTags 
-		  @_createTags ||= (ZAWS::AWSCLI::Commands::EC2::CreateTags.new(@shellout,@aws))
+		  @_createTags ||= (ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new(@shellout,@aws))
 		  return @_createTags
 		end
 

@@ -14,21 +14,29 @@ module ZAWS
   module Helper
     class Output
 
-	  def self.out_nagios_ok(output, text)
-        output.puts colorize(text,AWS_consts::COLOR_GREEN) if output
-	  end
+      def self.out_nagios_ok(output, text)
+        output.puts colorize(text, AWS_consts::COLOR_GREEN) if output
+      end
 
-	  def self.out_nagios_critical(output, text)
-        output.puts colorize(text,AWS_consts::COLOR_RED) if output
-	  end
+      def self.out_nagios_critical(output, text)
+        output.puts colorize(text, AWS_consts::COLOR_RED) if output
+      end
 
-	  def self.out_no_op(output, text)
-        output.puts colorize(text,AWS_consts::COLOR_GREEN) if output
-	  end
+      def self.out_no_op(output, text)
+        output.puts colorize(text, AWS_consts::COLOR_GREEN) if output
+      end
 
       def self.out_change(output, text)
-        output.puts colorize(text,AWS_consts::COLOR_YELLOW) if output
-	  end
+        output.puts colorize(text, AWS_consts::COLOR_YELLOW) if output
+      end
+
+      def self.return_change(text)
+        return colorize(text, AWS_consts::COLOR_YELLOW)
+      end
+
+      def self.return_no_op( text)
+        return colorize(text, AWS_consts::COLOR_GREEN)
+      end
 
       def self.colorize(text, color_code)
         "\e[#{color_code}m#{text}\e[0m"
@@ -51,7 +59,7 @@ module ZAWS
       def self.binary_nagios_check(ok_condition, ok_msg, critical_msg, textout=nil)
         if ok_condition
           out_nagios_ok(textout, ok_msg) if textout
-		  return 0
+          return 0
         else
           out_nagios_critical(textout, critical_msg) if textout
           return 2
@@ -79,7 +87,7 @@ module ZAWS
             str_out << "\n"
           end
         elsif format == "raw"
-          str_out=json_data 
+          str_out=json_data
         end
 
         return str_out

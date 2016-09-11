@@ -236,11 +236,11 @@ describe ZAWS::Services::EC2::Compute do
       instances = instances.tags(0, tags)
       compute_instances=instances.get_json
 
-      filter=ZAWS::External::AWSCLI::Generators::API::EC2::Filter.new
-      desc_instances = ZAWS::External::AWSCLI::Generators::API::EC2::DescribeInstances.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
+      filter=ZAWS::External::AWSCLI::Commands::EC2::Filter.new
+      desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
+      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
       desc_instances = desc_instances.filter(filter.vpc_id("my_vpc_id").tags(tags))
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(desc_instances)
+      aws_command = aws_command.output("json").region("us-west-1").subcommand(desc_instances)
 
       expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(compute_instances)
       instanceid = @aws.ec2.compute.instance_id_by_external_id('us-west-1', 'my_instance', 'my_vpc_id', nil, nil)
@@ -257,20 +257,20 @@ describe ZAWS::Services::EC2::Compute do
       tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
       tags = tags.add("externalid", "extername")
 
-      create_tags = ZAWS::External::AWSCLI::Generators::API::EC2::CreateTags.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
+      create_tags = ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new
+      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
       create_tags = create_tags.resource("id-X").tags(tags)
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(create_tags)
+      aws_command = aws_command.output("json").region("us-west-1").subcommand(create_tags)
 
       expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(tag_created)
 
       tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
       tags = tags.add("Name", "extername")
 
-      create_tags = ZAWS::External::AWSCLI::Generators::API::EC2::CreateTags.new
-      aws_command = ZAWS::External::AWSCLI::Generators::API::AWS::AWS.new
+      create_tags = ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new
+      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
       create_tags = create_tags.resource("id-X").tags(tags)
-      aws_command = aws_command.with_output("json").with_region("us-west-1").with_subcommand(create_tags)
+      aws_command = aws_command.output("json").region("us-west-1").subcommand(create_tags)
 
       expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(tag_created)
 
