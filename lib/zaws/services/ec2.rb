@@ -12,7 +12,8 @@ module ZAWS
 	end
 
 	def vpc
-	  @_vpc ||= (ZAWS::Services::EC2::VPC.new(@shellout,@aws))
+	  @_vpc ||= (ZAWS::Services::EC2::VPC.new(@shellout,@aws,@undofile))
+
 	  return @_vpc
 	end
 
@@ -27,17 +28,17 @@ module ZAWS
 	end
 
 	def route_table 
-	  @_route_table ||= (ZAWS::Services::EC2::RouteTable.new(@shellout,@aws))
+	  @_route_table ||= (ZAWS::Services::EC2::RouteTable.new(@shellout,@aws,@undofile))
 	  return @_route_table
 	end
 	
 	def compute 
-	  @_compute ||= (ZAWS::Services::EC2::Compute.new(@shellout,@aws))
+	  @_compute ||= (ZAWS::Services::EC2::Compute.new(@shellout,@aws,@undofile))
 	  return @_compute
 	end
 		
 	def elasticip 
-	  @_elasticip ||= (ZAWS::Services::EC2::Elasticip.new(@shellout,@aws))
+	  @_elasticip ||= (ZAWS::Services::EC2::Elasticip.new(@shellout,@aws,@undofile))
 	  return @_elasticip
 	end
 	

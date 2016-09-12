@@ -7,9 +7,11 @@ module ZAWS
     module EC2
       class Compute
 
-        def initialize(shellout, aws)
+        def initialize(shellout, aws,undofile)
           @shellout=shellout
           @aws=aws
+          @undofile=undofile
+          @undofile ||= ZAWS::Helper::ZFile.new
         end
 
         def view(region, viewtype, textout=nil, verbose=nil, vpcid=nil, externalid=nil,profile=nil,home=nil)
@@ -96,7 +98,7 @@ module ZAWS
 
         def declare(externalid, image, owner, nodetype, root, zone, key, sgroup, privateip, optimized, apiterminate, clienttoken, region, textout, verbose, vpcid, nagios, ufile, no_sdcheck, skip_running_check, volsize, volume, tenancy, profilename, userdata)
           if ufile
-            ZAWS::Helper::ZFile.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete instance', ufile)
+            @undofile.prepend("zaws compute delete #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete instance', ufile)
           end
           compute_exists, instance_id, sgroups = exists(region, nil, verbose, vpcid, externalid)
           return ZAWS::Helper::Output.binary_nagios_check(compute_exists, "OK: Instance already exists.", "CRITICAL: Instance does not exist.", textout) if nagios
@@ -234,7 +236,7 @@ module ZAWS
 
         def declare_secondary_ip(region, ip, textout, verbose, vpcid, externalid, nagios, ufile)
           if ufile
-            ZAWS::Helper::ZFile.prepend("zaws compute delete_secondary_ip #{externalid} #{ip} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete secondary ip', ufile)
+            @undofile.prepend("zaws compute delete_secondary_ip #{externalid} #{ip} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete secondary ip', ufile)
           end
           compute_exists, instance_id, sgroups = exists(region, nil, verbose, vpcid, externalid)
           secondary_ip_exists, compute_exists, network_interface = exists_secondary_ip(region, ip, nil, verbose, vpcid, externalid)

@@ -7,9 +7,11 @@ module ZAWS
     module EC2
       class VPC
 
-        def initialize(shellout, aws)
+        def initialize(shellout, aws,undofile)
           @shellout=shellout
           @aws=aws
+          @undofile=undofile
+          @undofile ||= ZAWS::Helper::ZFile.new
         end
 
         def view(region, view, textout=nil, verbose=nil)
