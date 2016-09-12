@@ -1,9 +1,6 @@
 require 'spec_helper'
 
-describe ZAWS::AWSCLI::Data::IAM do
-  # var_ - Version A. awscli 1.2.13 Return
-  # vap_ - Version A. awscli 1.2.13 Parameter 
-  # vac_ - Version A. awscli 1.2.13 Command 
+describe ZAWS::AWSCLI::Data::IAM::RolePolicy do
 
   let(:vap_instance_id_exists) { <<-eos
 	  {

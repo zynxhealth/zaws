@@ -37,11 +37,11 @@ module ZAWS
 
       desc "declare GROUP_NAME DESCRIPTION", "Declare a new security group GROUP_NAME, but skip creating it if it exists."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare(group_name, description)
-        exitcode = @aws.ec2.security_group.declare(options[:region], options[:vpcid], group_name, description, options[:nagios], @out, (options[:verbose] ? @out : nil), options[:undofile])
+        exitcode = @aws.ec2.security_group.declare(options[:region], options[:vpcid], group_name, description, options[:check], @out, (options[:verbose] ? @out : nil), options[:undofile])
         exit exitcode
       end
 

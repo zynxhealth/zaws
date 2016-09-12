@@ -7,9 +7,11 @@ module ZAWS
     module EC2
       class SecurityGroup
 
-        def initialize(shellout, aws)
+        def initialize(shellout, aws,undofile)
           @shellout=shellout
           @aws=aws
+          @undofile=undofile
+          @undofile ||= ZAWS::Helper::ZFile.new
         end
 
         def view(region, view, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused=false)
@@ -56,9 +58,9 @@ module ZAWS
 
         def declare(region, vpcid, groupname, description, check, textout=nil, verbose=nil, ufile=nil)
           if ufile
-            ZAWS::Helper::ZFile.prepend("zaws security_group delete #{groupname} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete security group', ufile)
+            @undofile.prepend("zaws security_group delete #{groupname} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete security group', ufile)
           end
-          sgroup_exists, sgroupid = exists(region, nil, verbose, vpcid, groupname)
+          sgroup_exists, sgroupid = exists(region, verbose, vpcid, groupname)
           return ZAWS::Helper::Output.binary_nagios_check(sgroup_exists, "OK: Security Group Exists.", "CRITICAL: Security Group Does Not Exist.", textout) if check
           if not sgroup_exists
 

@@ -22,7 +22,7 @@ module ZAWS
 	end
 	
 	def security_group
-	  @_security_group ||= (ZAWS::Services::EC2::SecurityGroup.new(@shellout,@aws))
+	  @_security_group ||= (ZAWS::Services::EC2::SecurityGroup.new(@shellout,@aws,@undofile))
 	  return @_security_group
 	end
 

@@ -4,10 +4,38 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   let(:security_group_skip_deletion) { ZAWS::Helper::Output.colorize("Security Group does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
   let(:security_group_deleted) { ZAWS::Helper::Output.colorize("Security Group deleted.", AWS_consts::COLOR_YELLOW) }
+  let(:security_group_exists) { ZAWS::Helper::Output.colorize("Security Group Exists Already. Skipping Creation.", AWS_consts::COLOR_GREEN) }
+  let(:security_group_created) { ZAWS::Helper::Output.colorize("Security Group Created.", AWS_consts::COLOR_YELLOW) }
+  let(:check_critical_security_group) { ZAWS::Helper::Output.colorize("CRITICAL: Security Group Does Not Exist.", AWS_consts::COLOR_RED) }
+  let(:check_ok_security_group) { ZAWS::Helper::Output.colorize("OK: Security Group Exists.", AWS_consts::COLOR_GREEN) }
+
   let(:var_region) { "us-west-1" }
+  let(:security_group_name) { "my_security_group_name" }
+  let(:var_security_group_id) {"sg-abcd1234"}
+  let(:var_output_json) {"json"}
+  let(:var_output_table) {"table"}
+  let(:var_vpc_id) {"my_vpc_id"}
+  let(:var_sec_group_name) {"my_security_group_name"}
+
+  let(:empty_security_group) { ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new }
+
+  let(:single_security_group) {
+    security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
+    security_groups.group_name(0, security_group_name).group_id(0, var_security_group_id) }
+
+  let(:describe_security_groups_by_name_by_vpcid) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.group_name(var_sec_group_name).vpc_id(var_vpc_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
+
+    let(:describe_security_groups_by_name) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.group_name(var_sec_group_name)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
 
   before(:each) {
-
 
     @var_security_group_id="sg-abcd1234"
     @var_output_json="json"
@@ -46,10 +74,24 @@ describe ZAWS::Services::EC2::SecurityGroup do
                            :unused => true
     }
 
+    options_json_vpcid_check = {:region => var_region,
+                                :verbose => false,
+                                :check => true,
+                                :undofile => false,
+                                :viewtype => 'json',
+                                :vpcid => @var_vpc_id}
+
+    options_json_vpcid_undo = {:region => var_region,
+                               :verbose => false,
+                               :check => false,
+                               :undofile => 'undo.sh',
+                               :viewtype => 'json',
+                               :vpcid => @var_vpc_id}
+
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
     @undofile=double('ZAWS::Helper::ZFile')
-    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, true))
+    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, true), @undofile)
     @command_security_group = ZAWS::Command::Security_Group.new([], options, {})
     @command_security_group.aws=@aws
     @command_security_group.out=@textout
@@ -70,12 +112,23 @@ describe ZAWS::Services::EC2::SecurityGroup do
     @command_security_group_json_vpcid.out=@textout
     @command_security_group_json_vpcid.print_exit_code = true
 
+    @command_security_group_json_vpcid_check = ZAWS::Command::Security_Group.new([], options_json_vpcid_check, {})
+    @command_security_group_json_vpcid_check.aws=@aws
+    @command_security_group_json_vpcid_check.out=@textout
+    @command_security_group_json_vpcid_check.print_exit_code = true
+
+    @command_security_group_json_vpcid_undo = ZAWS::Command::Security_Group.new([], options_json_vpcid_undo, {})
+    @command_security_group_json_vpcid_undo.aws=@aws
+    @command_security_group_json_vpcid_undo.out=@textout
+    @command_security_group_json_vpcid_undo.print_exit_code = true
+
   }
 
   describe "#view" do
     it "Get security groups in a human readable table." do
       desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
       desc_sec_grps.aws.output(@var_output_table).region(var_region)
+
       expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return('test output')
       expect(@textout).to receive(:puts).with('test output').ordered
       @command_security_group.view()
@@ -131,54 +184,27 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   describe "#exists" do
     it "Determine a security group identified by name and vpc has NOT been created" do
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.vpc_id(@var_vpc_id).group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return(security_groups.get_json)
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
       expect(@textout).to receive(:puts).with("false")
       @command_security_group_json_vpcid.exists_by_name(@var_sec_group_name)
 
     end
 
     it "Determine a security group identified by name and vpc has been created" do
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-      security_groups = security_groups.group_name(0, @var_sec_group_name)
-
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.vpc_id(@var_vpc_id).group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return(security_groups.get_json)
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
       expect(@textout).to receive(:puts).with("true")
       @command_security_group_json_vpcid.exists_by_name(@var_sec_group_name)
 
     end
 
-it "Determine a security group identified by name has NOT been created" do
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return(security_groups.get_json)
+    it "Determine a security group identified by name has NOT been created" do
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
       expect(@textout).to receive(:puts).with("false")
       @command_security_group_json.exists_by_name(@var_sec_group_name)
-
     end
 
     it "Determine a security group identified by name has been created" do
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-      security_groups = security_groups.group_name(0, @var_sec_group_name)
-
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return(security_groups.get_json)
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
       expect(@textout).to receive(:puts).with("true")
       @command_security_group_json.exists_by_name(@var_sec_group_name)
 
@@ -188,20 +214,15 @@ it "Determine a security group identified by name has NOT been created" do
 
   describe "#delete" do
 
-   it "Delete a security group in a vpc, but skip it cause it does not exist" do
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.vpc_id(@var_vpc_id).group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).ordered.and_return(security_groups.get_json)
+    it "Delete a security group in a vpc, but skip it cause it does not exist" do
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
       expect(@textout).to receive(:puts).with(security_group_skip_deletion)
       @command_security_group_json_vpcid.delete(@var_sec_group_name)
-   end
+    end
 
-   it "Delete a security group in a vpc" do
+    it "Delete a security group in a vpc" do
       security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-      security_groups = security_groups.group_name(0, @var_sec_group_name).group_id(0,"sg-YYYYYY")
+      security_groups = security_groups.group_name(0, @var_sec_group_name).group_id(0, "sg-YYYYYY")
 
       desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
       desc_sec_grps.filter.group_name(@var_sec_group_name)
@@ -215,20 +236,84 @@ it "Determine a security group identified by name has NOT been created" do
       expect(@shellout).to receive(:cli).with(delete_security_group.aws.get_command, nil).and_return('{ "return": "true" }')
       expect(@textout).to receive(:puts).with(security_group_deleted)
       @command_security_group_json.delete(@var_sec_group_name)
-   end
- end
+    end
+  end
+
+  describe "#declare" do
+    context "security group exists" do
+      it "Declare a new security group in vpc, but don't create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(security_group_exists)
+        begin
+          @command_security_group_json_vpcid.declare(@var_sec_group_name, "Description")
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+    context "security group does not exist" do
+      it "Declare a new security group in vpc, create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+
+        create_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::CreateSecurityGroup.new
+        create_sec_grps.group_name(@var_sec_group_name).vpc_id(@var_vpc_id).description("Description")
+        create_sec_grps.aws.output(@var_output_json).region(var_region)
+        expect(@shellout).to receive(:cli).with(create_sec_grps.aws.get_command, nil).ordered.and_return('{ "return": "true" }')
+
+        expect(@textout).to receive(:puts).with(security_group_created)
+        begin
+          @command_security_group_json_vpcid.declare(@var_sec_group_name, "Description")
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+    context "check flag provided and security group does not exist" do
+      it "then alert user" do
+
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with(check_critical_security_group)
+        begin
+          @command_security_group_json_vpcid_check.declare(@var_sec_group_name, "Description")
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+
+    context "check flag provided and subnet exists" do
+      it "check passes" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(check_ok_security_group)
+        begin
+          @command_security_group_json_vpcid_check.declare(@var_sec_group_name, "Description")
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+    context "undo file provided and subnet exists" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws security_group delete #{@var_sec_group_name} --region #{var_region} --vpcid #{@var_vpc_id} $XTRA_OPTS", '#Delete security group', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(security_group_exists)
+        begin
+          @command_security_group_json_vpcid_undo.declare(@var_sec_group_name, "Description")
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+  end
 
   describe "#id_by_name" do
+
     it "security group id by group name" do
-
-      security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-      security_groups = security_groups.group_name(0, @var_sec_group_name).group_id(0, @var_security_group_id)
-
-      desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-      desc_sec_grps.filter.vpc_id(@var_vpc_id).group_name(@var_sec_group_name)
-      desc_sec_grps.aws.output(@var_output_json).region(var_region)
-
-      expect(@shellout).to receive(:cli).with(desc_sec_grps.aws.get_command, nil).and_return(security_groups.get_json)
+      expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(single_security_group.get_json)
       expect(@textout).to receive(:puts).with(@var_security_group_id)
       @aws.ec2.security_group.id_by_name(var_region, @textout, nil, @var_vpc_id, @var_sec_group_name)
     end

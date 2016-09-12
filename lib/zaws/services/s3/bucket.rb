@@ -30,7 +30,7 @@ module ZAWS
 
         def sync(region, bucket_name, dest, verbose=nil)
           dir = dest ? dest : Dir.mktmpdir
-          com_line = "aws s3 sync #{bucket_name} #{dir} --region #{region}"
+          com_line = "aws --region #{region} s3 sync #{bucket_name} #{dir}"
           puts @shellout.cli(com_line, verbose)
 
           dir
