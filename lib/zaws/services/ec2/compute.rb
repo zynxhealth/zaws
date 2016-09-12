@@ -142,13 +142,13 @@ module ZAWS
 
         def exists_security_group_assoc(region, textout, verbose, vpcid, externalid, sgroup)
           compute_exists, instance_id, sgroups = exists(region, nil, verbose, vpcid, externalid)
-          sgroup_exists, sgroupid = @aws.ec2.security_group.exists(region, nil, verbose, vpcid, sgroup)
+          sgroup_exists, sgroupid = @aws.ec2.security_group.exists(region, verbose, vpcid, sgroup)
           verbose.puts "compute_exists=#{compute_exists}" if verbose
           verbose.puts "sgroup_exists=#{sgroup_exists}" if verbose
           verbose.puts "sgroups=#{sgroups}" if verbose
           if compute_exists and sgroup_exists
             assoc_exists = sgroups.any? { |z| z["GroupId"] == "#{sgroupid}" }
-            textout.puts assoc_exists if textout
+            textout.puts assoc_exists.to_s if textout
             return assoc_exists, instance_id, sgroupid
           else
             textout.puts false if textout

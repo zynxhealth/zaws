@@ -1,29 +1,5 @@
 Feature: Associate Security Group 
-    
-  Scenario: Determine a security group is associated to instance by external id
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ], "SecurityGroups" : [ { "GroupName": "my_security_group", "GroupId":"sg-X" } ] } ] } ] } 
-	 """
-    And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=my_security_group'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "my_security_group","GroupId":"sg-X" } ] }
-     """
-    When I run `bundle exec zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "true\n" 
-	 
-  Scenario: Determine a security group is not associated to instance by external id
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ], "SecurityGroups" : [ { "GroupName": "my_security_group", "GroupId":"sg-X" } ] } ] } ] } 
-	 """
-    And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=my_security_group'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "my_security_group","GroupId":"sg-Y" } ] }
-     """
-    When I run `bundle exec zaws compute exists_security_group_assoc my_instance my_security_group --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "false\n" 
-	
+
   Scenario: Change security group of instance by external id
 	Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
      """

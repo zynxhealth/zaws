@@ -11,11 +11,11 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
-  let(:var_security_group_id) {"sg-abcd1234"}
-  let(:var_output_json) {"json"}
-  let(:var_output_table) {"table"}
-  let(:var_vpc_id) {"my_vpc_id"}
-  let(:var_sec_group_name) {"my_security_group_name"}
+  let(:var_security_group_id) { "sg-abcd1234" }
+  let(:var_output_json) { "json" }
+  let(:var_output_table) { "table" }
+  let(:var_vpc_id) { "my_vpc_id" }
+  let(:var_sec_group_name) { "my_security_group_name" }
 
   let(:empty_security_group) { ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new }
 
@@ -29,7 +29,7 @@ describe ZAWS::Services::EC2::SecurityGroup do
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
 
-    let(:describe_security_groups_by_name) {
+  let(:describe_security_groups_by_name) {
     desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
     desc_sec_grps.filter.group_name(var_sec_group_name)
     desc_sec_grps.aws.output(var_output_json).region(var_region)
@@ -154,6 +154,7 @@ describe ZAWS::Services::EC2::SecurityGroup do
     it "Get all security groups that are not actively associated to an instance" do
       security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
       security_groups = security_groups.group_name(0, "my_group_name").group_id(0, "sg-C2345678")
+
       instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
       net_interfaces= ZAWS::External::AWSCLI::Generators::Result::EC2::NetworkInterfaces.new
       net_interfaces=net_interfaces.network_interface_id(0, "eni-12345678").groups(0, security_groups)
@@ -162,10 +163,9 @@ describe ZAWS::Services::EC2::SecurityGroup do
       instances = instances.network_interfaces(0, net_interfaces)
 
       desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
-      aws_command = ZAWS::External::AWSCLI::Commands::AWS.new
-      aws_command = aws_command.output("json").region("us-west-1").subcommand(desc_instances)
+      desc_instances.aws.output("json").region("us-west-1").subcommand(desc_instances)
 
-      expect(@shellout).to receive(:cli).with(aws_command.get_command, nil).and_return(instances.get_json)
+      expect(@shellout).to receive(:cli).with(desc_instances.aws.get_command, nil).and_return(instances.get_json)
 
       security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
       security_groups = security_groups.group_name(0, "my_group_name").vpc_id(0, "vpc-12345678").owner_id(0, "123456789012").group_id(0, "sg-C2345678")
