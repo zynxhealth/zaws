@@ -61,7 +61,6 @@ module ZAWS
             throw 'Timeout before Subnet made available.'
           end
 
-          0
         end
       end
     end

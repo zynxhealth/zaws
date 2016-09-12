@@ -176,7 +176,7 @@ module ZAWS
         end
 
         def nosdcheck(region, instanceid, verbose=nil)
-          comline = "aws --output json --region #{region} ec2 modify-instance-attribute --instance-id=#{instanceid} --no-source-dest-check"
+          comline = "aws --output json --region #{region} ec2 modify-instance-attribute --instance-id #{instanceid} --no-source-dest-check"
           nosdcheck_result=JSON.parse(@shellout.cli(comline, verbose))
         end
 

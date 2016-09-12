@@ -7,7 +7,7 @@ describe ZAWS::Services::EC2::Compute do
   let (:output_json) { "json" }
   let (:region) { "us-west-1" }
   let (:security_group_name) { "my_security_group" }
-
+  let (:instance_id) {"i-12345678"}
   let (:describe_instances) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
     tags = tags.add("externalid", "my_instance")
@@ -37,8 +37,17 @@ describe ZAWS::Services::EC2::Compute do
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
     tags = tags.add("externalid", "my_instance")
     instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
-    instances.instance_id(0, "i-12345678").security_groups(0, security_groups).tags(0, tags)
+    instances.instance_id(0,instance_id ).security_groups(0, security_groups).tags(0, tags)
   }
+
+  let(:security_group_same) { ZAWS::Helper::Output.colorize("Security Group Association Not Changed.", AWS_consts::COLOR_GREEN) }
+  let(:security_group_changed) { ZAWS::Helper::Output.colorize("Security Group Association Changed.", AWS_consts::COLOR_YELLOW) }
+
+  let (:modify_instance_attribute) {
+    mia = ZAWS::External::AWSCLI::Commands::EC2::ModifyInstanceAttribute.new
+    mia.instance_id(instance_id).security_groups("sg-Y")
+    mia.aws.region(region)
+    mia }
 
   before(:each) {
 
@@ -81,7 +90,7 @@ describe ZAWS::Services::EC2::Compute do
 
   }
 
-  describe "#vexists_security_group_assoc" do
+  describe "#exists_security_group_assoc" do
 
     context "instance associated to security group" do
       it "Determine a scurity group is associated to instance by external id" do
@@ -91,7 +100,7 @@ describe ZAWS::Services::EC2::Compute do
         @command_compute_json_vpcid.exists_security_group_assoc(external_id, security_group_name)
       end
     end
-        context "instance not associated to security group" do
+    context "instance not associated to security group" do
       it "Determine a scurity group is not associated to instance by external id" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(security_groups2.get_json)
@@ -101,6 +110,26 @@ describe ZAWS::Services::EC2::Compute do
     end
   end
 
+  describe "#assoc_security_group" do
+    context "security group not associated to instance" do
+      it "Change security group of instance by external id" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(security_groups2.get_json)
+        expect(@shellout).to receive(:cli).with(modify_instance_attribute.aws.get_command, nil).and_return('{  "return": "true" }')
+        expect(@textout).to receive(:puts).with(security_group_changed)
+        @command_compute_json_vpcid.assoc_security_group(external_id, security_group_name)
+      end
+    end
+
+    context "security group associated to instance" do
+      it "Not Change security group of instance by external id" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(security_groups.get_json)
+        expect(@textout).to receive(:puts).with(security_group_same)
+        @command_compute_json_vpcid.assoc_security_group(external_id, security_group_name)
+      end
+    end
+  end
 end
 
 
