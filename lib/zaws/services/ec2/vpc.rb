@@ -60,7 +60,7 @@ module ZAWS
           rescue Timeout::Error
             throw 'Timeout before Subnet made available.'
           end
-
+          return 0
         end
       end
     end
