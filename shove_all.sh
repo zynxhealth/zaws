@@ -2,5 +2,5 @@
 cp Gemfile.lock.linux Gemfile.lock
 git add -A
 git commit -m"$1"
-#git push
+git push
 
