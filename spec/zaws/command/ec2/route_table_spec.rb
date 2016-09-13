@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe ZAWS::Services::EC2::RouteTable do
 
+  let(:empty_route_table){
+
+  }
+
   before(:each) {
 
     @var_security_group_id="sg-abcd1234"
@@ -85,6 +89,15 @@ describe ZAWS::Services::EC2::RouteTable do
       @command_route_table_json_vpcid.view
     end
 
+  end
+
+  describe "#exists_by_external_id" do
+    context "route table does not exist" do
+      it "Determine a route table DOES NOT exists by external id" do
+
+      end
+
+    end
   end
 
 end
