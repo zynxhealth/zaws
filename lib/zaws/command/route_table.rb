@@ -35,11 +35,11 @@ module ZAWS
       end
 
       desc "declare EXTERNAL_ID VPCID", "Declare a new route table by EXTERNAL_ID in VPCID, but skip creating it if it exists."
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare(externalid, vpcid)
-        exitcode = @aws.ec2.route_table.declare(options[:region], vpcid, externalid, options[:nagios], @out, (options[:verbose] ? @out : nil), options[:undofile])
+        exitcode = @aws.ec2.route_table.declare(options[:region], vpcid, externalid, options[:check], @out, (options[:verbose] ? @out : nil), options[:undofile])
         exit exitcode
       end
 

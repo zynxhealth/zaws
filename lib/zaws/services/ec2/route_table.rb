@@ -44,7 +44,7 @@ module ZAWS
             comline="aws --region #{region} ec2 create-route-table --vpc-id #{vpcid}"
             rtable=JSON.parse(@shellout.cli(comline, verbose))
             rtableid=rtable["RouteTable"]["RouteTableId"]
-            tagline="aws --region #{region} ec2 create-tags --resources #{rtableid} --tags Key=externalid,Value=#{externalid}"
+            tagline="aws --region #{region} ec2 create-tags --resources #{rtableid} --tags \"Key=externalid,Value=#{externalid}\""
             tagresult=JSON.parse(@shellout.cli(tagline, verbose))
             ZAWS::Helper::Output.out_change(textout, "Route table created with external id: my_route_table.") if tagresult["return"] == "true"
           else

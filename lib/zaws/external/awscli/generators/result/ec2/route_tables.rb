@@ -19,7 +19,7 @@ module ZAWS
 
               def route_table_id(route_table_number, id)
                 resize_route_tables_array(route_table_number)
-                @route_tables["RouteTables"][route_table_number]["SubnetId"]=id
+                @route_tables["RouteTables"][route_table_number]["RouteTableId"]=id
                 self
               end
 
@@ -38,9 +38,15 @@ module ZAWS
                 @route_tables.to_json
               end
 
+              def get_json_single_route_table(index)
+                single={ "RouteTable" => @route_tables["RouteTables"][index]}
+                single.to_json
+              end
+
               def get_route_tables_array
                 @route_tables["RouteTables"]
               end
+
 
             end
           end

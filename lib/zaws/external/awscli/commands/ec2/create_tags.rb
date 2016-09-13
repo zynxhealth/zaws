@@ -7,9 +7,19 @@ module ZAWS
             def initialize(shellout=nil, awscli=nil)
               @shellout=shellout
               @awscli=awscli
+              clear_settings
+              self
+            end
+
+            def aws
+              @aws ||= ZAWS::External::AWSCLI::Commands::AWS.new(self)
+              @aws
+            end
+
+            def clear_settings
               @resource=nil
               @tags=nil
-              self
+              @aws=nil
             end
 
             def resource(resource)
@@ -30,7 +40,7 @@ module ZAWS
             end
 
             def execute(instanceid, region, tag_key, tag_value, textout=nil, verbose=nil)
-              comline="aws --output json --region #{region} ec2 create-tags --resources #{instanceid} --tags Key=#{tag_key},Value=#{tag_value}"
+              comline="aws --output json --region #{region} ec2 create-tags --resources #{instanceid} --tags \"Key=#{tag_key},Value=#{tag_value}\""
               @shellout.cli(comline, verbose)
             end
 

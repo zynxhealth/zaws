@@ -35,6 +35,7 @@ describe ZAWS::Services::EC2::SecurityGroup do
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
 
+
   before(:each) {
 
     @var_security_group_id="sg-abcd1234"
