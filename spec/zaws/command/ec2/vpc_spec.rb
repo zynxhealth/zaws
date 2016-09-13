@@ -91,9 +91,9 @@ describe ZAWS::Services::EC2::VPC do
 
   let(:c_create_vpc) { "aws --output json --region #{p_region} ec2 create-vpc --cidr-block #{p_cidr}" }
 
-  let(:c_create_tags) { "aws --output json --region #{p_region} ec2 create-tags --resources vpc-abcdefgh --tags Key=externalid,Value=use1-customer" }
+  let(:c_create_tags) { "aws --output json --region #{p_region} ec2 create-tags --resources vpc-abcdefgh --tags \"Key=externalid,Value=use1-customer\"" }
 
-  let(:c_create_tags_Name) { "aws --output json --region #{p_region} ec2 create-tags --resources vpc-abcdefgh --tags Key=Name,Value=use1-customer" }
+  let(:c_create_tags_Name) { "aws --output json --region #{p_region} ec2 create-tags --resources vpc-abcdefgh --tags \"Key=Name,Value=use1-customer\"" }
 
   let(:r_vpc_available) { '{ "Vpc": { "VpcId":"vpc-abcdefgh", "State": "available" } }' }
 

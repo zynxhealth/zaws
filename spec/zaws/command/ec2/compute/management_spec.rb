@@ -334,7 +334,7 @@ describe ZAWS::Services::EC2::Compute do
         expect(@shellout).to receive(:cli).with("aws --output json iam get-policy --policy-arn #{vap_policy_arn}", nil).ordered.and_return(var_policy_meta_data)
         expect(@shellout).to receive(:cli).with("aws --output json iam get-policy-version --policy-arn #{vap_policy_arn} --version-id #{vap_policy_version}", nil).ordered.and_return(var_policy_version_doc)
         expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 describe-instances", nil).and_return(var_describe_instance)
-        expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 create-tags --resources #{vap_my_instance_id2} --tags Key=interval,Value=#{interval_val}", nil).and_return(var_describe_instance)
+        expect(@shellout).to receive(:cli).with("aws --output json --region #{vap_region} ec2 create-tags --resources #{vap_my_instance_id2} --tags \"Key=interval,Value=#{interval_val}\"", nil).and_return(var_describe_instance)
         expect(@textout).to receive(:puts).with("Instance #{vap_my_instance_name2} tagged: Key=interval,Value=#{interval_val}")
         @command_compute.set_interval(1, "test@test.com")
       end
