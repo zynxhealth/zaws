@@ -15,12 +15,12 @@ module ZAWS
                 self
               end
 
-              def domain(addres_number, domain)
+              def domain(domain)
                 @addresses["Domain"]=domain
                 self
               end
 
-              def allocation_id(addres_number, id)
+              def allocation_id(id)
                 @addresses["AllocationId"]=id
                 self
               end

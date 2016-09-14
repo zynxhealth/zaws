@@ -3,7 +3,7 @@ module ZAWS
     class AWSCLI
       class Commands
         class EC2
-          class AllocateAddress
+          class AssociateAddress
             def initialize(shellout=nil, awscli=nil)
               @shellout=shellout
               @awscli=awscli
@@ -17,22 +17,28 @@ module ZAWS
             end
 
             def clear_settings
-              @domain=nil
+              @instance_id=nil
+              @allocation_id=nil
               @aws=nil
               self
             end
 
-            def domain(domain)
-              @domain=domain
+            def instance_id(id)
+              @instance_id=id
+              self
+            end
+
+            def allocation_id(id)
+              @allocation_id=id
               self
             end
 
             def get_command
-              command = "ec2 allocate-address"
-              command = "#{command} --domain #{@domain}" if @domain
+              command = "ec2 associate-address"
+              command = "#{command} --instance-id #{@instance_id}" if @instance_id
+              command = "#{command} --allocation-id #{@allocation_id}" if @allocation_id
               return command
             end
-
           end
         end
       end

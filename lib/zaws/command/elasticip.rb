@@ -36,10 +36,10 @@ module ZAWS
 
 	  desc "declare EXTERNAL_ID","Declare an instance by its instance's EXTERNAL_ID  should have an elastic ip."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 	  def declare(externalid) 
-		val=@aws.ec2.elasticip.declare(options[:region],externalid,@out,(options[:verbose]?@out:nil),options[:vpcid],options[:nagios],options[:undofile])
+		val=@aws.ec2.elasticip.declare(options[:region],externalid,@out,(options[:verbose]?@out:nil),options[:vpcid],options[:check],options[:undofile])
 		return val
 	  end
 

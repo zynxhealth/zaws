@@ -42,12 +42,12 @@ module ZAWS
           end
         end
 
-        def declare(region, externalid, textout=nil, verbose=nil, vpcid=nil, nagios=nil, ufile=nil)
+        def declare(region, externalid, textout=nil, verbose=nil, vpcid=nil, check=nil, ufile=nil)
           if ufile
             @undofile.prepend("zaws elasticip release #{externalid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Release elastic ip.', ufile)
           end
           elasticip_exists, instance_id, association_id, allocation_id, ip=assoc_exists(region, externalid, nil, verbose, vpcid)
-          return ZAWS::Helper::Output.binary_nagios_check(elasticip_exists, "OK: Elastic Ip exists.", "CRITICAL: Elastic Ip DOES NOT EXIST.", textout) if nagios
+          return ZAWS::Helper::Output.binary_nagios_check(elasticip_exists, "OK: Elastic Ip exists.", "CRITICAL: Elastic Ip DOES NOT EXIST.", textout) if check
           if not elasticip_exists and instance_id
             comline="aws --region #{region} ec2 allocate-address --domain vpc"
             allocation=JSON.parse(@shellout.cli(comline, verbose))
