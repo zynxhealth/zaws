@@ -19,10 +19,10 @@ module ZAWS
           if vpcid or instanceid
             comline = comline + " --filter"
           end
-          comline = comline + " 'Name=domain,Values=vpc'" if vpcid
-          comline = comline + " 'Name=instance-id,Values=#{instanceid}'" if instanceid
+          comline = comline + " \"Name=domain,Values=vpc\"" if vpcid
+          comline = comline + " \"Name=instance-id,Values=#{instanceid}\"" if instanceid
           rtables=@shellout.cli(comline, verbose)
-          textout.puts(rtables) if textout
+          textout.puts(rtables.to_s) if textout
           return rtables
         end
 
@@ -34,10 +34,10 @@ module ZAWS
             associationid= (addressassoc and addresses["Addresses"][0]["AssociationId"]) ? addresses["Addresses"][0]["AssociationId"] : nil
             allocationid= (addressassoc and addresses["Addresses"][0]["AllocationId"]) ? addresses["Addresses"][0]["AllocationId"] : nil
             ip= (addressassoc and addresses["Addresses"][0]["PublicIp"]) ? addresses["Addresses"][0]["PublicIp"] : nil
-            textout.puts addressassoc if textout
+            textout.puts addressassoc.to_s if textout
             return addressassoc, instance_id, associationid, allocationid, ip
           else
-            textout.puts addressassoc if textout
+            textout.puts addressassoc.to_s if textout
             return false, nil, nil, nil, nil
           end
         end

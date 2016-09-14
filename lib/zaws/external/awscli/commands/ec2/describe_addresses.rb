@@ -13,6 +13,7 @@ module ZAWS
 
             def clear_settings()
               @filter=nil
+              @aws
               self
             end
 

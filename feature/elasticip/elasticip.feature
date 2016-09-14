@@ -1,29 +1,5 @@
 Feature: Elasticip 
     
-  Scenario: Determine elasticip exists for instance 
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-abc1234","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-	And I double `aws --output json --region us-west-1 ec2 describe-addresses --filter 'Name=domain,Values=vpc' 'Name=instance-id,Values=i-abc1234'` with stdout:
-     """
-	 {  "Addresses": [ { "InstanceId" : "i-abc1234", "PublicIp": "198.51.100.0", "Domain": "vpc", "AssociationId":"eipassoc-abcd1234", "AllocationId":"eipalloc-abcd1234"} ] }
-	 """
-    When I run `bundle exec zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "true\n" 
-
-  Scenario: Determine elasticip DOES NOT exist for instance 
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-abc1234","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-	And I double `aws --output json --region us-west-1 ec2 describe-addresses --filter 'Name=domain,Values=vpc' 'Name=instance-id,Values=i-abc1234'` with stdout:
-     """
-	 {  "Addresses": [ ] }
-	 """
-    When I run `bundle exec zaws elasticip assoc_exists my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "false\n" 
-
   Scenario: Declare elasticip for an instance by external id
     Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
      """

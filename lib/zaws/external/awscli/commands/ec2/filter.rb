@@ -5,6 +5,13 @@ module ZAWS
         class EC2
           class Filter
             def initialize
+              clear_settings
+              self
+            end
+
+            def clear_settings()
+              @domain=nil
+              @instance_id=nil
               @group_name=nil
               @vpc_id=nil
               @cidr=nil
@@ -14,6 +21,15 @@ module ZAWS
               @ip_permission_cidr=nil
               @ip_permission_protocol=nil
               @ip_permission_to_port=nil
+            end
+
+            def domain(domain)
+              @domain=domain
+              self
+            end
+
+            def instance_id(id)
+              @instance_id=id
               self
             end
 
@@ -68,8 +84,11 @@ module ZAWS
                   !@cidr.nil? or !@tags.nil? or
                   !@group_id.nil? or !@ip_permission_group_id.nil? or
                   !@ip_permission_cidr.nil? or !@ip_permission_protocol.nil? or
-                  !@ip_permission_to_port.nil?
+                  !@ip_permission_to_port.nil? or !@domain.nil? or
+                  !@instance_id.nil?
                 command = "--filter "
+                command = "#{command}\"Name=domain,Values=#{@domain}\" " if @domain
+                command = "#{command}\"Name=instance-id,Values=#{@instance_id}\" " if @instance_id
                 command = "#{command}\"Name=vpc-id,Values=#{@vpc_id}\" " if @vpc_id
                 command = "#{command}\"Name=group-name,Values=#{@group_name}\" " if @group_name
                 command = "#{command}\"Name=cidr,Values=#{@cidr}\" " if @cidr
