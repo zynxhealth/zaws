@@ -1,20 +1,5 @@
 Feature: Load Balancer 
     
-  Scenario: Determine a load balancer exists in a vpc
-    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-      { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
-     """
-    When I run `bundle exec zaws load_balancer exists name-??? --region us-west-1`
-    Then the stdout should contain "true\n" 
-
-  Scenario: Determine a load balancer does not exist in a vpc
-    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-      { "LoadBalancerDescriptions": [ ] }
-     """
-    When I run `bundle exec zaws load_balancer exists name-??? --region us-west-1`
-    Then the stdout should contain "false\n" 
 
   Scenario: Declare load balancer in vpc
     Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:

@@ -24,7 +24,7 @@ module ZAWS
           val = lbs["LoadBalancerDescriptions"].any? { |x| x["LoadBalancerName"]=="#{lbname}" }
           instances = val ? (lbs["LoadBalancerDescriptions"].select { |x| x["LoadBalancerName"]=="#{lbname}" })[0]["Instances"] : nil
           ldescriptions = val ? (lbs["LoadBalancerDescriptions"].select { |x| x["LoadBalancerName"]=="#{lbname}" })[0]["ListenerDescriptions"] : nil
-          textout.puts(val) if textout
+          textout.puts(val.to_s) if textout
           return val, instances, ldescriptions
         end
 

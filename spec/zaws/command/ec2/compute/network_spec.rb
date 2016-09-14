@@ -5,7 +5,7 @@ describe ZAWS::Services::EC2::Compute do
   before(:each) {
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, false))
+    @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, true))
   }
   describe "#instance_ping?" do
     it "determines an instance is reachable over the network with ping" do

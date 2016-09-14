@@ -2,6 +2,25 @@ require 'spec_helper'
 
 describe ZAWS::Services::ELB::LoadBalancer do
 
+  let(:output_json) { "json" }
+  let(:region) { "us-west-1" }
+  let(:elb_name) { "name-???" }
+
+  let(:describe_load_balancer_json) {
+    desc_load_balancers= ZAWS::External::AWSCLI::Commands::ELB::DescribeLoadBalancers.new
+    desc_load_balancers.aws.output(output_json).region(region)
+    desc_load_balancers
+  }
+
+  let(:single_load_balancer) {
+    lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
+    lb.name(0, elb_name)
+  }
+
+  let(:empty_load_balancer) {
+    lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
+  }
+
   before(:each) {
     @var_security_group_id="sg-abcd1234"
     @var_output_json="json"
@@ -49,11 +68,26 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
 
     it "Get load balancer in JSON form " do
-      desc_load_balancers= ZAWS::External::AWSCLI::Commands::ELB::DescribeLoadBalancers.new
-      desc_load_balancers.aws.output(@var_output_json).region(@var_region)
-      expect(@shellout).to receive(:cli).with(desc_load_balancers.aws.get_command, nil).ordered.and_return('test output')
+      expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).ordered.and_return('test output')
       expect(@textout).to receive(:puts).with('test output').ordered
       @command_load_balancer_json.view()
+    end
+  end
+
+  describe "#exists" do
+    context "Load balancer exists" do
+      it "true, it does exist" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_load_balancer_json.exists(elb_name)
+      end
+    end
+    context "Load balancer does not exist" do
+      it "false, it does not exist" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_load_balancer_json.exists(elb_name)
+      end
     end
   end
 
@@ -69,5 +103,6 @@ describe ZAWS::Services::ELB::LoadBalancer do
   end
 
 end
+
 
 
