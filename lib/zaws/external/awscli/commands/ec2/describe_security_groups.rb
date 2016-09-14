@@ -17,7 +17,7 @@ module ZAWS
 
             def execute(verbose=nil)
               comline=@aws.get_command
-              load(comline, @shellout.cli(comline, verbose), verbose)
+              @shellout.cli(comline, verbose)
             end
 
             def aws

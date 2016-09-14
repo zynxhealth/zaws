@@ -7,23 +7,23 @@ module ZAWS
     module EC2
       class SecurityGroup
 
-        def initialize(shellout, aws,undofile)
+        def initialize(shellout, aws, undofile)
           @shellout=shellout
           @aws=aws
           @undofile=undofile
           @undofile ||= ZAWS::Helper::ZFile.new
         end
 
-        def view(region, view, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused=false)
+        def view(region, viewtype, verbose=nil, vpcid=nil, groupname=nil, groupid=nil, perm_groupid=nil, perm_protocol=nil, perm_toport=nil, cidr=nil, unused=false)
           ds=@aws.awscli.command_ec2.describeSecurityGroups
           ds.clear_settings
           ds.filter.vpc_id(vpcid).group_name(groupname).group_id(groupid)
           ds.filter.ip_permission_group_id(perm_groupid).ip_permission_cidr(cidr)
           ds.filter.ip_permission_protocol(perm_protocol).ip_permission_to_port(perm_toport)
-          ds.aws.output(view).region(region)
-          ds.execute(verbose)
-          sgroups=ds.view
-          if unused
+          ds.aws.output(viewtype)
+          ds.aws.region(region)
+          sgroups=ds.view(viewtype, verbose)
+          if unused #TODO: Improve to detect security groups associated to firewall.
             instances = @aws.ec2.compute.view(region, 'json', nil, verbose)
             sgroups = JSON.parse(filter_groups_by_instances(sgroups, instances))
             sgroups = sgroups['SecurityGroups'].map { |x| x['GroupName'] }.join("\n")
@@ -42,19 +42,20 @@ module ZAWS
         def filter_groups_by_instances(security_groups, instances)
           security_groups_hash=JSON.parse(security_groups)
           instances_hash=JSON.parse(instances)
-          instances_hash['Reservations'][0]['Instances'].each do |x|
-            x['SecurityGroups'].each do |y|
-              security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select { |j| not j['GroupName'] == (y['GroupName']) }
-            end
-            x['NetworkInterfaces'].each do |y|
-              y['Groups'].each do |z|
-                security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select { |j| not j['GroupName'] == (z['GroupName']) }
+          instances_hash['Reservations'].each do |w|
+            w['Instances'].each do |x|
+              x['SecurityGroups'].each do |y|
+                security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select { |j| not j['GroupName'] == (y['GroupName']) }
+              end
+              x['NetworkInterfaces'].each do |y|
+                y['Groups'].each do |z|
+                  security_groups_hash['SecurityGroups'] = security_groups_hash['SecurityGroups'].select { |j| not j['GroupName'] == (z['GroupName']) }
+                end
               end
             end
           end
           JSON.generate(security_groups_hash)
         end
-
 
         def declare(region, vpcid, groupname, description, check, textout=nil, verbose=nil, ufile=nil)
           if ufile
