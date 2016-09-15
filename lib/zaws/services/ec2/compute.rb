@@ -254,7 +254,7 @@ module ZAWS
         def delete_secondary_ip(region, ip, textout, verbose, vpcid, externalid)
           secondary_ip_exists, compute_exists, network_interface = exists_secondary_ip(region, ip, nil, verbose, vpcid, externalid)
           if secondary_ip_exists and compute_exists
-            comline = "aws --output json --region #{region} ec2 unassign-private-ip-addresses --network-interface-id '#{network_interface}' --private-ip-addresses '#{ip}'"
+            comline = "aws --output json --region #{region} ec2 unassign-private-ip-addresses --network-interface-id \"#{network_interface}\" --private-ip-addresses \"#{ip}\""
             assignreturn = JSON.parse(@shellout.cli(comline, verbose))
             ZAWS::Helper::Output.out_change(textout, "Secondary ip deleted.") if assignreturn["return"] == "true"
           else

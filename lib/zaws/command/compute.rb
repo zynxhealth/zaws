@@ -101,11 +101,11 @@ module ZAWS
 
       desc "declare_secondary_ip EXTERNAL_ID IP", "Declare secondary IP for instance by the instance's EXTERNAL_ID."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_secondary_ip(externalid, ip)
-        @aws.ec2.compute.declare_secondary_ip(options[:region], ip, @out, (options[:verbose] ? @out : nil), options[:vpcid], externalid, options[:nagios], options[:undofile])
+        @aws.ec2.compute.declare_secondary_ip(options[:region], ip, @out, (options[:verbose] ? @out : nil), options[:vpcid], externalid, options[:check], options[:undofile])
       end
 
       desc "delete_secondary_ip EXTERNAL_ID IP", "Delete secondary IP for instance by the instance's EXTERNAL_ID."

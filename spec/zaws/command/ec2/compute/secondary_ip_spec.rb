@@ -26,7 +26,7 @@ describe ZAWS::Services::EC2::Compute do
     pias=ZAWS::External::AWSCLI::Generators::Result::EC2::PrivateIpAddresses.new
     pias.private_ip_address(0, "0.0.0.0")
     net_interfaces.private_ip_addresses(0, pias)
-    net_interfaces.network_interface_id(0,"net-123")
+    net_interfaces.network_interface_id(0, "net-123")
     instances.instance_id(0, instance_id).tags(0, tags)
     instances.network_interfaces(0, net_interfaces)
   }
@@ -38,9 +38,19 @@ describe ZAWS::Services::EC2::Compute do
     apia
   }
 
+  let (:unassign_private_ip_addresses) {
+    upia = ZAWS::External::AWSCLI::Commands::EC2::UnassignPrivateIpAddresses.new
+    upia.network_interface_id('net-123').private_ip_addresses('0.0.0.0')
+    upia.aws.output(output_json).region(region)
+    upia
+  }
+
   let(:skip_assignment) { ZAWS::Helper::Output.colorize("Secondary ip already exists. Skipping assignment.", AWS_consts::COLOR_GREEN) }
   let(:secondary_ip_assigned) { ZAWS::Helper::Output.colorize("Secondary ip assigned.", AWS_consts::COLOR_YELLOW) }
-
+  let(:secondary_ip_unassigned) { ZAWS::Helper::Output.colorize("Secondary ip deleted.", AWS_consts::COLOR_YELLOW) }
+  let(:secondary_ip_skip_deletion) { ZAWS::Helper::Output.colorize("Secondary IP does not exists, skipping deletion.", AWS_consts::COLOR_GREEN) }
+  let(:ok_secondary_ip) { ZAWS::Helper::Output.colorize("OK: Secondary ip exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_secondary_ip) { ZAWS::Helper::Output.colorize("CRITICAL: Secondary ip does not exist.", AWS_consts::COLOR_RED) }
 
   before(:each) {
 
@@ -66,6 +76,20 @@ describe ZAWS::Services::EC2::Compute do
                           :vpcid => @var_vpc_id
     }
 
+    options_json_vpcid_check = {:region => @var_region,
+                                :verbose => false,
+                                :check => true,
+                                :undofile => false,
+                                :viewtype => 'json',
+                                :vpcid => @var_vpc_id
+    }
+    options_json_vpcid_undo = {:region => @var_region,
+                                :verbose => false,
+                                :check => false,
+                                :undofile => 'undo.sh',
+                                :viewtype => 'json',
+                                :vpcid => @var_vpc_id
+    }
 
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
@@ -80,6 +104,16 @@ describe ZAWS::Services::EC2::Compute do
     @command_compute_json_vpcid.aws=@aws
     @command_compute_json_vpcid.out=@textout
     @command_compute_json_vpcid.print_exit_code = true
+
+    @command_compute_json_vpcid_check = ZAWS::Command::Compute.new([], options_json_vpcid_check, {})
+    @command_compute_json_vpcid_check.aws=@aws
+    @command_compute_json_vpcid_check.out=@textout
+    @command_compute_json_vpcid_check.print_exit_code = true
+
+        @command_compute_json_vpcid_undo = ZAWS::Command::Compute.new([], options_json_vpcid_undo, {})
+    @command_compute_json_vpcid_undo.aws=@aws
+    @command_compute_json_vpcid_undo.out=@textout
+    @command_compute_json_vpcid_undo.print_exit_code = true
 
   }
 
@@ -115,6 +149,22 @@ describe ZAWS::Services::EC2::Compute do
         expect(@textout).to receive(:puts).with(secondary_ip_assigned)
         @command_compute_json_vpcid.declare_secondary_ip(external_id, "0.0.0.1")
       end
+      it "fail check when check flag present" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(critical_secondary_ip)
+        @command_compute_json_vpcid_check.declare_secondary_ip(external_id, "0.0.0.1")
+      end
+      it "creates an undo file when undo option file present" do
+         expect(@undofile).to receive(:prepend).with("zaws compute delete_secondary_ip #{external_id} 0.0.0.1 --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete secondary ip', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(assign_private_ip_addresses.aws.get_command, nil).and_return('{ "return" : "true" }')
+        expect(@textout).to receive(:puts).with(secondary_ip_assigned)
+        @command_compute_json_vpcid_undo.declare_secondary_ip(external_id, "0.0.0.1")
+      end
     end
     context "secondary ip does exist on instance" do
       it "skips assignment" do
@@ -123,6 +173,34 @@ describe ZAWS::Services::EC2::Compute do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
         expect(@textout).to receive(:puts).with(skip_assignment)
         @command_compute_json_vpcid.declare_secondary_ip(external_id, "0.0.0.0")
+      end
+      it "pass check when check flag present" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(ok_secondary_ip)
+        @command_compute_json_vpcid_check.declare_secondary_ip(external_id, "0.0.0.0")
+      end
+    end
+
+  end
+  describe "#delete" do
+
+    context "secondary ip does exist on instance" do
+      it "unassign it" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(unassign_private_ip_addresses.aws.get_command, nil).and_return('{ "return" : "true" }')
+        expect(@textout).to receive(:puts).with(secondary_ip_unassigned)
+        @command_compute_json_vpcid.delete_secondary_ip(external_id, "0.0.0.0")
+      end
+    end
+    context "secondary ip does not exist on instance" do
+      it "skip unassignment" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(secondary_ip_skip_deletion)
+        @command_compute_json_vpcid.delete_secondary_ip(external_id, "0.0.0.1")
       end
     end
   end
