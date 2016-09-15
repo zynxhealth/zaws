@@ -23,6 +23,12 @@ module ZAWS
                 self
               end
 
+              def private_ip_addresses(network_interface_number, ips)
+                resize_network_interface_array(network_interface_number)
+                @net["NetworkInterfaces"][network_interface_number]["PrivateIpAddresses"]=ips.get_private_ip_addresses_array
+                self
+              end
+
               def resize_network_interface_array(index)
                 while index > @net["NetworkInterfaces"].length-1
                   @net["NetworkInterfaces"].push({})

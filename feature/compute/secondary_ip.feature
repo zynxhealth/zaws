@@ -1,24 +1,5 @@
 Feature: Compute 
-    
-  Scenario: Determine secondary ip exists on instance by external ip
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX", 
-	                                         "NetworkInterfaces" : [ { "PrivateIpAddresses" : [ { "PrivateIpAddress" : "0.0.0.0"  } ] } ], 
-	                                         "Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws compute exists_secondary_ip my_instance 0.0.0.0 --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "true\n" 
-	 
-  Scenario: Determine secondary ip does not exist on instance by external ip
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX", 
-	                                         "NetworkInterfaces" : [ { "PrivateIpAddresses" : [ { "PrivateIpAddress" : "0.0.0.1"  } ] } ], 
-	                                         "Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws compute exists_secondary_ip my_instance 0.0.0.0 --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "false\n" 
+
 	
   Scenario: Declare secondary ip for instance by external ip
    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:

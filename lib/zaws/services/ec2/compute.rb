@@ -227,7 +227,7 @@ module ZAWS
             query_instance=JSON.parse(view(region, 'json', nil, verbose, vpcid, externalid))
             val = query_instance["Reservations"][0]["Instances"][0]["NetworkInterfaces"][0]["PrivateIpAddresses"].any? { |x| x["PrivateIpAddress"] == "#{ip}" }
             netid = query_instance["Reservations"][0]["Instances"][0]["NetworkInterfaces"][0]["NetworkInterfaceId"]
-            textout.puts val if textout
+            textout.puts val.to_s if textout
             return val, true, netid
           else
             return false, false, nil
