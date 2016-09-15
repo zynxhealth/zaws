@@ -242,7 +242,7 @@ module ZAWS
           secondary_ip_exists, compute_exists, network_interface = exists_secondary_ip(region, ip, nil, verbose, vpcid, externalid)
           return ZAWS::Helper::Output.binary_nagios_check(secondary_ip_exists, "OK: Secondary ip exists.", "CRITICAL: Secondary ip does not exist.", textout) if nagios
           if not secondary_ip_exists and compute_exists
-            comline = "aws --output json --region #{region} ec2 assign-private-ip-addresses --network-interface-id '#{network_interface}' --private-ip-addresses '#{ip}'"
+            comline = "aws --output json --region #{region} ec2 assign-private-ip-addresses --network-interface-id \"#{network_interface}\" --private-ip-addresses \"#{ip}\""
             $stdout.puts comline
             assignreturn = JSON.parse(@shellout.cli(comline, verbose))
             ZAWS::Helper::Output.out_change(textout, "Secondary ip assigned.") if assignreturn["return"] == "true"

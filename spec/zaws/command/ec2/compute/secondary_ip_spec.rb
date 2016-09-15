@@ -26,13 +26,20 @@ describe ZAWS::Services::EC2::Compute do
     pias=ZAWS::External::AWSCLI::Generators::Result::EC2::PrivateIpAddresses.new
     pias.private_ip_address(0, "0.0.0.0")
     net_interfaces.private_ip_addresses(0, pias)
+    net_interfaces.network_interface_id(0,"net-123")
     instances.instance_id(0, instance_id).tags(0, tags)
     instances.network_interfaces(0, net_interfaces)
   }
 
+  let (:assign_private_ip_addresses) {
+    apia = ZAWS::External::AWSCLI::Commands::EC2::AssignPrivateIpAddresses.new
+    apia.network_interface_id('net-123').private_ip_addresses('0.0.0.1')
+    apia.aws.output(output_json).region(region)
+    apia
+  }
 
-  let(:security_group_same) { ZAWS::Helper::Output.colorize("Security Group Association Not Changed.", AWS_consts::COLOR_GREEN) }
-  let(:security_group_changed) { ZAWS::Helper::Output.colorize("Security Group Association Changed.", AWS_consts::COLOR_YELLOW) }
+  let(:skip_assignment) { ZAWS::Helper::Output.colorize("Secondary ip already exists. Skipping assignment.", AWS_consts::COLOR_GREEN) }
+  let(:secondary_ip_assigned) { ZAWS::Helper::Output.colorize("Secondary ip assigned.", AWS_consts::COLOR_YELLOW) }
 
 
   before(:each) {
@@ -95,8 +102,30 @@ describe ZAWS::Services::EC2::Compute do
         @command_compute_json_vpcid.exists_secondary_ip(external_id, "0.0.0.1")
       end
     end
+
   end
 
+  describe "#declare" do
+    context "secondary ip does not exist on instance" do
+      it "Declare secondary ip for instance by external ip" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(assign_private_ip_addresses.aws.get_command, nil).and_return('{ "return" : "true" }')
+        expect(@textout).to receive(:puts).with(secondary_ip_assigned)
+        @command_compute_json_vpcid.declare_secondary_ip(external_id, "0.0.0.1")
+      end
+    end
+    context "secondary ip does exist on instance" do
+      it "skips assignment" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(skip_assignment)
+        @command_compute_json_vpcid.declare_secondary_ip(external_id, "0.0.0.0")
+      end
+    end
+  end
 
 end
 
