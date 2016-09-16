@@ -134,7 +134,7 @@ module ZAWS
 
         def subnet_assoc_exists(region, textout=nil, verbose=nil, vpcid, rtable_externalid, cidrblock)
           rtable=JSON.parse(view(region, 'json', nil, verbose, vpcid, rtable_externalid))
-          subnetid=@aws.ec2.subnet.id_by_cidrblock(region, nil, verbose, vpcid, cidrblock)
+          subnetid=@aws.ec2.subnet.id_by_cidrblock(region, verbose, vpcid, cidrblock)
           val = ((not subnetid.nil?) and (rtable["RouteTables"].count == 1) and (rtable["RouteTables"][0]["Associations"].any? { |x| x["SubnetId"]=="#{subnetid}" }))
           rtassocid= (val and rtable["RouteTables"].count == 1) ? (rtable["RouteTables"][0]["Associations"].select { |x| x["SubnetId"]=="#{subnetid}" })[0]["RouteTableAssociationId"] : nil
           rtableid = (rtable["RouteTables"].count == 1) ? rtable["RouteTables"][0]["RouteTableId"] : nil

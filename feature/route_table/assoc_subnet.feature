@@ -1,29 +1,5 @@
 Feature: Route Table 
 
-  Scenario: Determine that a subnet is associated to a route table 
-	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
-     """
-		{ "Subnets": [ { "SubnetId" : "X" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ { "SubnetId":"X" } ] } ] }
-     """
-    When I run `bundle exec zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "true\n" 
- 
-  Scenario: Determine that a subnet is NOT associated to a route table 
- 	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
-     """
-		{ "Subnets": [ { "SubnetId" : "X" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ ] } ] }
-     """
-    When I run `bundle exec zaws route_table subnet_assoc_exists my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "false\n" 
-
   Scenario: Associate a subnet to a route table
  	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
      """

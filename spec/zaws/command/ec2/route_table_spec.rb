@@ -17,6 +17,7 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:vpc_id) { "my_vpc_id" }
   let(:externalid_route_table) { "my_route_table" }
   let(:route_table_id) { "rtb-XXXXXXX" }
+  let(:cidr) { "10.0.0.0/24" }
 
   let(:empty_route_tables) {
     ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
@@ -50,6 +51,7 @@ describe ZAWS::Services::EC2::RouteTable do
     drt.aws.region(region)
     drt
   }
+
   let(:create_tags) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
     tags = tags.add("externalid", externalid_route_table)
@@ -57,6 +59,23 @@ describe ZAWS::Services::EC2::RouteTable do
     create_tags.resource("rtb-XXXXXXX").tags(tags)
     create_tags.aws.region(region)
     create_tags
+  }
+
+  let(:single_subnets) {
+    subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
+    subnets.subnet_id(0, "subnet-YYYYYY")
+  }
+
+  let(:single_route_tables_with_associations) {
+    single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).associate_subnets(0,single_subnets)
+  }
+
+  let(:describe_subnets) {
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vpc_id).cidr(cidr)
+    desc_subnets.aws.output("json").region(region)
+    desc_subnets
   }
 
   before(:each) {
@@ -100,12 +119,12 @@ describe ZAWS::Services::EC2::RouteTable do
 
     }
 
-     options_json_vpcid_undo = {:region => @var_region,
-                                :verbose => false,
-                                :check => false,
-                                :undofile => 'undo.sh',
-                                :viewtype => 'json',
-                                :vpcid => @var_vpc_id
+    options_json_vpcid_undo = {:region => @var_region,
+                               :verbose => false,
+                               :check => false,
+                               :undofile => 'undo.sh',
+                               :viewtype => 'json',
+                               :vpcid => @var_vpc_id
 
     }
 
@@ -144,7 +163,7 @@ describe ZAWS::Services::EC2::RouteTable do
     @command_route_table_json_vpcid_check.out=@textout
     @command_route_table_json_vpcid_check.print_exit_code = true
 
-     @command_route_table_json_vpcid_undo = ZAWS::Command::Route_Table.new([], options_json_vpcid_undo, {})
+    @command_route_table_json_vpcid_undo = ZAWS::Command::Route_Table.new([], options_json_vpcid_undo, {})
     @command_route_table_json_vpcid_undo.aws=@aws
     @command_route_table_json_vpcid_undo.out=@textout
     @command_route_table_json_vpcid_undo.print_exit_code = true
@@ -279,6 +298,25 @@ describe ZAWS::Services::EC2::RouteTable do
         expect(@shellout).to receive(:cli).with(delete_route_table.aws.get_command, nil).and_return('{	"return": "true" }')
         expect(@textout).to receive(:puts).with(route_table_deleted)
         @command_route_table_json_vpcid.delete(externalid_route_table)
+      end
+    end
+  end
+
+  describe "#subnet_assoc_exists" do
+    context "subnet is associated to a route table " do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_associations.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_route_table_json_vpcid.subnet_assoc_exists(externalid_route_table, cidr)
+      end
+    end
+    context "subnet is associated to a route table " do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_route_table_json_vpcid.subnet_assoc_exists(externalid_route_table, cidr)
       end
     end
   end

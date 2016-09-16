@@ -8,6 +8,7 @@ module ZAWS
               def initialize
                 @route_tables= {}
                 @route_tables["RouteTables"]= []
+                @route_tables["Associations"]= []
                 self
               end
 
@@ -27,11 +28,19 @@ module ZAWS
                 while index > @route_tables["RouteTables"].length-1
                   @route_tables["RouteTables"].push({})
                 end
+                @route_tables["RouteTables"][index]["Associations"] ||= []
               end
 
               def add(route_tables)
-                 @route_tables["RouteTables"].concat(route_tables.get_route_tables_array)
-                 self
+                @route_tables["RouteTables"].concat(route_tables.get_route_tables_array)
+                self
+              end
+
+              def associate_subnets(route_table_number,subnets)
+                resize_route_tables_array(route_table_number)
+
+                @route_tables["RouteTables"][route_table_number]["Associations"].concat(subnets.get_subnets_array)
+                self
               end
 
               def get_json
@@ -39,7 +48,7 @@ module ZAWS
               end
 
               def get_json_single_route_table(index)
-                single={ "RouteTable" => @route_tables["RouteTables"][index]}
+                single={"RouteTable" => @route_tables["RouteTables"][index]}
                 single.to_json
               end
 
