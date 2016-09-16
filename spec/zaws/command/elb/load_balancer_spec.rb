@@ -65,6 +65,8 @@ describe ZAWS::Services::ELB::LoadBalancer do
 
   let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_elb) { ZAWS::Helper::Output.colorize("CRITICAL: Load Balancer does not exist.", AWS_consts::COLOR_RED) }
+  let(:ok_instance_registered) { ZAWS::Helper::Output.colorize("OK: Instance registerd.", AWS_consts::COLOR_GREEN) }
+  let(:critical_instance_registered) { ZAWS::Helper::Output.colorize("CRITICAL: Instance not registered.", AWS_consts::COLOR_RED) }
 
   before(:each) {
     @var_security_group_id="sg-abcd1234"
@@ -208,6 +210,60 @@ describe ZAWS::Services::ELB::LoadBalancer do
 
         begin
           @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+  end
+
+
+  describe "#create_in_subnet" do
+    context "check flag provided and load balancer created" do
+      it "ok" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(ok_elb)
+        begin
+          @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag provided and load balancer created" do
+      it "critical" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(critical_elb)
+
+        begin
+          @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+  end
+
+  describe "#register_instance" do
+    context "check flag provided and instance registered" do
+      it "ok" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(ok_instance_registered)
+        begin
+          @command_load_balancer_json_vpcid_check.register_instance(elb_name, instance_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag provided and instance not registered" do
+      it "critical" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances2.aws.get_command, nil).and_return(instances2.get_json)
+        expect(@textout).to receive(:puts).with(critical_instance_registered)
+        begin
+          @command_load_balancer_json_vpcid_check.register_instance(elb_name, instance_id2)
         rescue SystemExit => e
           expect(e.status).to eq(2)
         end

@@ -58,14 +58,14 @@ module ZAWS
 
 	  desc "register_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Register an instance identified by the INSTANCE_EXTERNAL_ID is registered with load balancer identified by LOAD_BALANCER_NAME."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 	  def register_instance(lbname,instance_external_id) 
 		@out.puts "DEBUG: options[:region]=#{options[:region]}" if options[:verbose]
 		@out.puts "DEBUG: lbname=#{lbname}" if options[:verbose]
 		@out.puts "DEBUG: instance_external_id=#{instance_external_id}" if options[:verbose]
 		@out.puts "DEBUG: options[:vpcid]=#{options[:vpcid]}" if options[:verbose]
-		@aws.elb.load_balancer.register_instance(options[:region],lbname,instance_external_id,options[:vpcid],options[:nagios],@out,(options[:verbose]?@out:nil),options[:undofile])
+		@aws.elb.load_balancer.register_instance(options[:region],lbname,instance_external_id,options[:vpcid],options[:check],@out,(options[:verbose]?@out:nil),options[:undofile])
 	  end
 
 	  desc "deregister_instance LOAD_BALANCER_NAME INSTANCE_EXTERNAL_ID","Deregister an instance identified by the INSTANCE_EXTERNAL_ID is registered with load balancer identified by LOAD_BALANCER_NAME."
