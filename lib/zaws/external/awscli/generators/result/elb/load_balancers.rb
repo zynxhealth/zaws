@@ -17,10 +17,17 @@ module ZAWS
                 self
               end
 
+              def instances(load_balancer_number, instances)
+                resize_load_balancers_array(load_balancer_number)
+                @load_balancers["LoadBalancerDescriptions"][load_balancer_number]["Instances"].concat(instances.get_instances_array)
+                self
+              end
+
               def resize_load_balancers_array(index)
                 while index > @load_balancers["LoadBalancerDescriptions"].length-1
                   @load_balancers["LoadBalancerDescriptions"].push({})
                 end
+                @load_balancers["LoadBalancerDescriptions"][index]["Instances"] = []
               end
 
               def add(load_balancers)

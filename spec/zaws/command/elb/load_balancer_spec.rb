@@ -5,6 +5,11 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
   let(:elb_name) { "name-???" }
+  let (:vpc_id) { "my_vpc_id" }
+  let (:external_id) { "my_instance" }
+  let (:security_group_name) { "my_security_group" }
+  let (:instance_id) { "i-12345678" }
+  let (:instance_id2) { "i-1234567a" }
 
   let(:describe_load_balancer_json) {
     desc_load_balancers= ZAWS::External::AWSCLI::Commands::ELB::DescribeLoadBalancers.new
@@ -12,13 +17,51 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_load_balancers
   }
 
-  let(:single_load_balancer) {
-    lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
-    lb.name(0, elb_name)
-  }
 
   let(:empty_load_balancer) {
+    ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
+  }
+
+  let (:security_groups) {
+    security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
+    security_groups.group_name(0, security_group_name).group_id(0, "sg-X")
+  }
+
+  let (:instances) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", instance_id)
+    instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
+    instances.instance_id(0, instance_id).security_groups(0, security_groups).tags(0, tags)
+  }
+
+  let (:instances2) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", instance_id2)
+    instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
+    instances.instance_id(0, instance_id2).security_groups(0, security_groups).tags(0, tags)
+  }
+
+  let(:single_load_balancer) {
     lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
+    lb.name(0, elb_name).instances(0, instances)
+  }
+
+  let (:describe_instances) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", instance_id)
+    desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
+    desc_instances.filter.vpc_id(vpc_id).tags(tags)
+    desc_instances.aws.output(output_json).region(region)
+    desc_instances
+  }
+
+    let (:describe_instances2) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", instance_id2)
+    desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
+    desc_instances.filter.vpc_id(vpc_id).tags(tags)
+    desc_instances.aws.output(output_json).region(region)
+    desc_instances
   }
 
   before(:each) {
@@ -43,6 +86,13 @@ describe ZAWS::Services::ELB::LoadBalancer do
                      :viewtype => 'table'
     }
 
+    options_json_vpcid = {:region => @var_region,
+                          :verbose => false,
+                          :check => false,
+                          :undofile => false,
+                          :viewtype => 'json',
+                          :vpcid => vpc_id
+    }
 
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
@@ -56,6 +106,11 @@ describe ZAWS::Services::ELB::LoadBalancer do
     @command_load_balancer_json.aws=@aws
     @command_load_balancer_json.out=@textout
     @command_load_balancer_json.print_exit_code = true
+
+    @command_load_balancer_json_vpcid = ZAWS::Command::Load_Balancer.new([], options_json_vpcid, {})
+    @command_load_balancer_json_vpcid.aws=@aws
+    @command_load_balancer_json_vpcid.out=@textout
+    @command_load_balancer_json_vpcid.print_exit_code = true
   }
 
   describe "#view" do
@@ -93,12 +148,28 @@ describe ZAWS::Services::ELB::LoadBalancer do
 
   describe "#calculated_listener" do
     it "Creates a JSON object with a listner definition" do
-
       # example output for: aws ec2 escribe-subnets
       json_expectation = "[{\"Protocol\":\"tcp\",\"LoadBalancerPort\":80,\"InstanceProtocol\":\"tcp\",\"InstancePort\":80}]"
-
       expect(@aws.elb.load_balancer.calculated_listener("tcp", "80", "tcp", "80")).to eql(json_expectation)
+    end
+  end
 
+  describe "#exists_instance" do
+    context "instance is registered" do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_load_balancer_json_vpcid.exists_instance(elb_name, instance_id)
+      end
+    end
+    context "instance is not registered" do
+      it "returns false" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances2.aws.get_command, nil).and_return(instances2.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_load_balancer_json_vpcid.exists_instance(elb_name, instance_id2)
+      end
     end
   end
 

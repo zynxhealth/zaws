@@ -1,28 +1,4 @@
 Feature: Instance Registration 
-    
-  Scenario: Determine instance is registered
-	Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	 { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "Instances": [ { "InstanceId": "i-X" }  ]} ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the stdout should contain "true\n" 
-	
-  Scenario: Determine instance is NOT registered
-	Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	 { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "Instances": [ { "InstanceId": "i-Y" }  ]} ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-X","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws load_balancer exists_instance lbname my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the stdout should contain "false\n" 
 
   Scenario: Declare instance registration
 	Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:

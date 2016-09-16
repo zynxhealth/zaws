@@ -43,6 +43,10 @@ module ZAWS
                 @res.to_json
               end
 
+              def get_instances_array
+                @res["Reservations"][0]["Instances"]
+              end
+
             end
           end
         end

@@ -77,7 +77,7 @@ module ZAWS
           lbexists, instances, ldescriptions=exists(region, lbname, nil, verbose)
           instance_exists, instance_id = @aws.ec2.compute.exists(region, nil, verbose, vpcid, instance_external_id)
           val = (lbexists and instance_exists and (instances.any? { |x| x["InstanceId"]==instance_id }))
-          textout.puts(val) if textout
+          textout.puts(val.to_s) if textout
           return val, instance_id
         end
 
