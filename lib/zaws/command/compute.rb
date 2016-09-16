@@ -57,7 +57,7 @@ module ZAWS
       option :optimized, :type => :string, :desc => "ebs optimized", :banner => "<optimized>", :aliases => :i, :default => false
       option :apiterminate, :type => :string, :desc => "ebs optimized", :banner => "<apiterminate>", :aliases => :a, :default => false
       option :clienttoken, :type => :string, :desc => "AWS VPC id", :banner => "<clienttoken>", :aliases => :c, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
       option :nosdcheck, :type => :boolean, :desc => "No source dest check (primarily needed for NAT instances)", :banner => "<nosdcheck>", :aliases => :s, :default => false
       option :skipruncheck, :type => :boolean, :desc => "Flag to skip the running check during testing.", :banner => "<skipruncheck>", :aliases => :r, :default => false
@@ -67,7 +67,7 @@ module ZAWS
       option :profilename, :type => :string, :desc => "instance profile name", :banner => "<profilename>"
       option :userdata, :type => :string, :desc => "instance userdata yml filename", :banner => "<userdata>"
       def declare(externalid, image, owner, type, root, zone, key, sgroup)
-        val=@aws.ec2.compute.declare(externalid, image, owner, type, root, zone, key, sgroup, options[:privateip], options[:optimized], options[:apiterminate], options[:clienttoken], options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], options[:nagios], options[:undofile], options[:nosdcheck], options[:skipruncheck], options[:volsize], options[:volume], options[:tenancy], options[:profilename], options[:userdata])
+        val=@aws.ec2.compute.declare(externalid, image, owner, type, root, zone, key, sgroup, options[:privateip], options[:optimized], options[:apiterminate], options[:clienttoken], options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], options[:check], options[:undofile], options[:nosdcheck], options[:skipruncheck], options[:volsize], options[:volume], options[:tenancy], options[:profilename], options[:userdata])
         return val
       end
 

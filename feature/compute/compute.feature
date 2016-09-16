@@ -1,20 +1,4 @@
 Feature: Compute 
-    
-  Scenario: Determine a compute instance exists by instance external id  
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "true\n" 
-	  
-  Scenario: Determine a compute instance DOES NOT exist by instance external id  
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [] } 
-	 """
-    When I run `bundle exec zaws compute exists_by_external_id my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "false\n" 
 
   Scenario: Declare a compute instance in vpc by external id, created undo file
 	Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
@@ -96,7 +80,6 @@ Feature: Compute
 	 """
     When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --skipruncheck`
 	Then the output should contain "Instance already exists. Creation skipped.\n" 
-	
 
   Scenario: Delete
    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
@@ -117,22 +100,7 @@ Feature: Compute
 	 """
     When I run `bundle exec zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Instance does not exist. Skipping deletion.\n" 
-			
-  Scenario: Nagios OK
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
-	Then the output should contain "OK: Instance already exists.\n" 
-	  
-  Scenario: Nagios CRITICAL
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [] } 
-	 """
-    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --nagios --skipruncheck`
-	Then the output should contain "CRITICAL: Instance does not exist.\n" 
+
 
 
 
