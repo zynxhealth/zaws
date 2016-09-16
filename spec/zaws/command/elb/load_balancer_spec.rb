@@ -17,7 +17,6 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_load_balancers
   }
 
-
   let(:empty_load_balancer) {
     ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
   }
@@ -55,7 +54,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_instances
   }
 
-    let (:describe_instances2) {
+  let (:describe_instances2) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
     tags = tags.add("externalid", instance_id2)
     desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
@@ -63,6 +62,9 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_instances.aws.output(output_json).region(region)
     desc_instances
   }
+
+  let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_elb) { ZAWS::Helper::Output.colorize("CRITICAL: Load Balancer does not exist.", AWS_consts::COLOR_RED) }
 
   before(:each) {
     @var_security_group_id="sg-abcd1234"
@@ -94,6 +96,15 @@ describe ZAWS::Services::ELB::LoadBalancer do
                           :vpcid => vpc_id
     }
 
+    options_json_vpcid_check = {:region => @var_region,
+                                :verbose => false,
+                                :check => true,
+                                :undofile => false,
+                                :viewtype => 'json',
+                                :vpcid => vpc_id,
+                                :cidrblock => '"10.0.0.0/28" "10.0.1.0/28"'
+    }
+
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
     @undofile=double('ZAWS::Helper::ZFile')
@@ -111,6 +122,11 @@ describe ZAWS::Services::ELB::LoadBalancer do
     @command_load_balancer_json_vpcid.aws=@aws
     @command_load_balancer_json_vpcid.out=@textout
     @command_load_balancer_json_vpcid.print_exit_code = true
+
+    @command_load_balancer_json_vpcid_check = ZAWS::Command::Load_Balancer.new([], options_json_vpcid_check, {})
+    @command_load_balancer_json_vpcid_check.aws=@aws
+    @command_load_balancer_json_vpcid_check.out=@textout
+    @command_load_balancer_json_vpcid_check.print_exit_code = true
   }
 
   describe "#view" do
@@ -169,6 +185,32 @@ describe ZAWS::Services::ELB::LoadBalancer do
         expect(@shellout).to receive(:cli).with(describe_instances2.aws.get_command, nil).and_return(instances2.get_json)
         expect(@textout).to receive(:puts).with('false')
         @command_load_balancer_json_vpcid.exists_instance(elb_name, instance_id2)
+      end
+    end
+  end
+
+  describe "#create_in_subnet" do
+    context "check flag provided and load balancer created" do
+      it "ok" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(ok_elb)
+        begin
+          @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag provided and load balancer created" do
+      it "critical" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(critical_elb)
+
+        begin
+          @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
       end
     end
   end

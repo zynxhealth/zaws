@@ -34,10 +34,10 @@ module ZAWS
 	  desc "create_in_subnet LOAD_BALANCER_NAME LB_PROTOCOL LB_PORT IN_PROTOCOL IN_PORT SECURITY_GROUP","Create a new load balancer in the subnets specified by the option --cidrblocks."
 	  option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>",  :aliases => :v, :default => nil
 	  option :cidrblocks,:type => :array, :desc => "subnet cidr blocks to attach to load balancer, one per avaialability zone.", :banner => "<cidrblocks>", :aliases => :u
-	  option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
+	  option :check, :type => :boolean, :desc => "Returns a check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 	  def create_in_subnet(lbname,lbprotocol,lbport,inprotocol,inport,securitygroup)
-		exitcode = @aws.elb.load_balancer.create_in_subnet(options[:region],lbname,lbprotocol,lbport,inprotocol,inport,securitygroup,options[:cidrblocks],options[:vpcid],options[:nagios],@out,(options[:verbose]?@out:nil),options[:undofile])
+		exitcode = @aws.elb.load_balancer.create_in_subnet(options[:region],lbname,lbprotocol,lbport,inprotocol,inport,securitygroup,options[:cidrblocks],options[:vpcid],options[:check],@out,(options[:verbose]?@out:nil),options[:undofile])
 		exit exitcode
 	  end
 

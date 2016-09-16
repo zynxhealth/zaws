@@ -55,24 +55,6 @@ Feature: Load Balancer
     When I run `bundle exec zaws load_balancer delete name-??? --region us-west-1`
     Then the stdout should contain "Load balancer does not exist. Skipping deletion.\n" 
 
-  Scenario: Nagios OK
-   Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-      { "LoadBalancerDescriptions": [ { "LoadBalancerName": "name-???" } ] }
-     """
-    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
-	Then the output should contain "OK: Load Balancer Exists.\n"
-    And the exit status should be 0
-		  
-  Scenario: Nagios CRITICAL
-   Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-      { "LoadBalancerDescriptions": [ ] }
-     """
-    When I run `bundle exec zaws load_balancer create_in_subnet name-??? tcp 80 tcp 80 my_security_group_name --cidrblocks="10.0.0.0/28" "10.0.1.0/28" --vpcid my_vpc_id --region us-west-1 --nagios`
-	Then the output should contain "CRITICAL: Load Balancer does not exist.\n"
-    And the exit status should be 2
-	
   Scenario: Undo file
    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
      """
