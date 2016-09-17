@@ -89,7 +89,7 @@ module ZAWS
 	  end
 
 	  desc "declare_listener LOAD_BALANCER_NAME LBPROTOCOL LBPORT INPROTOCOL INPORT","Create a new listener."
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result",  :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result",  :aliases => :n, :default => false
 	  option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 	  def declare_listener(lbname,lbprotocol,lbport,inprotocol,inport) 
 		@out.puts "DEBUG: lbname=#{lbname}" if options[:verbose] 
@@ -97,7 +97,7 @@ module ZAWS
         @out.puts "DEBUG: lbport=#{lbport}" if options[:verbose]
         @out.puts "DEBUG: inprotocol=#{inprotocol}" if options[:verbose]
 		@out.puts "DEBUG: inport=#{inport}" if options[:verbose]
-		@aws.elb.load_balancer.declare_listener(options[:region],lbname,lbprotocol,lbport,inprotocol,inport,options[:nagios],@out,(options[:verbose]?@out:nil),options[:undofile])
+		@aws.elb.load_balancer.declare_listener(options[:region],lbname,lbprotocol,lbport,inprotocol,inport,options[:check],@out,(options[:verbose]?@out:nil),options[:undofile])
 	  end
 
 	  desc "delete_listener LOAD_BALANCER_NAME LBPROTOCOL LBPORT INPROTOCOL INPORT","Delete listener."

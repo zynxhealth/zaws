@@ -55,23 +55,7 @@ Feature: Listner
      """
     When I run `bundle exec zaws load_balancer delete_listener lbname HTTP 80 HTTP 80 --region us-west-1`
 	Then the stdout should contain "Listener does not exist. Skipping deletion.\n" 
-				
-  Scenario: Nagios OK
-    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	  { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "ListenerDescriptions": [ { "Listener": { "InstancePort": 80, "LoadBalancerPort": 80, "Protocol": "HTTP", "InstanceProtocol": "HTTP" }, "PolicyNames": [] } ] } ] }
-     """
-    When I run `bundle exec zaws load_balancer declare_listener lbname HTTP 80 HTTP 80 --region us-west-1 --nagios`
-	Then the stdout should contain "OK: Listerner exists.\n" 
-	
-  Scenario: Nagios CRITICAL
-    Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	  { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "ListenerDescriptions": [] } ] }
-     """
-    When I run `bundle exec zaws load_balancer declare_listener lbname HTTP 80 HTTP 80 --region us-west-1 --nagios`
-	Then the stdout should contain "CRITICAL: Listener does not exist.\n" 
-	
+
   Scenario: Undo file
     Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
      """

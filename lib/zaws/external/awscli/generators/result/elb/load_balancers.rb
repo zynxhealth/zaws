@@ -23,11 +23,18 @@ module ZAWS
                 self
               end
 
+              def listeners(load_balancer_number, listeners)
+                resize_load_balancers_array(load_balancer_number)
+                @load_balancers["LoadBalancerDescriptions"][load_balancer_number]["ListenerDescriptions"].concat(listeners.get_listeners_array)
+                self
+              end
+
               def resize_load_balancers_array(index)
                 while index > @load_balancers["LoadBalancerDescriptions"].length-1
                   @load_balancers["LoadBalancerDescriptions"].push({})
                 end
-                @load_balancers["LoadBalancerDescriptions"][index]["Instances"] = []
+                @load_balancers["LoadBalancerDescriptions"][index]["Instances"] ||= []
+                @load_balancers["LoadBalancerDescriptions"][index]["ListenerDescriptions"] ||=[]
               end
 
               def add(load_balancers)

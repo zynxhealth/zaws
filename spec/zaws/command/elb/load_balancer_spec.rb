@@ -41,8 +41,16 @@ describe ZAWS::Services::ELB::LoadBalancer do
   }
 
   let(:single_load_balancer) {
+    listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
     lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
-    lb.name(0, elb_name).instances(0, instances)
+    lb.name(0, elb_name).instances(0, instances).listeners(0,listener)
+  }
+
+  let(:single_load_balancer_with_listener) {
+    listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
+    listener.instance_port(0,80).load_balancer_port(0,80).protocol(0,"HTTP").instance_protocol(0,"HTTP")
+    lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
+    lb.name(0, elb_name).instances(0, instances).listeners(0,listener)
   }
 
   let (:describe_instances) {
@@ -67,6 +75,8 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:critical_elb) { ZAWS::Helper::Output.colorize("CRITICAL: Load Balancer does not exist.", AWS_consts::COLOR_RED) }
   let(:ok_instance_registered) { ZAWS::Helper::Output.colorize("OK: Instance registerd.", AWS_consts::COLOR_GREEN) }
   let(:critical_instance_registered) { ZAWS::Helper::Output.colorize("CRITICAL: Instance not registered.", AWS_consts::COLOR_RED) }
+  let(:ok_listener_exists) { ZAWS::Helper::Output.colorize("OK: Listerner exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_listener_exists) { ZAWS::Helper::Output.colorize("CRITICAL: Listener does not exist.", AWS_consts::COLOR_RED) }
 
   before(:each) {
     @var_security_group_id="sg-abcd1234"
@@ -269,6 +279,32 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
+  end
+
+  describe "#declare_listener" do
+    context "check flag specified and listner on load balancer exists" do
+      it "returns ok" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
+        expect(@textout).to receive(:puts).with(ok_listener_exists)
+        begin
+          @command_load_balancer_json_vpcid_check.declare_listener(elb_name, "HTTP", 80, "HTTP", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+    context "check flag specified and listner not on load balancer exists" do
+      it "returns ok" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(critical_listener_exists)
+        begin
+          @command_load_balancer_json_vpcid_check.declare_listener(elb_name, "HTTP", 80, "HTTP", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+
   end
 
 end
