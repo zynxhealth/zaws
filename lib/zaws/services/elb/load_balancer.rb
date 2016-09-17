@@ -116,7 +116,7 @@ module ZAWS
           lbexists, instances, ldescriptions=exists(region, lbname, nil, verbose)
           verbose.puts ldescriptions if verbose
           val = (lbexists and (ldescriptions.any? { |x| x["Listener"]["LoadBalancerPort"]==(lbport.to_i) && x["Listener"]["Protocol"]==lbprotocol && x["Listener"]["InstancePort"]==(inport.to_i) && x["Listener"]["InstanceProtocol"]==inprotocol }))
-          textout.puts(val) if textout
+          textout.puts(val.to_s) if textout
           return val
         end
 

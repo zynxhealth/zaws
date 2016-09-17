@@ -1,21 +1,5 @@
 Feature: Listner
 
-  Scenario: Determine listner exists
-	Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	  { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "ListenerDescriptions": [ { "Listener": { "InstancePort": 80, "LoadBalancerPort": 80, "Protocol": "HTTP", "InstanceProtocol": "HTTP" }, "PolicyNames": [] } ] } ] }
-     """
-    When I run `bundle exec zaws load_balancer exists_listener lbname HTTP 80 HTTP 80 --region us-west-1`
-	Then the stdout should contain "true\n" 
-		
-  Scenario: Determine listner does not exist
-	Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
-     """
-	  { "LoadBalancerDescriptions": [ { "LoadBalancerName": "lbname", "ListenerDescriptions": [ { "Listener": { "InstancePort": 17080, "LoadBalancerPort": 80, "Protocol": "HTTP", "InstanceProtocol": "HTTP" }, "PolicyNames": [] } ] } ] }
-     """
-    When I run `bundle exec zaws load_balancer exists_listener lbname tcp 80 tcp 80 --region us-west-1`
-	Then the stdout should contain "false\n" 
-
   Scenario: Declare listner 
     Given I double `aws --output json --region us-west-1 elb describe-load-balancers` with stdout:
      """

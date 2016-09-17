@@ -43,14 +43,14 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:single_load_balancer) {
     listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
     lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
-    lb.name(0, elb_name).instances(0, instances).listeners(0,listener)
+    lb.name(0, elb_name).instances(0, instances).listeners(0, listener)
   }
 
   let(:single_load_balancer_with_listener) {
     listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
-    listener.instance_port(0,80).load_balancer_port(0,80).protocol(0,"HTTP").instance_protocol(0,"HTTP")
+    listener.instance_port(0, 80).load_balancer_port(0, 80).protocol(0, "HTTP").instance_protocol(0, "HTTP")
     lb= ZAWS::External::AWSCLI::Generators::Result::ELB::LoadBalancers.new
-    lb.name(0, elb_name).instances(0, instances).listeners(0,listener)
+    lb.name(0, elb_name).instances(0, instances).listeners(0, listener)
   }
 
   let (:describe_instances) {
@@ -281,6 +281,24 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
+  describe "#exists_listener" do
+    context "listener on load balancer exists" do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_load_balancer_json_vpcid.exists_listener(elb_name, "HTTP", 80, "HTTP", 80)
+      end
+    end
+    context "no listner on load balancer exists" do
+      it "returns false" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_load_balancer_json_vpcid.exists_listener(elb_name, "HTTP", 80, "HTTP", 80)
+      end
+    end
+  end
+
+
   describe "#declare_listener" do
     context "check flag specified and listner on load balancer exists" do
       it "returns ok" do
@@ -304,7 +322,6 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
-
   end
 
 end
