@@ -83,11 +83,11 @@ module ZAWS
 
       desc "declare_route_to_gateway ROUTE_TABLE CIDR_BLOCK GATEWAY_ID", "Declare a new route to GATEWAY_ID, but skip creating it if it exists."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_route_to_gateway(routetable, cidrblock, gatewayid)
-        exitcode = @aws.ec2.route_table.declare_route_to_gateway(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], routetable, cidrblock, gatewayid, options[:nagios], options[:undofile])
+        exitcode = @aws.ec2.route_table.declare_route_to_gateway(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], routetable, cidrblock, gatewayid, options[:check], options[:undofile])
         exit exitcode
       end
 

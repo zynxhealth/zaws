@@ -18,6 +18,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:ok_assoc_subnet) { ZAWS::Helper::Output.colorize("OK: Route table association to subnet exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_assoc_subnet) { ZAWS::Helper::Output.colorize("CRITICAL: Route table association to subnet does not exist.", AWS_consts::COLOR_RED) }
 
+  let(:ok_declare_route_to_gateway) { ZAWS::Helper::Output.colorize("OK: Route to gateway exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_declare_route_to_gateway) { ZAWS::Helper::Output.colorize("CRITICAL: Route to gateway does not exist.", AWS_consts::COLOR_RED) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -503,6 +506,32 @@ describe ZAWS::Services::EC2::RouteTable do
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
         expect(@textout).to receive(:puts).with('false')
         @command_route_table_json_vpcid.route_exists_by_gatewayid(externalid_route_table, cidr, gateway_id)
+      end
+    end
+  end
+
+  describe "#declare_route_to_gateway" do
+    context "check flag specified and a route does exist to a gateway" do
+      it "returns ok" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_gateway.get_json)
+        expect(@textout).to receive(:puts).with(ok_declare_route_to_gateway)
+        begin
+          @command_route_table_json_vpcid_check.declare_route_to_gateway(externalid_route_table, cidr, gateway_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag specified and a route does not exist to a gateway" do
+      it "returns critical" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(critical_declare_route_to_gateway)
+        begin
+          @command_route_table_json_vpcid_check.declare_route_to_gateway(externalid_route_table, cidr, gateway_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+
       end
     end
   end
