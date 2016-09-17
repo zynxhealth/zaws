@@ -1,6 +1,6 @@
 Feature: Route Table 
   Route Tables control network traffic in AWS between subnets and gateways. 
-   
+
   Scenario: Declare route to an instance by instance external id
     Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
      """
@@ -49,32 +49,6 @@ Feature: Route Table
     When I run `bundle exec zaws route_table delete_route my_route_table 0.0.0.0/0 --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route does not exist. Skipping deletion.\n" 
 	
-   Scenario: Perform a nagios check, with the result indicatin OK (exit 0), indicating declaring a route requires no action because it exists.
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-	And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-XXXXXXX"} ] } ] }
-     """
-    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
-	Then the output should contain "OK: Route to instance exists.\n"
-    And the exit status should be 0
-		
-   Scenario: Perform a nagios check, with the result indicatin CRITICAL (exit 2), indicating declaring a security group requires action because it does not exist.
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-	And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX", "Routes":[ {"DestinationCidrBlock": "0.0.0.0/0", "InstanceId": "i-YYYYYYY"} ] } ] }
-     """
-    When I run `bundle exec zaws route_table declare_route my_route_table 0.0.0.0/0 my_instance --region us-west-1 --vpcid my_vpc_id --nagios`
-	Then the output should contain "CRITICAL: Route to instance does not exist.\n"
-    And the exit status should be 2
-
    Scenario: Declaring a route to an instance, should append the command to remove the security group to file.
     Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
      """

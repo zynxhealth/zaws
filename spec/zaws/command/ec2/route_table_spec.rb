@@ -12,6 +12,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:ok_route_propagation) { ZAWS::Helper::Output.colorize("OK: Route propagation from gateway enabled.", AWS_consts::COLOR_GREEN) }
   let(:critical_route_propagation) { ZAWS::Helper::Output.colorize("CRITICAL: Route propagation from gateway not enabled.", AWS_consts::COLOR_RED) }
 
+  let(:ok_declare_route) { ZAWS::Helper::Output.colorize("OK: Route to instance exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_declare_route) { ZAWS::Helper::Output.colorize("CRITICAL: Route to instance does not exist.", AWS_consts::COLOR_RED) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -52,10 +55,10 @@ describe ZAWS::Services::EC2::RouteTable do
 
   let(:single_route_tables_with_instance) {
     routes=ZAWS::External::AWSCLI::Generators::Result::EC2::Routes.new
-    routes.instance_id(0,instance_id)
-    routes.destination_cidr_block(0,cidr)
+    routes.instance_id(0, instance_id)
+    routes.destination_cidr_block(0, cidr)
     single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
-    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).routes(0,routes)
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).routes(0, routes)
   }
 
   let(:single_route_tables_with_prop_gateway) {
@@ -420,6 +423,34 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+
+  describe "#declare_route" do
+    context "check flag is set and route exists" do
+      it "check ok" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_instance.get_json)
+        expect(@textout).to receive(:puts).with(ok_declare_route)
+        begin
+          @command_route_table_json_vpcid_check.declare_route(externalid_route_table, cidr, external_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "check flag is set and route does not exists" do
+      it "check critical" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(critical_declare_route)
+        begin
+          @command_route_table_json_vpcid_check.declare_route(externalid_route_table, cidr, external_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+  end
 
 end
 

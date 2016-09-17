@@ -59,11 +59,11 @@ module ZAWS
 
       desc "declare_route ROUTE_TABLE CIDR_BLOCK INSTANCE_EXTERNAL_ID", "Declare a new route to instance INSTANCE_EXTERNAL_ID for CIDR_BLOCK in ROUTE_TABLE, but skip creating it if it exists."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_route(routetable, cidrblock, externalid)
-        exitcode = @aws.ec2.route_table.declare_route(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], routetable, cidrblock, externalid, options[:nagios], options[:undofile])
+        exitcode = @aws.ec2.route_table.declare_route(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], routetable, cidrblock, externalid, options[:check], options[:undofile])
         exit exitcode
       end
 
