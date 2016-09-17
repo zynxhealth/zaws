@@ -22,6 +22,24 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_table_id) { "rtb-XXXXXXX" }
   let(:cidr) { "10.0.0.0/24" }
   let(:vgw) { 'vgw-????????' }
+  let (:external_id) { "my_instance" }
+  let (:instance_id) { "i-12345678" }
+
+  let (:describe_instances) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", external_id)
+    desc_instances = ZAWS::External::AWSCLI::Commands::EC2::DescribeInstances.new
+    desc_instances.filter.vpc_id(vpc_id).tags(tags)
+    desc_instances.aws.output(output_json).region(region)
+    desc_instances
+  }
+
+  let (:instances) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", external_id)
+    instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
+    instances.instance_id(0, instance_id).tags(0, tags)
+  }
 
   let(:empty_route_tables) {
     ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
@@ -30,6 +48,14 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:single_route_tables) {
     single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
     single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id)
+  }
+
+  let(:single_route_tables_with_instance) {
+    routes=ZAWS::External::AWSCLI::Generators::Result::EC2::Routes.new
+    routes.instance_id(0,instance_id)
+    routes.destination_cidr_block(0,cidr)
+    single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).routes(0,routes)
   }
 
   let(:single_route_tables_with_prop_gateway) {
@@ -47,7 +73,6 @@ describe ZAWS::Services::EC2::RouteTable do
     desc_route_tables.aws.output(output_json).region(region)
     desc_route_tables
   }
-
 
   let(:create_route_table) {
     create_route_table = ZAWS::External::AWSCLI::Commands::EC2::CreateRouteTable.new
@@ -367,16 +392,34 @@ describe ZAWS::Services::EC2::RouteTable do
       it "check critical" do
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
         expect(@textout).to receive(:puts).with(critical_route_propagation)
-
         begin
           @command_route_table_json_vpcid_check.declare_propagation_from_gateway(externalid_route_table, vgw)
         rescue SystemExit => e
           expect(e.status).to eq(2)
         end
-
       end
     end
   end
+
+  describe "#route_exists_by_instance" do
+    context "subnet is associated to a route table " do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_instance.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_route_table_json_vpcid.route_exists_by_instance(externalid_route_table, cidr, external_id)
+      end
+    end
+    context "subnet is associated to a route table " do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_route_table_json_vpcid.route_exists_by_instance(externalid_route_table, cidr, external_id)
+      end
+    end
+  end
+
 
 end
 
