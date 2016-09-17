@@ -332,6 +332,23 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+  describe "#propagation_exists_from_gateway" do
+    context "route table propagates to virtual gatway already" do
+      it "return true" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_route_table_json_vpcid_check.propagation_exists_from_gateway(externalid_route_table, vgw)
+      end
+    end
+    context "check flag is set and route table is not propagating to virtual gatway" do
+      it "check critical" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_route_table_json_vpcid_check.propagation_exists_from_gateway(externalid_route_table, vgw)
+      end
+    end
+  end
+
   describe "#declare_propagation_from_gateway" do
     context "check flag is set and route table propagates to virtual gatway already" do
       it "check ok" do
