@@ -15,6 +15,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:ok_declare_route) { ZAWS::Helper::Output.colorize("OK: Route to instance exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_declare_route) { ZAWS::Helper::Output.colorize("CRITICAL: Route to instance does not exist.", AWS_consts::COLOR_RED) }
 
+  let(:ok_assoc_subnet) { ZAWS::Helper::Output.colorize("OK: Route table association to subnet exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_assoc_subnet) { ZAWS::Helper::Output.colorize("CRITICAL: Route table association to subnet does not exist.", AWS_consts::COLOR_RED) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -365,6 +368,33 @@ describe ZAWS::Services::EC2::RouteTable do
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
         expect(@textout).to receive(:puts).with('false')
         @command_route_table_json_vpcid.subnet_assoc_exists(externalid_route_table, cidr)
+      end
+    end
+  end
+
+  describe "#assoc_subnet" do
+    context "Route table association to subnet exists." do
+      it "return ok" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_associations.get_json)
+        expect(@textout).to receive(:puts).with(ok_assoc_subnet)
+        begin
+          @command_route_table_json_vpcid_check.assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "Route table association to subnet does not exists." do
+      it "return critical" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(critical_assoc_subnet)
+        begin
+          @command_route_table_json_vpcid_check.assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
       end
     end
   end

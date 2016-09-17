@@ -100,11 +100,11 @@ module ZAWS
 
       desc "assoc_subnet ROUTE_TABLE_EXTERNAL_ID CIDRBLOCK", "Associate a route table to a subnet."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def assoc_subnet(rtable_externalid, cidrblock)
-        exitcode = @aws.ec2.route_table.assoc_subnet(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], rtable_externalid, cidrblock, options[:nagios], options[:undofile])
+        exitcode = @aws.ec2.route_table.assoc_subnet(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], rtable_externalid, cidrblock, options[:check], options[:undofile])
         exit exitcode
       end
 
