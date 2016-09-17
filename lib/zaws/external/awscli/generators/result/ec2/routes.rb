@@ -17,6 +17,12 @@ module ZAWS
                 self
               end
 
+              def gateway_id(route_number, id)
+                resize_route_array(route_number)
+                @route["Routes"][route_number]["GatewayId"]=id
+                self
+              end
+
               def destination_cidr_block(route_number, cidr)
                 resize_route_array(route_number)
                 @route["Routes"][route_number]["DestinationCidrBlock"]=cidr

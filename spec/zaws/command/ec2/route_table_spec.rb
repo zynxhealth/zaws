@@ -27,6 +27,7 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:vgw) { 'vgw-????????' }
   let (:external_id) { "my_instance" }
   let (:instance_id) { "i-12345678" }
+  let (:gateway_id) { "igw-XXXXXXX" }
 
   let (:describe_instances) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
@@ -51,6 +52,14 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:single_route_tables) {
     single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
     single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id)
+  }
+
+  let(:single_route_tables_with_gateway) {
+    routes=ZAWS::External::AWSCLI::Generators::Result::EC2::Routes.new
+    routes.gateway_id(0, gateway_id)
+    routes.destination_cidr_block(0, cidr)
+    single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).routes(0, routes)
   }
 
   let(:single_route_tables_with_instance) {
@@ -423,7 +432,6 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
-
   describe "#declare_route" do
     context "check flag is set and route exists" do
       it "check ok" do
@@ -448,6 +456,23 @@ describe ZAWS::Services::EC2::RouteTable do
         rescue SystemExit => e
           expect(e.status).to eq(2)
         end
+      end
+    end
+  end
+
+  describe "#route_exists_by_gatewayid" do
+    context "a route does exist to a gateway" do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_gateway.get_json)
+        expect(@textout).to receive(:puts).with('true')
+        @command_route_table_json_vpcid.route_exists_by_gatewayid(externalid_route_table, cidr, gateway_id)
+      end
+    end
+    context "a route does not exist to a gateway" do
+      it "returns true" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with('false')
+        @command_route_table_json_vpcid.route_exists_by_gatewayid(externalid_route_table, cidr, gateway_id)
       end
     end
   end
