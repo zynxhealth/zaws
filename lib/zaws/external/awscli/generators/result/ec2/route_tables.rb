@@ -29,6 +29,7 @@ module ZAWS
                   @route_tables["RouteTables"].push({})
                 end
                 @route_tables["RouteTables"][index]["Associations"] ||= []
+                @route_tables["RouteTables"][index]["PropagatingVgws"] ||= []
               end
 
               def add(route_tables)
@@ -38,8 +39,13 @@ module ZAWS
 
               def associate_subnets(route_table_number,subnets)
                 resize_route_tables_array(route_table_number)
-
                 @route_tables["RouteTables"][route_table_number]["Associations"].concat(subnets.get_subnets_array)
+                self
+              end
+
+              def propagate_to_virtual_gateway(route_table_number,gateway)
+                resize_route_tables_array(route_table_number)
+                @route_tables["RouteTables"][route_table_number]["PropagatingVgws"] << gateway.get_hash
                 self
               end
 

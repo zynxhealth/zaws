@@ -9,6 +9,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_table_ok) { ZAWS::Helper::Output.colorize("OK: Route table exists.", AWS_consts::COLOR_GREEN) }
   let(:route_table_critical) { ZAWS::Helper::Output.colorize("CRITICAL: Route table does not exist.", AWS_consts::COLOR_RED) }
 
+  let(:ok_route_propagation) { ZAWS::Helper::Output.colorize("OK: Route propagation from gateway enabled.", AWS_consts::COLOR_GREEN) }
+  let(:critical_route_propagation) { ZAWS::Helper::Output.colorize("CRITICAL: Route propagation from gateway not enabled.", AWS_consts::COLOR_RED) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -18,6 +21,7 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:externalid_route_table) { "my_route_table" }
   let(:route_table_id) { "rtb-XXXXXXX" }
   let(:cidr) { "10.0.0.0/24" }
+  let(:vgw) { 'vgw-????????' }
 
   let(:empty_route_tables) {
     ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
@@ -26,6 +30,13 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:single_route_tables) {
     single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
     single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id)
+  }
+
+  let(:single_route_tables_with_prop_gateway) {
+    virtualgw = ZAWS::External::AWSCLI::Generators::Result::EC2::VirtualGateway.new
+    single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
+    virtualgw.gateway_id(vgw)
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).propagate_to_virtual_gateway(0, virtualgw)
   }
 
   let (:describe_route_tables) {
@@ -68,7 +79,7 @@ describe ZAWS::Services::EC2::RouteTable do
 
   let(:single_route_tables_with_associations) {
     single_route_table=ZAWS::External::AWSCLI::Generators::Result::EC2::RouteTables.new
-    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).associate_subnets(0,single_subnets)
+    single_route_table.vpc_id(0, vpc_id).route_table_id(0, route_table_id).associate_subnets(0, single_subnets)
   }
 
   let(:describe_subnets) {
@@ -320,5 +331,35 @@ describe ZAWS::Services::EC2::RouteTable do
       end
     end
   end
+
+  describe "#declare_propagation_from_gateway" do
+    context "check flag is set and route table propagates to virtual gatway already" do
+      it "check ok" do
+
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+        expect(@textout).to receive(:puts).with(ok_route_propagation)
+        begin
+          @command_route_table_json_vpcid_check.declare_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "check flag is set and route table is not propagating to virtual gatway" do
+      it "check critical" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(critical_route_propagation)
+
+        begin
+          @command_route_table_json_vpcid_check.declare_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+
+      end
+    end
+  end
+
 end
 

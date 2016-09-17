@@ -124,11 +124,11 @@ module ZAWS
 
       desc "declare_propagation_from_gateway ROUTE_TABLE_EXTERNAL_ID VIRTUAL_GATEWAY_ID", "Propagate routes to the routing tables from a virtual gateway."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_propagation_from_gateway(rtable_externalid, vgatewayid)
-        exitcode = @aws.ec2.route_table.declare_propagation_from_gateway(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], rtable_externalid, vgatewayid, options[:nagios], options[:undofile])
+        exitcode = @aws.ec2.route_table.declare_propagation_from_gateway(options[:region], @out, (options[:verbose] ? @out : nil), options[:vpcid], rtable_externalid, vgatewayid, options[:check], options[:undofile])
         exit exitcode
       end
 
