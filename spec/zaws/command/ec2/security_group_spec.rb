@@ -19,9 +19,21 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   let(:empty_security_group) { ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new }
 
+  let(:ip_perms1) {
+    ip= ZAWS::External::AWSCLI::Generators::Result::EC2::IpPermissions.new
+    ip.to_port(0, 22).ip_protocol(0, "tcp").ip_ranges(0, "0.0.0.0/0").from_port(0, 22)
+  }
+
+  let(:ip_perms2) {
+    ip= ZAWS::External::AWSCLI::Generators::Result::EC2::IpPermissions.new
+    ip.to_port(0, 443).ip_protocol(0, "tcp").ip_ranges(0, "1.1.1.1/32").from_port(0, 443)
+  }
+
   let(:single_security_group) {
     security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
-    security_groups.group_name(0, security_group_name).group_id(0, var_security_group_id) }
+    security_groups.group_name(0, security_group_name).group_id(0, var_security_group_id)
+    security_groups.ip_permissions(0, ip_perms1).ip_permissions(0, ip_perms2)
+  }
 
   let(:describe_security_groups_by_name_by_vpcid) {
     desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
@@ -35,6 +47,30 @@ describe ZAWS::Services::EC2::SecurityGroup do
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
 
+
+  let(:describe_security_groups_ip_permissions) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.vpc_id(var_vpc_id)
+    desc_sec_grps.filter.ip_permission_cidr("1.1.1.1/32").ip_permission_protocol("tcp")
+    desc_sec_grps.filter.ip_permission_to_port("22").group_id(var_security_group_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
+
+  let(:describe_security_groups_ip_permissions2) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.vpc_id(var_vpc_id)
+    desc_sec_grps.filter.ip_permission_cidr("0.0.0.0/0").ip_permission_protocol("tcp")
+    desc_sec_grps.filter.ip_permission_to_port("443").group_id(var_security_group_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
+
+  let(:describe_security_groups_ip_permissions3) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.vpc_id(var_vpc_id)
+    desc_sec_grps.filter.ip_permission_cidr("0.0.0.0/0").ip_permission_protocol("tcp")
+    desc_sec_grps.filter.ip_permission_to_port("22").group_id(var_security_group_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
 
   before(:each) {
 
@@ -349,5 +385,32 @@ describe ZAWS::Services::EC2::SecurityGroup do
     end
   end
 
+  describe "#ingress_cidr_exists" do
+    context "Both the CIDR and port are in rules but not together" do
+      it "return false after determining a vpc securiry group ingress cidr rule identified by cidr and target has NOT been created" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with("false")
+        @command_security_group_json_vpcid.ingress_cidr_exists(@var_sec_group_name, "1.1.1.1/32", "tcp", 22)
+      end
+    end
+    context "cidr rule does not exist" do
+      it "returns false" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions2.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with("false")
+        @command_security_group_json_vpcid.ingress_cidr_exists(@var_sec_group_name, "0.0.0.0/0", "tcp", 443)
+      end
+    end
+    context "cidr rule does  exist" do
+      it "returns false" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with("true")
+        @command_security_group_json_vpcid.ingress_cidr_exists(@var_sec_group_name, "0.0.0.0/0", "tcp", 22)
+      end
+    end
+
+  end
 end
-   
+

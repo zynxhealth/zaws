@@ -1,64 +1,6 @@
 Feature: Security Group 
   Security Group(s) are viewable
-    
-   Scenario: Determine a vpc securiry group ingress cidr rule identified by cidr and target has NOT been created
-	Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "target_group_name","GroupId": "X_target_group_name" } ] }
-     """
-	 And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-id,Values=X_target_group_name' 'Name=ip-permission.cidr,Values=0.0.0.0/0' 'Name=ip-permission.protocol,Values=tcp' 'Name=ip-permission.to-port,Values=443'` with stdout:
-     """
-      {	"SecurityGroups": [] }
-     """
-    When I run `bundle exec zaws security_group ingress_cidr_exists target_group_name 0.0.0.0/0 tcp 443 --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "false\n" 
 
-   Scenario: Determine a vpc securiry group ingress cidr rule identified by cidr and target has NOT been created, though both the CIDR and port are in rules but not together
-	Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "target_group_name","GroupId": "X_target_group_name" } ] }
-     """
-	 And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-id,Values=X_target_group_name' 'Name=ip-permission.cidr,Values=1.1.1.1/32' 'Name=ip-permission.protocol,Values=tcp' 'Name=ip-permission.to-port,Values=22'` with stdout:
-     """
-      {	"SecurityGroups": [{ 
-	        "GroupName": "target_group_name",
-			"GroupId": "X_target_group_name",
-			"IpPermissions": [ {
-				  "ToPort": 22,
-				  "IpProtocol": "tcp",
-				  "IpRanges": [ { "CidrIp" : "0.0.0.0/0" } ],
-				  "UserIdGroupPairs": [ ],
-				  "FromPort": 22 },
-				  {
-				  "ToPort": 443,
-				  "IpProtocol": "tcp",
-				  "IpRanges": [ { "CidrIp" : "1.1.1.1/32" } ],
-				  "UserIdGroupPairs": [ ],
-			      "FromPort": 443 }] }] }
-     """
-    When I run `bundle exec zaws security_group ingress_cidr_exists target_group_name 1.1.1.1/32 tcp 22 --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "false\n" 
-
-   Scenario: Determine a vpc security group ingress cidr rule identified by cidr and target has been created
-	Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "target_group_name","GroupId": "X_target_group_name" } ] }
-     """
-	 And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-id,Values=X_target_group_name' 'Name=ip-permission.cidr,Values=0.0.0.0/0' 'Name=ip-permission.protocol,Values=tcp' 'Name=ip-permission.to-port,Values=443'` with stdout:
-     """
-	 {	"SecurityGroups": [ { 
-	        "GroupName": "target_group_name",
-			"GroupId": "X_target_group_name",
-			"IpPermissions": [ {
-				  "ToPort": 443,
-				  "IpProtocol": "tcp",
-				  "IpRanges": [ { "CidrIp" : "0.0.0.0/0" } ],
-				  "UserIdGroupPairs": [ ],
-			      "FromPort": 443 } ] } ] }
-     """
-    When I run `bundle exec zaws security_group ingress_cidr_exists target_group_name 0.0.0.0/0 tcp 443 --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "true\n" 
-	 
    Scenario: Declare a new vpc security group ingress group rule identified by source and target. Create it cause it doesn't exist. Also, should append the command to remove the security group to file.
     Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
      """

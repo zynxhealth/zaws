@@ -19,7 +19,7 @@ Feature: Route to Gateway
      """
     When I run `bundle exec zaws route_table declare_route_to_gateway my_route_table 0.0.0.0/0 igw-XXXXXXX --region us-west-1 --vpcid my_vpc_id`
 	Then the output should contain "Route to gateway exists. Skipping creation.\n" 
-   
+
   Scenario: Undo file
     Given I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
      """

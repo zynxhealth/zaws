@@ -45,6 +45,14 @@ module ZAWS
                 while index > @sgroups["SecurityGroups"].length-1
                   @sgroups["SecurityGroups"].push({})
                 end
+
+              end
+
+              def ip_permissions(security_group_number, perms)
+                resize_security_groups_array(security_group_number)
+                @sgroups["SecurityGroups"][security_group_number]["IpPermissions"] ||=[]
+                @sgroups["SecurityGroups"][security_group_number]["IpPermissions"].concat(perms.get_ip_permissions_array)
+                self
               end
 
               def get_json
