@@ -18,7 +18,9 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
-  let(:var_security_group_id) { "sg-abcd1234" }
+  let(:security_group_name2) { "my_security_group_name2" }
+  let(:var_security_group_id) { "sg-abcd123A" }
+  let(:security_group_id2) { "sg-abcd123B" }
   let(:var_output_json) { "json" }
   let(:var_output_table) { "table" }
   let(:var_vpc_id) { "my_vpc_id" }
@@ -36,15 +38,39 @@ describe ZAWS::Services::EC2::SecurityGroup do
     ip.to_port(0, 443).ip_protocol(0, "tcp").ip_ranges(0, "1.1.1.1/32").from_port(0, 443)
   }
 
+  let(:group_perms){
+    ip= ZAWS::External::AWSCLI::Generators::Result::EC2::IpPermissions.new
+    ip.to_port(0, 22).ip_protocol(0, "tcp").from_port(0, 22).user_id_group_pairs(0,"958601521864",security_group_id2)
+  }
+
   let(:single_security_group) {
     security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
     security_groups.group_name(0, security_group_name).group_id(0, var_security_group_id)
     security_groups.ip_permissions(0, ip_perms1).ip_permissions(0, ip_perms2)
   }
 
+  let(:single_security_group2) {
+    security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
+    security_groups.group_name(0, security_group_name2).group_id(0, security_group_id2)
+    security_groups.ip_permissions(0, ip_perms1).ip_permissions(0, ip_perms2)
+  }
+
+   let(:single_security_group_group_perms) {
+    security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
+    security_groups.group_name(0, security_group_name2).group_id(0, security_group_id2)
+    security_groups.ip_permissions(0, group_perms)
+  }
+
+
   let(:describe_security_groups_by_name_by_vpcid) {
     desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
-    desc_sec_grps.filter.group_name(var_sec_group_name).vpc_id(var_vpc_id)
+    desc_sec_grps.filter.group_name(security_group_name).vpc_id(var_vpc_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
+
+  let(:describe_security_groups_by_name_by_vpcid2) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.group_name(security_group_name2).vpc_id(var_vpc_id)
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
 
@@ -79,6 +105,14 @@ describe ZAWS::Services::EC2::SecurityGroup do
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
 
+  let(:describe_security_groups_group_permissions) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.vpc_id(var_vpc_id)
+    desc_sec_grps.filter.ip_permission_group_id(security_group_id2).ip_permission_protocol("tcp")
+    desc_sec_grps.filter.ip_permission_to_port("22").group_id(var_security_group_id)
+    desc_sec_grps.aws.output(var_output_json).region(var_region)
+    desc_sec_grps }
+
   let(:authorize_security_group_ingress) {
     asgi = ZAWS::External::AWSCLI::Commands::EC2::AuthorizeSecurityGroupIngress.new
     asgi.aws.region(var_region)
@@ -100,7 +134,7 @@ describe ZAWS::Services::EC2::SecurityGroup do
 
   before(:each) {
 
-    @var_security_group_id="sg-abcd1234"
+    @var_security_group_id="sg-abcd123A"
     @var_output_json="json"
     @var_output_table="table"
     @var_vpc_id="my_vpc_id"
@@ -536,5 +570,25 @@ describe ZAWS::Services::EC2::SecurityGroup do
     end
   end
 
+  describe "#ingress_group_exists" do
+    context "group rule does not exist" do
+      it "returns false" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with("false")
+        @command_security_group_json_vpcid.ingress_group_exists(security_group_name,security_group_name2, "tcp", 22)
+      end
+    end
+    context "group rule does exist" do
+      it "returns true" do
+         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
+        expect(@textout).to receive(:puts).with("true")
+        @command_security_group_json_vpcid.ingress_group_exists(security_group_name,security_group_name2, "tcp", 22)
+      end
+    end
+  end
 end
 

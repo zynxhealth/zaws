@@ -1,48 +1,6 @@
 Feature: Security Group 
   Security Group(s) are viewable
     
-   Scenario: Determine a vpc securiry group ingress group rule identified by source and target has NOT been created
-	Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "target_group_name","GroupId": "X_target_group_name" } ] }
-     """
-	And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=source_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "source_group_name","GroupId": "X_source_group_name" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-id,Values=X_target_group_name' 'Name=ip-permission.group-id,Values=X_source_group_name' 'Name=ip-permission.protocol,Values=tcp' 'Name=ip-permission.to-port,Values=443'` with stdout:
-     """
-      {	"SecurityGroups": [] }
-     """
-    When I run `bundle exec zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "false\n" 
-
-   Scenario: Determine a vpc security group ingress group rule identified by source and target has been created
-	Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "target_group_name","GroupId": "X_target_group_name" } ] }
-     """
-	And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=source_group_name'` with stdout:
-     """
-	 {	"SecurityGroups": [ { "GroupName": "source_group_name","GroupId": "X_source_group_name" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=group-id,Values=X_target_group_name' 'Name=ip-permission.group-id,Values=X_source_group_name' 'Name=ip-permission.protocol,Values=tcp' 'Name=ip-permission.to-port,Values=443'` with stdout:
-     """
-	 {	"SecurityGroups": [ { 
-	        "GroupName": "target_group_name",
-			"GroupId": "X_target_group_name",
-			"IpPermissions": [ {
-				  "ToPort": 443,
-				  "IpProtocol": "tcp",
-				  "IpRanges": [],
-				  "UserIdGroupPairs": [ {
-					 "UserId": "958601521864",
-					 "GroupId": "X_source_group_name" } ],
-			      "FromPort": 443 } ] } ] }
-     """
-    When I run `bundle exec zaws security_group ingress_group_exists target_group_name source_group_name tcp 443 --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "true\n" 
-
    Scenario: Declare a new vpc security group ingress group rule identified by source and target. Create it cause it doesn't exist. Also, should append the command to remove the security group to file.
     Given I double `aws --output json --region us-west-1 ec2 describe-security-groups --filter  'Name=vpc-id,Values=my_vpc_id' 'Name=group-name,Values=target_group_name'` with stdout:
      """
