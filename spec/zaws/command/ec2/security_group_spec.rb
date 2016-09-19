@@ -13,6 +13,9 @@ describe ZAWS::Services::EC2::SecurityGroup do
   let(:critical_ingress_cidr_rule) { ZAWS::Helper::Output.colorize("CRITICAL: Security group ingress cidr rule does not exist.", AWS_consts::COLOR_RED) }
   let(:ok_ingress_cidr_rule) { ZAWS::Helper::Output.colorize("OK: Security group ingress cidr rule exists.", AWS_consts::COLOR_GREEN) }
 
+  let(:ingress_cidr_rule_not_deleted) { ZAWS::Helper::Output.colorize("Security group ingress cidr rule does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
+  let(:ingress_cidr_rule_deleted) { ZAWS::Helper::Output.colorize("Security group ingress cidr rule deleted.", AWS_consts::COLOR_YELLOW) }
+
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:var_security_group_id) { "sg-abcd1234" }
@@ -80,6 +83,19 @@ describe ZAWS::Services::EC2::SecurityGroup do
     asgi = ZAWS::External::AWSCLI::Commands::EC2::AuthorizeSecurityGroupIngress.new
     asgi.aws.region(var_region)
     asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(443)
+  }
+
+
+  let(:revoke_security_group_ingress) {
+    asgi = ZAWS::External::AWSCLI::Commands::EC2::RevokeSecurityGroupIngress.new
+    asgi.aws.region(var_region)
+    asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(443)
+  }
+
+  let(:revoke_security_group_ingress2) {
+    asgi = ZAWS::External::AWSCLI::Commands::EC2::RevokeSecurityGroupIngress.new
+    asgi.aws.region(var_region)
+    asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(22)
   }
 
   before(:each) {
@@ -447,7 +463,6 @@ describe ZAWS::Services::EC2::SecurityGroup do
         rescue SystemExit => e
           expect(e.status).to eq(0)
         end
-
       end
     end
 
@@ -464,8 +479,6 @@ describe ZAWS::Services::EC2::SecurityGroup do
         end
       end
     end
-
-
     context "check flag set and ingress cidr rule does exist" do
       it "returns ok" do
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
@@ -490,6 +503,35 @@ describe ZAWS::Services::EC2::SecurityGroup do
           expect(e.status).to eq(2)
         end
 
+      end
+    end
+  end
+
+  describe "#delete_ingress_cidr" do
+    context "ingress cidr rule does not exist" do
+      it "nothing to delete, skip it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions2.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with(ingress_cidr_rule_not_deleted)
+        begin
+          @command_security_group_json_vpcid.delete_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 443)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "ingress cidr rule does exist" do
+      it "delete it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(revoke_security_group_ingress2.aws.get_command, nil).ordered.and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(ingress_cidr_rule_deleted)
+        begin
+          @command_security_group_json_vpcid.delete_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
       end
     end
   end
