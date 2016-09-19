@@ -10,6 +10,8 @@ describe ZAWS::Services::EC2::SecurityGroup do
   let(:check_ok_security_group) { ZAWS::Helper::Output.colorize("OK: Security Group Exists.", AWS_consts::COLOR_GREEN) }
   let(:ingress_cidr_rule_created) { ZAWS::Helper::Output.colorize("Ingress cidr rule created.", AWS_consts::COLOR_YELLOW) }
   let(:ingress_cidr_rule_not_created) { ZAWS::Helper::Output.colorize("Ingress cidr rule not created. Exists already.", AWS_consts::COLOR_GREEN) }
+  let(:critical_ingress_cidr_rule) { ZAWS::Helper::Output.colorize("CRITICAL: Security group ingress cidr rule does not exist.", AWS_consts::COLOR_RED) }
+  let(:ok_ingress_cidr_rule) { ZAWS::Helper::Output.colorize("OK: Security group ingress cidr rule exists.", AWS_consts::COLOR_GREEN) }
 
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
@@ -444,6 +446,48 @@ describe ZAWS::Services::EC2::SecurityGroup do
           @command_security_group_json_vpcid.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 22)
         rescue SystemExit => e
           expect(e.status).to eq(0)
+        end
+
+      end
+    end
+
+    context "undo file provided and cidr rule does exists" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws security_group delete_ingress_cidr #{security_group_name} 0.0.0.0/0 tcp 22 --region #{var_region} --vpcid #{var_vpc_id} $XTRA_OPTS", '#Delete cidr ingress group rule', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(ingress_cidr_rule_not_created)
+        begin
+          @command_security_group_json_vpcid_undo.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+
+    context "check flag set and ingress cidr rule does exist" do
+      it "returns ok" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(ok_ingress_cidr_rule)
+        begin
+          @command_security_group_json_vpcid_check.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "check flag set and ingress cidr rule does not exist" do
+      it "returns critical" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions2.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with(critical_ingress_cidr_rule)
+        begin
+          @command_security_group_json_vpcid_check.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 443)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
         end
 
       end

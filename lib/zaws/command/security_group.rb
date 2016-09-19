@@ -77,11 +77,11 @@ module ZAWS
 
       desc "declare_ingress_cidr TARGET_GROUP_NAME CIDR PROTOCOL PORT", "Declare an ingress CIDR rule."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_ingress_cidr(target, cidr, protocol, port)
-        exitcode = @aws.ec2.security_group.declare_ingress_cidr(options[:region], options[:vpcid], target, cidr, protocol, port, options[:nagios], @out, (options[:verbose] ? @out : nil), options[:undofile])
+        exitcode = @aws.ec2.security_group.declare_ingress_cidr(options[:region], options[:vpcid], target, cidr, protocol, port, options[:check], @out, (options[:verbose] ? @out : nil), options[:undofile])
         exit exitcode
       end
 
