@@ -8,6 +8,8 @@ describe ZAWS::Services::EC2::SecurityGroup do
   let(:security_group_created) { ZAWS::Helper::Output.colorize("Security Group Created.", AWS_consts::COLOR_YELLOW) }
   let(:check_critical_security_group) { ZAWS::Helper::Output.colorize("CRITICAL: Security Group Does Not Exist.", AWS_consts::COLOR_RED) }
   let(:check_ok_security_group) { ZAWS::Helper::Output.colorize("OK: Security Group Exists.", AWS_consts::COLOR_GREEN) }
+  let(:ingress_cidr_rule_created) { ZAWS::Helper::Output.colorize("Ingress cidr rule created.", AWS_consts::COLOR_YELLOW) }
+  let(:ingress_cidr_rule_not_created) { ZAWS::Helper::Output.colorize("Ingress cidr rule not created. Exists already.", AWS_consts::COLOR_GREEN) }
 
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
@@ -71,6 +73,12 @@ describe ZAWS::Services::EC2::SecurityGroup do
     desc_sec_grps.filter.ip_permission_to_port("22").group_id(var_security_group_id)
     desc_sec_grps.aws.output(var_output_json).region(var_region)
     desc_sec_grps }
+
+  let(:authorize_security_group_ingress) {
+    asgi = ZAWS::External::AWSCLI::Commands::EC2::AuthorizeSecurityGroupIngress.new
+    asgi.aws.region(var_region)
+    asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(443)
+  }
 
   before(:each) {
 
@@ -403,14 +411,44 @@ describe ZAWS::Services::EC2::SecurityGroup do
       end
     end
     context "cidr rule does  exist" do
-      it "returns false" do
+      it "returns true" do
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
         expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
         expect(@textout).to receive(:puts).with("true")
         @command_security_group_json_vpcid.ingress_cidr_exists(@var_sec_group_name, "0.0.0.0/0", "tcp", 22)
       end
     end
-
   end
+
+  describe "#declare_ingress_cidr" do
+    context "ingress cidr rule does not exist" do
+      it "create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions2.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(authorize_security_group_ingress.aws.get_command, nil).ordered.and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(ingress_cidr_rule_created)
+        begin
+          @command_security_group_json_vpcid.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 443)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "ingress cidr rule does exist" do
+      it "do not create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_ip_permissions3.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@textout).to receive(:puts).with(ingress_cidr_rule_not_created)
+        begin
+          @command_security_group_json_vpcid.declare_ingress_cidr(security_group_name, "0.0.0.0/0", "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+  end
+
 end
 
