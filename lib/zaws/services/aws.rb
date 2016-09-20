@@ -16,7 +16,7 @@ module ZAWS
     end
 
     def elb
-      @_elb ||= (ZAWS::ELB.new(@shellout, self))
+      @_elb ||= (ZAWS::ELB.new(@shellout, self,@undofile))
     end
 
     def route53

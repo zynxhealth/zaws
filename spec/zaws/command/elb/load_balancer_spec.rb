@@ -6,6 +6,9 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:instance_not_registratered) { ZAWS::Helper::Output.colorize("Instance already registered. Skipping registration.", AWS_consts::COLOR_GREEN) }
   let(:instance_registered) { ZAWS::Helper::Output.colorize("New instance registered.", AWS_consts::COLOR_YELLOW) }
 
+  let(:instance_not_deregistered) { ZAWS::Helper::Output.colorize("Instance not registered. Skipping deregistration.", AWS_consts::COLOR_GREEN) }
+  let(:instance_deregistered) { ZAWS::Helper::Output.colorize("Instance deregistered.", AWS_consts::COLOR_YELLOW) }
+
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
   let(:elb_name) { "name-???" }
@@ -75,10 +78,16 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_instances
   }
 
-  let (:register_instances_with_load_balancer){
+  let (:register_instances_with_load_balancer) {
     riwlb = ZAWS::External::AWSCLI::Commands::ELB::RegisterInstancesWithLoadBalancer.new
     riwlb.aws.region(region)
     riwlb.load_balancer_name(elb_name).instances(instance_id2)
+  }
+
+  let (:deregister_instances_with_load_balancer) {
+    riwlb = ZAWS::External::AWSCLI::Commands::ELB::DeregisterInstancesWithLoadBalancer.new
+    riwlb.aws.region(region)
+    riwlb.load_balancer_name(elb_name).instances(instance_id)
   }
 
   let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
@@ -127,14 +136,25 @@ describe ZAWS::Services::ELB::LoadBalancer do
                                 :cidrblock => '"10.0.0.0/28" "10.0.1.0/28"'
     }
 
+    options_json_vpcid_undo = {:region => @var_region,
+                               :verbose => false,
+                               :check => true,
+                               :undofile => 'undo.sh',
+                               :viewtype => 'json',
+                               :vpcid => vpc_id,
+                               :cidrblock => '"10.0.0.0/28" "10.0.1.0/28"'
+    }
+
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
     @undofile=double('ZAWS::Helper::ZFile')
     @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout, true), @undofile)
+
     @command_load_balancer = ZAWS::Command::Load_Balancer.new([], options_table, {})
     @command_load_balancer.aws=@aws
     @command_load_balancer.out=@textout
     @command_load_balancer.print_exit_code = true
+
     @command_load_balancer_json = ZAWS::Command::Load_Balancer.new([], options_json, {})
     @command_load_balancer_json.aws=@aws
     @command_load_balancer_json.out=@textout
@@ -149,6 +169,11 @@ describe ZAWS::Services::ELB::LoadBalancer do
     @command_load_balancer_json_vpcid_check.aws=@aws
     @command_load_balancer_json_vpcid_check.out=@textout
     @command_load_balancer_json_vpcid_check.print_exit_code = true
+
+    @command_load_balancer_json_vpcid_undo = ZAWS::Command::Load_Balancer.new([], options_json_vpcid_undo, {})
+    @command_load_balancer_json_vpcid_undo.aws=@aws
+    @command_load_balancer_json_vpcid_undo.out=@textout
+    @command_load_balancer_json_vpcid_undo.print_exit_code = true
   }
 
   describe "#view" do
@@ -264,6 +289,26 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
+  describe "#deregister_instance" do
+    context "instance registered" do
+      it "deregister it" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(deregister_instances_with_load_balancer.aws.get_command, nil).and_return('{ "return" : "true" }')
+        expect(@textout).to receive(:puts).with(instance_deregistered)
+        @command_load_balancer_json_vpcid.deregister_instance(elb_name, instance_id)
+      end
+    end
+    context "instance not registered" do
+      it "nothing to do" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances2.aws.get_command, nil).and_return(instances2.get_json)
+        expect(@textout).to receive(:puts).with(instance_not_deregistered)
+        @command_load_balancer_json_vpcid.deregister_instance(elb_name, instance_id2)
+      end
+    end
+  end
+
   describe "#register_instance" do
     context "instance registered" do
       it "skip, because it exists already" do
@@ -314,6 +359,20 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
+    context "undo file provided and instance registered" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws load_balancer deregister_instance #{elb_name} #{instance_id} --region #{region} --vpcid my_vpc_id $XTRA_OPTS", '#Deregister instance', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(ok_instance_registered)
+        begin
+          @command_load_balancer_json_vpcid_undo.register_instance(elb_name, instance_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
   end
 
   describe "#exists_listener" do
