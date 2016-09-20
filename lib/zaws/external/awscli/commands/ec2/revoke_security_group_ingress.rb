@@ -22,6 +22,12 @@ module ZAWS
               @protocol=nil
               @port=nil
               @aws=nil
+              @source_group=nil
+              self
+            end
+
+            def source_group(group)
+              @source_group=group
               self
             end
 
@@ -48,6 +54,7 @@ module ZAWS
             def get_command
               command = "ec2 revoke-security-group-ingress"
               command = "#{command} --group-id #{@group_id}" if @group_id
+              command = "#{command} --source-group #{@source_group}" if @source_group
               command = "#{command} --cidr #{@cidr}" if @cidr
               command = "#{command} --protocol #{@protocol}" if @protocol
               command = "#{command} --port #{@port}" if @port

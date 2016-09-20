@@ -67,11 +67,11 @@ module ZAWS
 
       desc "declare_ingress_group TARGET_GROUP_NAME SOURCE_GROUP_NAME PROTOCOL PORT", "Declare an ingress security group rule."
       option :vpcid, :type => :string, :desc => "AWS VPC id", :banner => "<vpcid>", :aliases => :v, :default => nil
-      option :nagios, :type => :boolean, :desc => "Returns a nagios check result", :aliases => :n, :default => false
+      option :check, :type => :boolean, :desc => "Returns a check result", :aliases => :n, :default => false
       option :undofile, :type => :string, :desc => "File for undo commands", :banner => "<undofile>", :aliases => :f, :default => nil
 
       def declare_ingress_group(target, source, protocol, port)
-        exitcode = @aws.ec2.security_group.declare_ingress_group(options[:region], options[:vpcid], target, source, protocol, port, options[:nagios], @out, (options[:verbose] ? @out : nil), options[:undofile])
+        exitcode = @aws.ec2.security_group.declare_ingress_group(options[:region], options[:vpcid], target, source, protocol, port, options[:check], @out, (options[:verbose] ? @out : nil), options[:undofile])
         exit exitcode
       end
 

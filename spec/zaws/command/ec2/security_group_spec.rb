@@ -16,6 +16,16 @@ describe ZAWS::Services::EC2::SecurityGroup do
   let(:ingress_cidr_rule_not_deleted) { ZAWS::Helper::Output.colorize("Security group ingress cidr rule does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
   let(:ingress_cidr_rule_deleted) { ZAWS::Helper::Output.colorize("Security group ingress cidr rule deleted.", AWS_consts::COLOR_YELLOW) }
 
+  let(:ingress_group_rule_not_created) { ZAWS::Helper::Output.colorize("Ingress group rule not created. Exists already.", AWS_consts::COLOR_GREEN) }
+  let(:ingress_group_rule_created) { ZAWS::Helper::Output.colorize("Ingress group rule created.", AWS_consts::COLOR_YELLOW) }
+
+  let(:ok_ingress_group_rule) { ZAWS::Helper::Output.colorize("OK: Security group ingress group rule exists.", AWS_consts::COLOR_GREEN) }
+  let(:critical_ingress_group_rule) { ZAWS::Helper::Output.colorize("CRITICAL: Security group ingress group rule does not exist.", AWS_consts::COLOR_RED) }
+
+  let(:ingress_group_rule_not_deleted) { ZAWS::Helper::Output.colorize("Security group ingress group rule does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
+  let(:ingress_group_rule_deleted) { ZAWS::Helper::Output.colorize("Security group ingress group rule deleted.", AWS_consts::COLOR_YELLOW) }
+
+
   let(:var_region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_name2) { "my_security_group_name2" }
@@ -38,9 +48,9 @@ describe ZAWS::Services::EC2::SecurityGroup do
     ip.to_port(0, 443).ip_protocol(0, "tcp").ip_ranges(0, "1.1.1.1/32").from_port(0, 443)
   }
 
-  let(:group_perms){
+  let(:group_perms) {
     ip= ZAWS::External::AWSCLI::Generators::Result::EC2::IpPermissions.new
-    ip.to_port(0, 22).ip_protocol(0, "tcp").from_port(0, 22).user_id_group_pairs(0,"958601521864",security_group_id2)
+    ip.to_port(0, 22).ip_protocol(0, "tcp").from_port(0, 22).user_id_group_pairs(0, "958601521864", security_group_id2)
   }
 
   let(:single_security_group) {
@@ -55,7 +65,7 @@ describe ZAWS::Services::EC2::SecurityGroup do
     security_groups.ip_permissions(0, ip_perms1).ip_permissions(0, ip_perms2)
   }
 
-   let(:single_security_group_group_perms) {
+  let(:single_security_group_group_perms) {
     security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
     security_groups.group_name(0, security_group_name2).group_id(0, security_group_id2)
     security_groups.ip_permissions(0, group_perms)
@@ -119,6 +129,11 @@ describe ZAWS::Services::EC2::SecurityGroup do
     asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(443)
   }
 
+  let(:authorize_security_group_ingress_by_source_group) {
+    asgibsg = ZAWS::External::AWSCLI::Commands::EC2::AuthorizeSecurityGroupIngress.new
+    asgibsg.aws.region(var_region)
+    asgibsg.group_id(var_security_group_id).source_group(security_group_id2).protocol('tcp').port(22)
+  }
 
   let(:revoke_security_group_ingress) {
     asgi = ZAWS::External::AWSCLI::Commands::EC2::RevokeSecurityGroupIngress.new
@@ -130,6 +145,12 @@ describe ZAWS::Services::EC2::SecurityGroup do
     asgi = ZAWS::External::AWSCLI::Commands::EC2::RevokeSecurityGroupIngress.new
     asgi.aws.region(var_region)
     asgi.group_id(var_security_group_id).cidr('0.0.0.0/0').protocol('tcp').port(22)
+  }
+
+  let(:revoke_security_group_ingress_by_group) {
+    asgi = ZAWS::External::AWSCLI::Commands::EC2::RevokeSecurityGroupIngress.new
+    asgi.aws.region(var_region)
+    asgi.group_id(var_security_group_id).source_group(security_group_id2).protocol('tcp').port(22)
   }
 
   before(:each) {
@@ -577,18 +598,113 @@ describe ZAWS::Services::EC2::SecurityGroup do
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
         expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
         expect(@textout).to receive(:puts).with("false")
-        @command_security_group_json_vpcid.ingress_group_exists(security_group_name,security_group_name2, "tcp", 22)
+        @command_security_group_json_vpcid.ingress_group_exists(security_group_name, security_group_name2, "tcp", 22)
       end
     end
     context "group rule does exist" do
       it "returns true" do
-         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
         expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
         expect(@textout).to receive(:puts).with("true")
-        @command_security_group_json_vpcid.ingress_group_exists(security_group_name,security_group_name2, "tcp", 22)
+        @command_security_group_json_vpcid.ingress_group_exists(security_group_name, security_group_name2, "tcp", 22)
       end
     end
   end
+
+  describe "#delete_ingress_group" do
+    context "ingress group rule does not exist" do
+      it "nothing to delete, skip it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with(ingress_group_rule_not_deleted)
+        @command_security_group_json_vpcid.delete_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+      end
+    end
+    context "ingress group rule does exist" do
+      it "delete it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
+        expect(@shellout).to receive(:cli).with(revoke_security_group_ingress_by_group.aws.get_command, nil).ordered.and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(ingress_group_rule_deleted)
+        @command_security_group_json_vpcid.delete_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+      end
+    end
+  end
+
+  describe "#declare_ingress_group" do
+    context "ingress group rule does not exist" do
+      it "create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(authorize_security_group_ingress_by_source_group.aws.get_command, nil).ordered.and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(ingress_group_rule_created)
+        begin
+          @command_security_group_json_vpcid.declare_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "ingress group rule does exist" do
+      it "do not create it" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
+        expect(@textout).to receive(:puts).with(ingress_group_rule_not_created)
+        begin
+          @command_security_group_json_vpcid.declare_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+    context "undo file provided and cidr rule does exists" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws security_group delete_ingress_group #{security_group_name} #{security_group_name2} tcp 22 --region #{var_region} --vpcid #{var_vpc_id} $XTRA_OPTS", '#Delete security group ingress group rule', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
+        expect(@textout).to receive(:puts).with(ingress_group_rule_not_created)
+        begin
+          @command_security_group_json_vpcid_undo.declare_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag set and ingress cidr rule does exist" do
+      it "returns ok" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(single_security_group_group_perms.get_json)
+        expect(@textout).to receive(:puts).with(ok_ingress_group_rule)
+        begin
+          @command_security_group_json_vpcid_check.declare_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "check flag set and ingress cidr rule does not exist" do
+      it "returns critical" do
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).ordered.and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid2.aws.get_command, nil).ordered.and_return(single_security_group2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_group_permissions.aws.get_command, nil).ordered.and_return(empty_security_group.get_json)
+        expect(@textout).to receive(:puts).with(critical_ingress_group_rule)
+        begin
+          @command_security_group_json_vpcid_check.declare_ingress_group(security_group_name, security_group_name2, "tcp", 22)
+        rescue SystemExit => e
+          expect(e.status).to eq(2)
+        end
+      end
+    end
+  end
+
 end
 
