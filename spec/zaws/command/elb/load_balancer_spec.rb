@@ -2,6 +2,10 @@ require 'spec_helper'
 
 describe ZAWS::Services::ELB::LoadBalancer do
 
+
+  let(:instance_not_registratered) { ZAWS::Helper::Output.colorize("Instance already registered. Skipping registration.", AWS_consts::COLOR_GREEN) }
+  let(:instance_registered) { ZAWS::Helper::Output.colorize("New instance registered.", AWS_consts::COLOR_YELLOW) }
+
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
   let(:elb_name) { "name-???" }
@@ -69,6 +73,12 @@ describe ZAWS::Services::ELB::LoadBalancer do
     desc_instances.filter.vpc_id(vpc_id).tags(tags)
     desc_instances.aws.output(output_json).region(region)
     desc_instances
+  }
+
+  let (:register_instances_with_load_balancer){
+    riwlb = ZAWS::External::AWSCLI::Commands::ELB::RegisterInstancesWithLoadBalancer.new
+    riwlb.aws.region(region)
+    riwlb.load_balancer_name(elb_name).instances(instance_id2)
   }
 
   let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
@@ -255,6 +265,31 @@ describe ZAWS::Services::ELB::LoadBalancer do
   end
 
   describe "#register_instance" do
+    context "instance registered" do
+      it "skip, because it exists already" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(instance_not_registratered)
+        begin
+          @command_load_balancer_json_vpcid.register_instance(elb_name, instance_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "instance not registered" do
+      it "instance registered" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_instances2.aws.get_command, nil).and_return(instances2.get_json)
+        expect(@shellout).to receive(:cli).with(register_instances_with_load_balancer.aws.get_command, nil).and_return({"Instances" => instances2.get_instances_array}.to_json)
+        expect(@textout).to receive(:puts).with(instance_registered)
+        begin
+          @command_load_balancer_json_vpcid.register_instance(elb_name, instance_id2)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
     context "check flag provided and instance registered" do
       it "ok" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
