@@ -2,6 +2,8 @@ require 'spec_helper'
 
 describe ZAWS::Services::ELB::LoadBalancer do
 
+  let(:load_balancer_created) { ZAWS::Helper::Output.colorize("Load balancer created.", AWS_consts::COLOR_YELLOW) }
+   let(:load_balancer_not_created) { ZAWS::Helper::Output.colorize("Load balancer already exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
 
   let(:instance_not_registratered) { ZAWS::Helper::Output.colorize("Instance already registered. Skipping registration.", AWS_consts::COLOR_GREEN) }
   let(:instance_registered) { ZAWS::Helper::Output.colorize("New instance registered.", AWS_consts::COLOR_YELLOW) }
@@ -32,6 +34,13 @@ describe ZAWS::Services::ELB::LoadBalancer do
     security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
     security_groups.group_name(0, security_group_name).group_id(0, "sg-X")
   }
+
+
+  let(:describe_security_groups_by_name_by_vpcid) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.group_name(security_group_name).vpc_id(vpc_id)
+    desc_sec_grps.aws.output(output_json).region(region)
+    desc_sec_grps }
 
   let (:instances) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
@@ -90,6 +99,44 @@ describe ZAWS::Services::ELB::LoadBalancer do
     riwlb.load_balancer_name(elb_name).instances(instance_id)
   }
 
+  let (:subnets1) {
+    subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
+    subnets = subnets.vpc_id(0, vpc_id).cidr_block(0, "10.0.0.0/24").map_public_ip_on_launch(0, false)
+    subnets = subnets.default_for_az(0, false).state(0, "available").subnet_id(0, "subnet-YYYYYY")
+    @subnets_exists = subnets.available_ip_address_count(0, 251)
+  }
+
+  let (:subnets2) {
+    subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
+    subnets = subnets.vpc_id(0, vpc_id).cidr_block(0, "10.0.1.0/24").map_public_ip_on_launch(0, false)
+    subnets = subnets.default_for_az(0, false).state(0, "available").subnet_id(0, "subnet-ZZZZZZ")
+    @subnets_exists2 = subnets.available_ip_address_count(0, 251)
+  }
+
+
+  let(:aws_desc_subnets_by_vpcid_and_cidr) {
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vpc_id).cidr("10.0.0.0/24")
+    desc_subnets.aws.output("json").region(region)
+    desc_subnets
+  }
+
+  let(:aws_desc_subnets_by_vpcid_and_cidr_2) {
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vpc_id).cidr("10.0.1.0/24")
+    desc_subnets.aws.output("json").region(region)
+    desc_subnets
+  }
+
+  let(:create_load_balancer) {
+    clb = ZAWS::External::AWSCLI::Commands::ELB::CreateLoadBalancer.new
+    listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
+    listener.protocol(0, "tcp").load_balancer_port(0, 80).instance_protocol(0, "tcp").instance_port(0, 80)
+    clb.subnets([ 'subnet-YYYYYY', 'subnet-ZZZZZZ']).security_groups(["sg-X"])
+    clb.aws.region(region)
+    clb.listeners(listener.get_listeners_array).load_balancer_name('name-???')
+  }
+
   let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_elb) { ZAWS::Helper::Output.colorize("CRITICAL: Load Balancer does not exist.", AWS_consts::COLOR_RED) }
   let(:ok_instance_registered) { ZAWS::Helper::Output.colorize("OK: Instance registerd.", AWS_consts::COLOR_GREEN) }
@@ -124,7 +171,8 @@ describe ZAWS::Services::ELB::LoadBalancer do
                           :check => false,
                           :undofile => false,
                           :viewtype => 'json',
-                          :vpcid => vpc_id
+                          :vpcid => vpc_id,
+                          :cidrblocks => ["10.0.0.0/24","10.0.1.0/24"]
     }
 
     options_json_vpcid_check = {:region => @var_region,
@@ -209,6 +257,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
+
   describe "#calculated_listener" do
     it "Creates a JSON object with a listner definition" do
       # example output for: aws ec2 escribe-subnets
@@ -262,8 +311,35 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
-
   describe "#create_in_subnet" do
+    context "load balancer does not exist" do
+      it "create load balancer" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr.aws.get_command, nil).and_return(subnets1.get_json)
+        expect(@shellout).to receive(:cli).with(aws_desc_subnets_by_vpcid_and_cidr_2.aws.get_command, nil).and_return(subnets2.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(security_groups.get_json)
+        expect(@shellout).to receive(:cli).with(create_load_balancer.aws.get_command, nil).and_return('{ "DNSName": "???.us-west-1.elb.amazonaws.com" }')
+        expect(@textout).to receive(:puts).with(load_balancer_created)
+
+        begin
+          @command_load_balancer_json_vpcid.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group')
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+        context "load balancer does exist" do
+      it "skip creating load balancer" do
+                expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(load_balancer_not_created)
+
+        begin
+          @command_load_balancer_json_vpcid.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group')
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
     context "check flag provided and load balancer created" do
       it "ok" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
@@ -275,7 +351,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
-    context "check flag provided and load balancer created" do
+    context "check flag provided and load not balancer created" do
       it "critical" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
         expect(@textout).to receive(:puts).with(critical_elb)
@@ -417,6 +493,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
       end
     end
   end
+
 
 end
 

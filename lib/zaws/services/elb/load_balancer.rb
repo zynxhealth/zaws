@@ -52,8 +52,8 @@ module ZAWS
             comline="aws --region #{region} elb create-load-balancer"
             comline+=" --load-balancer-name #{lbname}"
             comline+=" --listeners '#{calculated_listener(lbprotocol, lbport, inprotocol, inport)}'"
-            comline+=" --subnets #{@aws.ec2.subnet.id_array_by_cidrblock_array(region, nil, nil, vpcid, cidrblocks).join(" ")}"
-            sgroup_exists, sgroupid = @aws.ec2.security_group.exists(region, nil, nil, vpcid, securitygroup)
+            comline+=" --subnets #{@aws.ec2.subnet.id_array_by_cidrblock_array(region,  nil, vpcid, cidrblocks).join(" ")}"
+            sgroup_exists, sgroupid = @aws.ec2.security_group.exists(region,  nil, vpcid, securitygroup)
             comline+=" --security-groups #{sgroupid}"
             newlb=JSON.parse(@shellout.cli(comline, verbose))
             ZAWS::Helper::Output.out_change(textout, "Load balancer created.") if newlb["DNSName"]
