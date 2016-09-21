@@ -72,27 +72,7 @@ Feature: Compute
     When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --tenancy dedicated --profilename myrole --undofile undo.sh.1 --skipruncheck --verbose`
 	Then the output should contain "Instance created.\n" 
 	And the file "undo.sh.1" should contain "zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
-		
-  Scenario: Declare a compute instance in vpc by external id, skip 
-    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-    When I run `bundle exec zaws compute declare my_instance ami-abc123 self x1-large 70 us-west-1a sshkey mysecuritygroup --privateip "10.0.0.6" --region us-west-1 --vpcid my_vpc_id --optimized --apiterminate --clienttoken test_token --skipruncheck`
-	Then the output should contain "Instance already exists. Creation skipped.\n" 
 
-  Scenario: Delete
-   Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [ { "Instances" : [ {"InstanceId": "i-XXXXXXX","Tags": [ { "Value": "my_instance","Key": "externalid" } ] } ] } ] } 
-	 """
-   Given I double `aws --region us-west-1 ec2 terminate-instances --instance-ids i-XXXXXXX` with stdout:
-     """
-	 {  "TerimatingInstances": [ ] } 
-	 """
-    When I run `bundle exec zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "Instance deleted.\n" 
-	  
   Scenario: Delete, skip
    Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
      """

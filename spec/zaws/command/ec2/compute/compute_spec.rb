@@ -2,6 +2,9 @@ require 'spec_helper'
 
 describe ZAWS::Services::EC2::Compute do
 
+  let(:instance_exists_skip_creation) { ZAWS::Helper::Output.colorize("Instance already exists. Creation skipped.", AWS_consts::COLOR_GREEN) }
+  let(:instance_deleted) { ZAWS::Helper::Output.colorize("Instance deleted.", AWS_consts::COLOR_YELLOW) }
+
   let (:vpc_id) { "my_vpc_id" }
   let (:external_id) { "my_instance" }
   let (:output_json) { "json" }
@@ -16,6 +19,12 @@ describe ZAWS::Services::EC2::Compute do
     desc_instances.filter.vpc_id(vpc_id).tags(tags)
     desc_instances.aws.output(output_json).region(region)
     desc_instances
+  }
+
+  let (:terminate_instances) {
+    ti = ZAWS::External::AWSCLI::Commands::EC2::TerminateInstances.new
+    ti.aws.region(region)
+    ti.instance_id(instance_id)
   }
 
   let (:instances) {
@@ -56,7 +65,7 @@ describe ZAWS::Services::EC2::Compute do
 
     options_json_vpcid = {:region => @var_region,
                           :verbose => false,
-                          :check => true,
+                          :check => false,
                           :undofile => false,
                           :viewtype => 'json',
                           :vpcid => @var_vpc_id,
@@ -65,6 +74,18 @@ describe ZAWS::Services::EC2::Compute do
                           :apiterminate => true,
                           :clienttoken => 'test_token',
                           :skipruncheck => true
+    }
+    options_json_vpcid_check = {:region => @var_region,
+                                :verbose => false,
+                                :check => true,
+                                :undofile => false,
+                                :viewtype => 'json',
+                                :vpcid => @var_vpc_id,
+                                :privateip => "10.0.0.6",
+                                :optimized => true,
+                                :apiterminate => true,
+                                :clienttoken => 'test_token',
+                                :skipruncheck => true
     }
 
     options_table = {:region => @var_region,
@@ -91,7 +112,10 @@ describe ZAWS::Services::EC2::Compute do
     @command_compute_json_vpcid.aws=@aws
     @command_compute_json_vpcid.out=@textout
     @command_compute_json_vpcid.print_exit_code = true
-
+    @command_compute_json_vpcid_check = ZAWS::Command::Compute.new([], options_json_vpcid_check, {})
+    @command_compute_json_vpcid_check.aws=@aws
+    @command_compute_json_vpcid_check.out=@textout
+    @command_compute_json_vpcid_check.print_exit_code = true
   }
 
   describe "#view" do
@@ -143,14 +167,32 @@ describe ZAWS::Services::EC2::Compute do
       it "ok" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
         expect(@textout).to receive(:puts).with(ok_instance_exists)
-        @command_compute_json_vpcid.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
+        @command_compute_json_vpcid_check.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
       end
     end
     context "check flag provided and instance does not exist" do
       it "critical" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(empty_instances.get_json)
         expect(@textout).to receive(:puts).with(critical_instance_exists)
+        @command_compute_json_vpcid_check.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
+      end
+    end
+    context "instance exists" do
+      it "skip deletion" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(instance_exists_skip_creation)
         @command_compute_json_vpcid.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
+      end
+    end
+  end
+
+  describe "#delete" do
+    context "instance exists" do
+      it "terminates instance" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(terminate_instances.aws.get_command, nil).and_return('{  "TerimatingInstances": [ ] }')
+        expect(@textout).to receive(:puts).with(instance_deleted)
+        @command_compute_json_vpcid.delete(external_id)
       end
     end
   end
