@@ -475,6 +475,9 @@ describe ZAWS::Services::EC2::RouteTable do
   end
 
   describe "#declare_route" do
+
+
+
     context "route exists" do
       it "skip route creation" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
@@ -482,6 +485,20 @@ describe ZAWS::Services::EC2::RouteTable do
         expect(@textout).to receive(:puts).with(route_not_created)
         begin
           @command_route_table_json_vpcid.declare_route(externalid_route_table, cidr, external_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "undo file provided and route table exists" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws route_table delete_route #{externalid_route_table} #{cidr} --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete route', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_instance.get_json)
+        expect(@textout).to receive(:puts).with(route_not_created)
+        begin
+          @command_route_table_json_vpcid_undo.declare_route(externalid_route_table, cidr, external_id)
         rescue SystemExit => e
           expect(e.status).to eq(0)
         end
@@ -501,6 +518,7 @@ describe ZAWS::Services::EC2::RouteTable do
         end
       end
     end
+
     context "check flag is set and route exists" do
       it "check ok" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
