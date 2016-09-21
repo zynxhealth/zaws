@@ -9,6 +9,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_table_ok) { ZAWS::Helper::Output.colorize("OK: Route table exists.", AWS_consts::COLOR_GREEN) }
   let(:route_table_critical) { ZAWS::Helper::Output.colorize("CRITICAL: Route table does not exist.", AWS_consts::COLOR_RED) }
 
+  let(:route_created) { ZAWS::Helper::Output.colorize("Route created to instance.", AWS_consts::COLOR_YELLOW) }
+  let(:route_not_created) { ZAWS::Helper::Output.colorize("Route not created to instance. Skip creation.", AWS_consts::COLOR_GREEN) }
+
   let(:ok_route_propagation) { ZAWS::Helper::Output.colorize("OK: Route propagation from gateway enabled.", AWS_consts::COLOR_GREEN) }
   let(:critical_route_propagation) { ZAWS::Helper::Output.colorize("CRITICAL: Route propagation from gateway not enabled.", AWS_consts::COLOR_RED) }
 
@@ -130,6 +133,12 @@ describe ZAWS::Services::EC2::RouteTable do
     desc_subnets.filter.vpc_id(vpc_id).cidr(cidr)
     desc_subnets.aws.output("json").region(region)
     desc_subnets
+  }
+
+  let(:create_route) {
+    cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
+    cr.aws.region(region)
+    cr.route_table_id(route_table_id).destination_cidr_block(cidr).instance_id(instance_id)
   }
 
   before(:each) {
@@ -466,6 +475,32 @@ describe ZAWS::Services::EC2::RouteTable do
   end
 
   describe "#declare_route" do
+    context "route exists" do
+      it "skip route creation" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_instance.get_json)
+        expect(@textout).to receive(:puts).with(route_not_created)
+        begin
+          @command_route_table_json_vpcid.declare_route(externalid_route_table, cidr, external_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "route does not exists" do
+      it "create route" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@shellout).to receive(:cli).with(create_route.aws.get_command, nil).and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(route_created)
+        begin
+          @command_route_table_json_vpcid.declare_route(externalid_route_table, cidr, external_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
     context "check flag is set and route exists" do
       it "check ok" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
