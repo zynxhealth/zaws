@@ -23,8 +23,11 @@ module ZAWS
 
       desc "query", "query"
       option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
-      def query(value)
+      def query(*value)
         @ai.awscli.home=options[:home]
+        if value.instance_of?(String)
+          value = [value]
+        end
         @ai.query.all(options[:home],@out, (options[:verbose] ? @out : nil),value)
       end
 

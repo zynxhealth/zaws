@@ -22,12 +22,12 @@ module ZAWS
         def all(home, out, verbose=nil, value)
           results = {}
           value_array=[]
-          value_array << value
+          value_array.concat(value)
           query_aws(value_array, verbose, results)
           query_nessus(home, results, value_array, verbose)
           #query_sumo(home, results, value_array, verbose)
           query_newrelic(home, results, value_array, verbose)
-
+          results=ZAWS::Helper::ProcessHash.keep(results,value_array)
           out.puts(results.to_yaml)
         end
 

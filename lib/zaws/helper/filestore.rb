@@ -37,7 +37,7 @@ module ZAWS
         end
         if File.exists?("#{@location}/#{filename}")
           storage = YAML.load(File.read("#{@location}/#{filename}"))
-          if Date.strptime(storage['expires'], '%s')< DateTime.now
+          if storage['expires'].to_i > Time.now.to_i
             return storage['value']
           end
         end
