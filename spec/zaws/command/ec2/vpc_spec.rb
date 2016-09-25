@@ -105,7 +105,7 @@ describe ZAWS::Services::EC2::VPC do
   before(:each) {
     @textout=double('outout')
     @shellout=double('ZAWS::Helper::Shell')
-    @command_vpc = ZAWS::Command::VPC.new([], options, {});
+    @command_vpc = ZAWS::Command::Vpc.new([], options, {});
     @aws=ZAWS::AWS.new(@shellout, ZAWS::AWSCLI.new(@shellout,true))
     @command_vpc.aws=@aws
     @command_vpc.out=@textout

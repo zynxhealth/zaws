@@ -2,8 +2,8 @@ require 'thor'
 
 module ZAWS
   module Command
-    class VPC < Thor
-      class_option :region, :type => :string, :desc => "AWS Region", :banner => "<region>", :aliases => :r, :required => true
+    class Vpc < Thor
+      class_option :region, :type => :string, :desc => "AWS Region", :banner => "<region>", :aliases => :r, :required => true, :default => "us-east-1"
       class_option :verbose, :type => :boolean, :desc => "Verbose outout", :aliases => :d, :default => false
 
       attr_accessor :aws

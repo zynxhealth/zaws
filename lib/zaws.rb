@@ -42,13 +42,13 @@ module ZAWS
     subcommand "iam", ZAWS::Command::IAM
 
     desc "vpc", "virtual private cloud (or vpc)"
-    subcommand "vpc", ZAWS::Command::VPC
+    subcommand "vpc", ZAWS::Command::Vpc
 
     desc "nessus", "tennable nessus"
     subcommand "nessus", ZAWS::Command::Nessus
 
     desc "ai", "artificial intelligence"
-    subcommand "ai", ZAWS::Command::AI
+    subcommand "ai", ZAWS::Command::Ai
 
     desc "sumo", "sumologic"
     subcommand "sumo", ZAWS::Command::Sumo

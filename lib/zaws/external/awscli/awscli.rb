@@ -11,7 +11,7 @@ module ZAWS
 
   def filestore
     @filestore ||= ZAWS::Repository::Filestore.new(@keep_filestore_empty)
-		@filestore.timeout = 600
+		@filestore.timeout = 1800
 		return @filestore if @keep_filestore_empty
 		@home ||= ENV['HOME']
     @filestore.location="#{@home}/.awsdata"

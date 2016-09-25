@@ -2,7 +2,7 @@ require 'thor'
 
 module ZAWS
   module Command
-    class AI < Thor
+    class Ai < Thor
       class_option :verbose, :type => :boolean, :desc => "Verbose outout", :aliases => :d, :default => false
 
       attr_accessor :ai
@@ -25,19 +25,10 @@ module ZAWS
       option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
       def query(*value)
         @ai.awscli.home=options[:home]
-        if value.instance_of?(String)
-          value = [value]
-        end
-        @ai.query.all(options[:home],@out, (options[:verbose] ? @out : nil),value)
+        value = [value] if value.instance_of?(String)
+        @out.puts(@ai.query.all(options[:home], options[:verbose],value))
       end
 
-      desc "query_aws", "query_aws"
-      option :home, :type => :string, :default => ENV['HOME'], :desc => 'Home directory location for credentials file'
-      def query_aws(value)
-        @ai.awscli.home=options[:home]
-        @ai.query.all_aws(@out, (options[:verbose] ? @out : nil),value)
-      end
-      
     end
   end
 end

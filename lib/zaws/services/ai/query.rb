@@ -19,16 +19,17 @@ module ZAWS
           format("%.2f", n) + %w(B KB MB GB TB)[count]
         end
 
-        def all(home, out, verbose=nil, value)
+        def all(home, verbose=false, value)
+          out=ZAWS::Helper::Verbose.output(verbose)
           results = {}
           value_array=[]
           value_array.concat(value)
-          query_aws(value_array, verbose, results)
-          query_nessus(home, results, value_array, verbose)
-          #query_sumo(home, results, value_array, verbose)
-          query_newrelic(home, results, value_array, verbose)
+          query_aws(value_array, out, results)
+          query_nessus(home, results, value_array, out)
+          query_sumo(home, results, value_array, out)
+          query_newrelic(home, results, value_array, out)
           results=ZAWS::Helper::ProcessHash.keep(results,value_array)
-          out.puts(results.to_yaml)
+          results.to_yaml
         end
 
         def query_nessus(home, results, value_array, verbose)
