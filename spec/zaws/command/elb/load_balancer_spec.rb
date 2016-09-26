@@ -3,13 +3,16 @@ require 'spec_helper'
 describe ZAWS::Services::ELB::LoadBalancer do
 
   let(:load_balancer_created) { ZAWS::Helper::Output.colorize("Load balancer created.", AWS_consts::COLOR_YELLOW) }
-   let(:load_balancer_not_created) { ZAWS::Helper::Output.colorize("Load balancer already exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
+  let(:load_balancer_not_created) { ZAWS::Helper::Output.colorize("Load balancer already exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
 
   let(:instance_not_registratered) { ZAWS::Helper::Output.colorize("Instance already registered. Skipping registration.", AWS_consts::COLOR_GREEN) }
   let(:instance_registered) { ZAWS::Helper::Output.colorize("New instance registered.", AWS_consts::COLOR_YELLOW) }
 
   let(:instance_not_deregistered) { ZAWS::Helper::Output.colorize("Instance not registered. Skipping deregistration.", AWS_consts::COLOR_GREEN) }
   let(:instance_deregistered) { ZAWS::Helper::Output.colorize("Instance deregistered.", AWS_consts::COLOR_YELLOW) }
+
+  let(:load_balancer_listener_created) { ZAWS::Helper::Output.colorize("Listener created.", AWS_consts::COLOR_YELLOW) }
+  let(:load_balancer_listener_not_created) { ZAWS::Helper::Output.colorize("Listerner exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
 
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
@@ -19,6 +22,14 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let (:security_group_name) { "my_security_group" }
   let (:instance_id) { "i-12345678" }
   let (:instance_id2) { "i-1234567a" }
+
+  let(:create_load_balancer_listeners) {
+    clbl= ZAWS::External::AWSCLI::Commands::ELB::CreateLoadBalancerListeners.new
+    listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
+    listener.protocol(0, "tcp").load_balancer_port(0, 80).instance_protocol(0, "tcp").instance_port(0, 80)
+    clbl.aws.region(region)
+    clbl.listeners(listener.get_listeners_array).load_balancer_name('name-???')
+  }
 
   let(:describe_load_balancer_json) {
     desc_load_balancers= ZAWS::External::AWSCLI::Commands::ELB::DescribeLoadBalancers.new
@@ -132,7 +143,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
     clb = ZAWS::External::AWSCLI::Commands::ELB::CreateLoadBalancer.new
     listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
     listener.protocol(0, "tcp").load_balancer_port(0, 80).instance_protocol(0, "tcp").instance_port(0, 80)
-    clb.subnets([ 'subnet-YYYYYY', 'subnet-ZZZZZZ']).security_groups(["sg-X"])
+    clb.subnets(['subnet-YYYYYY', 'subnet-ZZZZZZ']).security_groups(["sg-X"])
     clb.aws.region(region)
     clb.listeners(listener.get_listeners_array).load_balancer_name('name-???')
   }
@@ -172,7 +183,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
                           :undofile => false,
                           :viewtype => 'json',
                           :vpcid => vpc_id,
-                          :cidrblocks => ["10.0.0.0/24","10.0.1.0/24"]
+                          :cidrblocks => ["10.0.0.0/24", "10.0.1.0/24"]
     }
 
     options_json_vpcid_check = {:region => @var_region,
@@ -328,9 +339,9 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
-        context "load balancer does exist" do
+    context "load balancer does exist" do
       it "skip creating load balancer" do
-                expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
         expect(@textout).to receive(:puts).with(load_balancer_not_created)
 
         begin
@@ -470,6 +481,42 @@ describe ZAWS::Services::ELB::LoadBalancer do
 
 
   describe "#declare_listener" do
+    context "listner not on load balancer exists" do
+      it "listener created" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(create_load_balancer_listeners.aws.get_command, nil).and_return('{ "return": "true" }')
+        expect(@textout).to receive(:puts).with(load_balancer_listener_created)
+        begin
+          @command_load_balancer_json_vpcid.declare_listener(elb_name, "tcp", 80, "tcp", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "listner on load balancer exists" do
+      it "listener not created" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
+        expect(@textout).to receive(:puts).with(load_balancer_listener_not_created)
+        begin
+          @command_load_balancer_json_vpcid.declare_listener(elb_name, "HTTP", 80, "HTTP", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "undo file present and listner on load balancer exists" do
+      it "undo file created" do
+        expect(@undofile).to receive(:prepend).with("zaws load_balancer delete_listener #{elb_name} HTTP 80 HTTP 80 --region #{region} $XTRA_OPTS", '#Delete listener', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
+        expect(@textout).to receive(:puts).with(ok_listener_exists)
+        begin
+          @command_load_balancer_json_vpcid_undo.declare_listener(elb_name, "HTTP", 80, "HTTP", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
     context "check flag specified and listner on load balancer exists" do
       it "returns ok" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
@@ -482,7 +529,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
       end
     end
     context "check flag specified and listner not on load balancer exists" do
-      it "returns ok" do
+      it "returns critical" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
         expect(@textout).to receive(:puts).with(critical_listener_exists)
         begin

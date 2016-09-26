@@ -3,7 +3,7 @@ module ZAWS
     class AWSCLI
       class Commands
         class ELB
-          class CreateLoadBalancer
+          class CreateLoadBalancerListeners
             def initialize(shellout=nil, awscli=nil)
               @shellout=shellout
               @awscli=awscli
@@ -18,8 +18,6 @@ module ZAWS
             def clear_settings
               @aws=nil
               @lbname=nil
-              @subnet_array=nil
-              @security_groups=nil
             end
 
             def load_balancer_name(name)
@@ -32,26 +30,11 @@ module ZAWS
               self
             end
 
-            def subnets(subnet_array)
-              @subnet_array=subnet_array
-              self
-            end
-
-            def security_groups(security_groups)
-              @security_groups=security_groups
-              self
-            end
 
             def get_command
-              command = "elb create-load-balancer"
+              command = "elb create-load-balancer-listeners"
               command = "#{command} --load-balancer-name #{@lbname}" if @lbname
               command = "#{command} --listeners '[#{@listeners_array[0]["Listener"].to_json}]'" if @listeners_array
-              if @subnet_array
-                command = "#{command} --subnets #{@subnet_array.join(" ")}"
-              end
-              if @security_groups
-                command = "#{command} --security-groups #{@security_groups.join(" ")}"
-              end
               return command
             end
 
