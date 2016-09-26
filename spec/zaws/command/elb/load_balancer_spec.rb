@@ -14,6 +14,10 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:load_balancer_listener_created) { ZAWS::Helper::Output.colorize("Listener created.", AWS_consts::COLOR_YELLOW) }
   let(:load_balancer_listener_not_created) { ZAWS::Helper::Output.colorize("Listerner exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
 
+  let(:load_balancer_listener_deleted) { ZAWS::Helper::Output.colorize("Listerner deleted.", AWS_consts::COLOR_YELLOW) }
+  let(:load_balancer_listener_not_deleted) { ZAWS::Helper::Output.colorize("Listener does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
+
+
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
   let(:elb_name) { "name-???" }
@@ -22,6 +26,14 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let (:security_group_name) { "my_security_group" }
   let (:instance_id) { "i-12345678" }
   let (:instance_id2) { "i-1234567a" }
+
+  let(:delete_load_balancer_listener) {
+    dlbl= ZAWS::External::AWSCLI::Commands::ELB::DeleteLoadBalancerListeners.new
+    listener=ZAWS::External::AWSCLI::Generators::Result::ELB::Listeners.new
+    listener.protocol(0, "HTTP").load_balancer_port(0, 80).instance_protocol(0, "HTTP").instance_port(0, 80)
+    dlbl.aws.region(region)
+    dlbl.listeners(listener.get_listeners_array).load_balancer_name('name-???')
+  }
 
   let(:create_load_balancer_listeners) {
     clbl= ZAWS::External::AWSCLI::Commands::ELB::CreateLoadBalancerListeners.new
@@ -541,6 +553,31 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
+  describe "#delete" do
+    context "listner not on load balancer exists" do
+      it "nothing to do" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(load_balancer_listener_not_deleted)
+        begin
+          @command_load_balancer_json_vpcid.delete_listener(elb_name, "tcp", 80, "tcp", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "listner on load balancer exists" do
+      it "listener not created" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer_with_listener.get_json)
+        expect(@shellout).to receive(:cli).with(delete_load_balancer_listener.aws.get_command, nil).and_return('{ "return": "true" }')
+        expect(@textout).to receive(:puts).with(load_balancer_listener_deleted)
+        begin
+          @command_load_balancer_json_vpcid.delete_listener(elb_name, "HTTP", 80, "HTTP", 80)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+  end
 
 end
 
