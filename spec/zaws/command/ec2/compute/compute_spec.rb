@@ -4,6 +4,7 @@ describe ZAWS::Services::EC2::Compute do
 
   let(:instance_exists_skip_creation) { ZAWS::Helper::Output.colorize("Instance already exists. Creation skipped.", AWS_consts::COLOR_GREEN) }
   let(:instance_deleted) { ZAWS::Helper::Output.colorize("Instance deleted.", AWS_consts::COLOR_YELLOW) }
+  let(:instance_not_deleted) { ZAWS::Helper::Output.colorize("Instance does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
 
   let (:vpc_id) { "my_vpc_id" }
   let (:external_id) { "my_instance" }
@@ -192,6 +193,13 @@ describe ZAWS::Services::EC2::Compute do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
         expect(@shellout).to receive(:cli).with(terminate_instances.aws.get_command, nil).and_return('{  "TerimatingInstances": [ ] }')
         expect(@textout).to receive(:puts).with(instance_deleted)
+        @command_compute_json_vpcid.delete(external_id)
+      end
+    end
+    context "instance does not exists" do
+      it "skip termination" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(empty_instances.get_json)
+        expect(@textout).to receive(:puts).with(instance_not_deleted)
         @command_compute_json_vpcid.delete(external_id)
       end
     end

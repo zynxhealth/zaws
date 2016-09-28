@@ -73,14 +73,3 @@ Feature: Compute
 	Then the output should contain "Instance created.\n" 
 	And the file "undo.sh.1" should contain "zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS"
 
-  Scenario: Delete, skip
-   Given I double `aws --output json --region us-west-1 ec2 describe-instances --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_instance'` with stdout:
-     """
-	 {  "Reservations": [] } 
-	 """
-    When I run `bundle exec zaws compute delete my_instance --region us-west-1 --vpcid my_vpc_id`
-	Then the output should contain "Instance does not exist. Skipping deletion.\n" 
-
-
-
-

@@ -17,6 +17,9 @@ describe ZAWS::Services::ELB::LoadBalancer do
   let(:load_balancer_listener_deleted) { ZAWS::Helper::Output.colorize("Listerner deleted.", AWS_consts::COLOR_YELLOW) }
   let(:load_balancer_listener_not_deleted) { ZAWS::Helper::Output.colorize("Listener does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
 
+  let(:load_balancer_deleted) { ZAWS::Helper::Output.colorize("Load balancer deleted.", AWS_consts::COLOR_YELLOW) }
+  let(:load_balancer_not_deleted) { ZAWS::Helper::Output.colorize("Load balancer does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
+
 
   let(:output_json) { "json" }
   let(:region) { "us-west-1" }
@@ -158,6 +161,12 @@ describe ZAWS::Services::ELB::LoadBalancer do
     clb.subnets(['subnet-YYYYYY', 'subnet-ZZZZZZ']).security_groups(["sg-X"])
     clb.aws.region(region)
     clb.listeners(listener.get_listeners_array).load_balancer_name('name-???')
+  }
+
+  let(:delete_load_balancer) {
+    dlb = ZAWS::External::AWSCLI::Commands::ELB::DeleteLoadBalancer.new
+    dlb.aws.region(region)
+    dlb.load_balancer_name('name-???')
   }
 
   let(:ok_elb) { ZAWS::Helper::Output.colorize("OK: Load Balancer Exists.", AWS_consts::COLOR_GREEN) }
@@ -332,6 +341,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
         end
       end
     end
+
   end
 
   describe "#create_in_subnet" do
@@ -343,7 +353,6 @@ describe ZAWS::Services::ELB::LoadBalancer do
         expect(@shellout).to receive(:cli).with(describe_security_groups_by_name_by_vpcid.aws.get_command, nil).and_return(security_groups.get_json)
         expect(@shellout).to receive(:cli).with(create_load_balancer.aws.get_command, nil).and_return('{ "DNSName": "???.us-west-1.elb.amazonaws.com" }')
         expect(@textout).to receive(:puts).with(load_balancer_created)
-
         begin
           @command_load_balancer_json_vpcid.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group')
         rescue SystemExit => e
@@ -355,7 +364,6 @@ describe ZAWS::Services::ELB::LoadBalancer do
       it "skip creating load balancer" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
         expect(@textout).to receive(:puts).with(load_balancer_not_created)
-
         begin
           @command_load_balancer_json_vpcid.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group')
         rescue SystemExit => e
@@ -383,6 +391,45 @@ describe ZAWS::Services::ELB::LoadBalancer do
           @command_load_balancer_json_vpcid_check.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
         rescue SystemExit => e
           expect(e.status).to eq(2)
+        end
+      end
+    end
+    context "undo file provided and load balancer exists" do
+      it "output delete statement to undo file" do
+        expect(@undofile).to receive(:prepend).with("zaws load_balancer delete #{elb_name} --region #{region} $XTRA_OPTS", '#Delete load balancer', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(ok_elb)
+        begin
+          @command_load_balancer_json_vpcid_undo.create_in_subnet(elb_name, 'tcp', 80, 'tcp', 80, 'my_security_group_name')
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+  end
+
+  describe "#delete" do
+    context "load balancer exists" do
+      it "delete it" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
+        expect(@shellout).to receive(:cli).with(delete_load_balancer.aws.get_command, nil).and_return('{ "return": "true" }')
+        expect(@textout).to receive(:puts).with(load_balancer_deleted)
+        begin
+          @command_load_balancer_json_vpcid.delete(elb_name)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "load balancer does not exist" do
+      it "skip deletion" do
+        expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(empty_load_balancer.get_json)
+        expect(@textout).to receive(:puts).with(load_balancer_not_deleted)
+        begin
+          @command_load_balancer_json_vpcid.delete(elb_name)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
         end
       end
     end
@@ -553,7 +600,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
     end
   end
 
-  describe "#delete" do
+  describe "#delete_listener" do
     context "listner not on load balancer exists" do
       it "nothing to do" do
         expect(@shellout).to receive(:cli).with(describe_load_balancer_json.aws.get_command, nil).and_return(single_load_balancer.get_json)
@@ -578,6 +625,7 @@ describe ZAWS::Services::ELB::LoadBalancer do
       end
     end
   end
+
 
 end
 
