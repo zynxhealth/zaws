@@ -24,6 +24,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:ok_declare_route_to_gateway) { ZAWS::Helper::Output.colorize("OK: Route to gateway exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_declare_route_to_gateway) { ZAWS::Helper::Output.colorize("CRITICAL: Route to gateway does not exist.", AWS_consts::COLOR_RED) }
 
+  let(:route_not_deleted) { ZAWS::Helper::Output.colorize("Route does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
+  let(:route_deleted) { ZAWS::Helper::Output.colorize("Route deleted.", AWS_consts::COLOR_YELLOW) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -139,6 +142,12 @@ describe ZAWS::Services::EC2::RouteTable do
     cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
     cr.aws.region(region)
     cr.route_table_id(route_table_id).destination_cidr_block(cidr).instance_id(instance_id)
+  }
+
+  let(:delete_route) {
+    cr = ZAWS::External::AWSCLI::Commands::EC2::DeleteRoute.new
+    cr.aws.region(region)
+    cr.route_table_id(route_table_id).destination_cidr_block(cidr)
   }
 
   before(:each) {
@@ -365,6 +374,7 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+
   describe "#subnet_assoc_exists" do
     context "subnet is associated to a route table " do
       it "returns true" do
@@ -474,10 +484,35 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+  describe "#delete_route" do
+    context "route exists" do
+      it "delete route" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_instance.get_json)
+        expect(@shellout).to receive(:cli).with(delete_route.aws.get_command, nil).and_return('{	"return" : "true" }')
+        expect(@textout).to receive(:puts).with(route_deleted)
+        begin
+          @command_route_table_json_vpcid.delete_route(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "route does not exists" do
+      it "skip deletion" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(route_not_deleted)
+        begin
+          @command_route_table_json_vpcid.delete_route(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+
+  end
+
   describe "#declare_route" do
-
-
-
     context "route exists" do
       it "skip route creation" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
