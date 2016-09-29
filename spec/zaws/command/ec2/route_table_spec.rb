@@ -27,6 +27,10 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_not_deleted) { ZAWS::Helper::Output.colorize("Route does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
   let(:route_deleted) { ZAWS::Helper::Output.colorize("Route deleted.", AWS_consts::COLOR_YELLOW) }
 
+  let(:route_to_gateway_not_created) { ZAWS::Helper::Output.colorize("Route to gateway exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
+  let(:route_to_gateway_created) { ZAWS::Helper::Output.colorize("Route created to gateway.", AWS_consts::COLOR_YELLOW) }
+
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -142,6 +146,12 @@ describe ZAWS::Services::EC2::RouteTable do
     cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
     cr.aws.region(region)
     cr.route_table_id(route_table_id).destination_cidr_block(cidr).instance_id(instance_id)
+  }
+
+  let(:create_route_to_gateway) {
+    cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
+    cr.aws.region(region)
+    cr.route_table_id(route_table_id).destination_cidr_block(cidr).gateway_id(gateway_id)
   }
 
   let(:delete_route) {
@@ -619,7 +629,41 @@ describe ZAWS::Services::EC2::RouteTable do
         rescue SystemExit => e
           expect(e.status).to eq(2)
         end
-
+      end
+    end
+    context "route does exist to a gateway" do
+      it "skip route creation" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_gateway.get_json)
+        expect(@textout).to receive(:puts).with(route_to_gateway_not_created)
+        begin
+          @command_route_table_json_vpcid.declare_route_to_gateway(externalid_route_table, cidr, gateway_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "route does not exist to a gateway" do
+      it "create route" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@shellout).to receive(:cli).with(create_route_to_gateway.aws.get_command, nil).and_return('{	"return" : "true" }')
+        expect(@textout).to receive(:puts).with(route_to_gateway_created)
+        begin
+          @command_route_table_json_vpcid.declare_route_to_gateway(externalid_route_table, cidr, gateway_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "undo flag provided and route does exist to a gateway" do
+      it "skip route creation" do
+        expect(@undofile).to receive(:prepend).with("zaws route_table delete_route #{externalid_route_table} #{cidr} --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete route', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_gateway.get_json)
+        expect(@textout).to receive(:puts).with(route_to_gateway_not_created)
+        begin
+          @command_route_table_json_vpcid_undo.declare_route_to_gateway(externalid_route_table, cidr, gateway_id)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
       end
     end
   end

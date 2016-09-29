@@ -1,4 +1,3 @@
-
 module ZAWS
   class External
     class AWSCLI
@@ -39,11 +38,17 @@ module ZAWS
               self
             end
 
+            def gateway_id(id)
+              @gateway_id=id
+              self
+            end
+
             def get_command
               command = "ec2 create-route"
               command = "#{command} --route-table-id #{@route_table_id}" if @route_table_id
               command = "#{command} --destination-cidr-block #{@dest_cidr_block}" if @dest_cidr_block
               command = "#{command} --instance-id #{@instance_id}" if @instance_id
+              command = "#{command} --gateway-id #{@gateway_id}" if @gateway_id
               return command
             end
 
