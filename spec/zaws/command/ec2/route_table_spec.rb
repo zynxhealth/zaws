@@ -30,6 +30,8 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_to_gateway_not_created) { ZAWS::Helper::Output.colorize("Route to gateway exists. Skipping creation.", AWS_consts::COLOR_GREEN) }
   let(:route_to_gateway_created) { ZAWS::Helper::Output.colorize("Route created to gateway.", AWS_consts::COLOR_YELLOW) }
 
+  let(:route_propagated_to_gateway) { ZAWS::Helper::Output.colorize("Route propagation from gateway enabled.", AWS_consts::COLOR_YELLOW) }
+  let(:route_propagated_to_gateway_already) { ZAWS::Helper::Output.colorize("Route propagation from gateway already enabled. Skipping propagation.", AWS_consts::COLOR_GREEN) }
 
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
@@ -158,6 +160,18 @@ describe ZAWS::Services::EC2::RouteTable do
     cr = ZAWS::External::AWSCLI::Commands::EC2::DeleteRoute.new
     cr.aws.region(region)
     cr.route_table_id(route_table_id).destination_cidr_block(cidr)
+  }
+
+  let(:create_route_to_gateway) {
+    cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
+    cr.aws.region(region)
+    cr.route_table_id(route_table_id).destination_cidr_block(cidr).gateway_id(gateway_id)
+  }
+
+  let(:enable_vgw_route_propagation) {
+    evrp = ZAWS::External::AWSCLI::Commands::EC2::EnableVgwRoutePropagation.new
+    evrp.aws.region(region)
+    evrp.route_table_id(route_table_id).gateway_id('vgw-????????')
   }
 
   before(:each) {
@@ -449,10 +463,34 @@ describe ZAWS::Services::EC2::RouteTable do
   end
 
   describe "#declare_propagation_from_gateway" do
+    context "route table propagates to virtual gatway already" do
+      it "skip propagation" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+        expect(@textout).to receive(:puts).with(route_propagated_to_gateway_already)
+        begin
+          @command_route_table_json_vpcid.declare_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "route table is not propagating to virtual gatway" do
+      it "setup propagation" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@shellout).to receive(:cli).with(enable_vgw_route_propagation.aws.get_command, nil).and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(route_propagated_to_gateway)
+        begin
+          @command_route_table_json_vpcid.declare_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
     context "check flag is set and route table propagates to virtual gatway already" do
       it "check ok" do
-
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+
         expect(@textout).to receive(:puts).with(ok_route_propagation)
         begin
           @command_route_table_json_vpcid_check.declare_propagation_from_gateway(externalid_route_table, vgw)
@@ -563,7 +601,6 @@ describe ZAWS::Services::EC2::RouteTable do
         end
       end
     end
-
     context "check flag is set and route exists" do
       it "check ok" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
