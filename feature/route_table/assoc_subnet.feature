@@ -16,18 +16,6 @@ Feature: Route Table
     When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table associated to subnet.\n" 
 
-  Scenario: Associate a subnet to a route table, skip because it exists already
-  	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
-     """
-		{ "Subnets": [ { "SubnetId" : "X" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ { "SubnetId":"X" } ] } ] }
-     """
-    When I run `bundle exec zaws route_table assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "Route table already associated to subnet. Skipping association.\n" 
-   
   Scenario: Delete subnet association to route table
     Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
      """
@@ -43,18 +31,6 @@ Feature: Route Table
      """
     When I run `bundle exec zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
     Then the output should contain "Route table association to subnet deleted.\n" 
- 
-  Scenario: Delete subnet association to route table that does not exists, skip it.
-	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 
-     """
-		{ "Subnets": [ { "SubnetId" : "X" } ] }
-     """
-    And I double `aws --output json --region us-west-1 ec2 describe-route-tables --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=tag:externalid,Values=my_route_table'` with stdout:
-     """
-	 {	"RouteTables": [ { "VpcId":"my_vpc_id","RouteTableId":"rtb-XXXXXXX","Associations": [ ] } ] }
-     """
-    When I run `bundle exec zaws route_table delete_assoc_subnet my_route_table my_cidr_block --region us-west-1 --vpcid my_vpc_id`
-    Then the output should contain "Route table association to subnet not deleted because it does not exist.\n" 
 
   Scenario: Undo file
  	Given I double `aws --output json --region us-west-1 ec2 describe-subnets --filter 'Name=vpc-id,Values=my_vpc_id' 'Name=cidr,Values=my_cidr_block'` with stdout: 

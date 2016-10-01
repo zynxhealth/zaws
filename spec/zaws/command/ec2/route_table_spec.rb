@@ -36,6 +36,12 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:delete_route_propagation_from_gateway) { ZAWS::Helper::Output.colorize("Deleted route propagation from gateway.", AWS_consts::COLOR_YELLOW) }
   let(:not_delete_route_propagation_from_gateway) { ZAWS::Helper::Output.colorize("Route propagation from gateway does not exist, skipping deletion.", AWS_consts::COLOR_GREEN) }
 
+  let(:assoc_subnet_skipped) { ZAWS::Helper::Output.colorize("Route table already associated to subnet. Skipping association.", AWS_consts::COLOR_GREEN) }
+  let(:assoc_subnet_executed) { ZAWS::Helper::Output.colorize("Route table associated to subnet.", AWS_consts::COLOR_YELLOW) }
+
+  let(:assoc_subnet_not_deleted) { ZAWS::Helper::Output.colorize("Route table association to subnet not deleted because it does not exist.", AWS_consts::COLOR_GREEN) }
+  let(:assoc_subnet_deleted) { ZAWS::Helper::Output.colorize("Route table association to subnet deleted.", AWS_consts::COLOR_YELLOW) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -182,6 +188,7 @@ describe ZAWS::Services::EC2::RouteTable do
     dvrp.aws.region(region)
     dvrp.route_table_id(route_table_id).gateway_id('vgw-????????')
   }
+
   before(:each) {
 
     @var_security_group_id="sg-abcd1234"
@@ -426,7 +433,34 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+ describe "#delete_assoc_subnet" do
+    context "Route table association to subnet does not exists." do
+      it "Skip deletion" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(assoc_subnet_not_deleted)
+        begin
+          @command_route_table_json_vpcid.delete_assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+  end
+
   describe "#assoc_subnet" do
+    context "Route table association to subnet exists." do
+      it "skips association" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_associations.get_json)
+        expect(@textout).to receive(:puts).with(assoc_subnet_skipped)
+        begin
+          @command_route_table_json_vpcid.assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
     context "Route table association to subnet exists." do
       it "return ok" do
         expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
