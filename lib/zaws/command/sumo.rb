@@ -24,6 +24,10 @@ module ZAWS
         @sumo.view(options[:home], @out, (options[:verbose] ? @out : nil))
       end
 
+      desc "view_sources", "View Sources."
+      def view_sources(collector_name)
+        @out.puts(@sumo.view_sources(collector_name,options[:home], options[:verbose]))
+      end
     end
   end
 end
