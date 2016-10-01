@@ -33,6 +33,9 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_propagated_to_gateway) { ZAWS::Helper::Output.colorize("Route propagation from gateway enabled.", AWS_consts::COLOR_YELLOW) }
   let(:route_propagated_to_gateway_already) { ZAWS::Helper::Output.colorize("Route propagation from gateway already enabled. Skipping propagation.", AWS_consts::COLOR_GREEN) }
 
+  let(:delete_route_propagation_from_gateway) { ZAWS::Helper::Output.colorize("Deleted route propagation from gateway.", AWS_consts::COLOR_YELLOW) }
+  let(:not_delete_route_propagation_from_gateway) { ZAWS::Helper::Output.colorize("Route propagation from gateway does not exist, skipping deletion.", AWS_consts::COLOR_GREEN) }
+
   let(:region) { "us-west-1" }
   let(:security_group_name) { "my_security_group_name" }
   let(:security_group_id) { "sg-abcd1234" }
@@ -174,6 +177,11 @@ describe ZAWS::Services::EC2::RouteTable do
     evrp.route_table_id(route_table_id).gateway_id('vgw-????????')
   }
 
+  let(:disable_vgw_route_propagation) {
+    dvrp = ZAWS::External::AWSCLI::Commands::EC2::DisableVgwRoutePropagation.new
+    dvrp.aws.region(region)
+    dvrp.route_table_id(route_table_id).gateway_id('vgw-????????')
+  }
   before(:each) {
 
     @var_security_group_id="sg-abcd1234"
@@ -462,7 +470,47 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
+  describe "#delete_propagation_from_gateway" do
+    context "route table propagates to virtual gatway currently" do
+      it "delete propagation" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+        expect(@shellout).to receive(:cli).with(disable_vgw_route_propagation.aws.get_command, nil).and_return('{	"return": "true" }')
+        expect(@textout).to receive(:puts).with(delete_route_propagation_from_gateway)
+        begin
+          @command_route_table_json_vpcid.delete_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
+    context "route table is not propagating to virtual gatway" do
+      it "skip deletion" do
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@textout).to receive(:puts).with(not_delete_route_propagation_from_gateway)
+        begin
+          @command_route_table_json_vpcid.delete_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+  end
+
   describe "#declare_propagation_from_gateway" do
+    context "undo flag specified and route table propagates to virtual gatway already" do
+      it "undo file written to" do
+        expect(@undofile).to receive(:prepend).with("zaws route_table delete_propagation_from_gateway my_route_table #{vgw} --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete route propagation', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)
+        expect(@textout).to receive(:puts).with(route_propagated_to_gateway_already)
+        begin
+          @command_route_table_json_vpcid_undo.declare_propagation_from_gateway(externalid_route_table, vgw)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+
+      end
+    end
     context "route table propagates to virtual gatway already" do
       it "skip propagation" do
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_prop_gateway.get_json)

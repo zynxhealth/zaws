@@ -179,7 +179,7 @@ module ZAWS
 
         def declare_propagation_from_gateway(region, textout=nil, verbose=nil, vpcid, routetable, vgatewayid, nagios, ufile)
           if ufile
-            @undofile.prepend("zaws route_table delete_propagation_from_gateway my_route_table vgw-???????? --region us-west-1 --vpcid my_vpc_id $XTRA_OPTS", '#Delete route propagation', ufile)
+            @undofile.prepend("zaws route_table delete_propagation_from_gateway my_route_table #{vgatewayid} --region #{region} --vpcid #{vpcid} $XTRA_OPTS", '#Delete route propagation', ufile)
           end
           propagation_exists, rtableid = propagation_exists_from_gateway(region, nil, verbose, vpcid, routetable, vgatewayid)
           return ZAWS::Helper::Output.binary_nagios_check(propagation_exists, "OK: Route propagation from gateway enabled.", "CRITICAL: Route propagation from gateway not enabled.", textout) if nagios
