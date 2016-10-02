@@ -52,9 +52,11 @@ describe ZAWS::Services::EC2::RouteTable do
   let(:route_table_id) { "rtb-XXXXXXX" }
   let(:cidr) { "10.0.0.0/24" }
   let(:vgw) { 'vgw-????????' }
-  let (:external_id) { "my_instance" }
-  let (:instance_id) { "i-12345678" }
-  let (:gateway_id) { "igw-XXXXXXX" }
+  let(:external_id) { "my_instance" }
+  let(:instance_id) { "i-12345678" }
+  let(:gateway_id) { "igw-XXXXXXX" }
+  let(:subnet_id) { "subnet-YYYYYY" }
+  let(:route_table_association_id) { "rtbassoc-????????" }
 
   let (:describe_instances) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
@@ -131,14 +133,14 @@ describe ZAWS::Services::EC2::RouteTable do
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
     tags = tags.add("externalid", externalid_route_table)
     create_tags = ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new
-    create_tags.resource("rtb-XXXXXXX").tags(tags)
+    create_tags.resource(route_table_id).tags(tags)
     create_tags.aws.region(region)
     create_tags
   }
 
   let(:single_subnets) {
     subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
-    subnets.subnet_id(0, "subnet-YYYYYY")
+    subnets.subnet_id(0, subnet_id).route_table_association_id(0,route_table_association_id)
   }
 
   let(:single_route_tables_with_associations) {
@@ -163,6 +165,18 @@ describe ZAWS::Services::EC2::RouteTable do
     cr = ZAWS::External::AWSCLI::Commands::EC2::CreateRoute.new
     cr.aws.region(region)
     cr.route_table_id(route_table_id).destination_cidr_block(cidr).gateway_id(gateway_id)
+  }
+
+  let(:associate_route_table) {
+    art = ZAWS::External::AWSCLI::Commands::EC2::AssociateRouteTable.new
+    art.aws.region(region)
+    art.route_table_id(route_table_id).subnet_id(subnet_id)
+  }
+
+  let(:disassociate_route_table) {
+    art = ZAWS::External::AWSCLI::Commands::EC2::DisassociateRouteTable.new
+    art.aws.region(region)
+    art.association_id(route_table_association_id)
   }
 
   let(:delete_route) {
@@ -433,12 +447,25 @@ describe ZAWS::Services::EC2::RouteTable do
     end
   end
 
- describe "#delete_assoc_subnet" do
+  describe "#delete_assoc_subnet" do
     context "Route table association to subnet does not exists." do
       it "Skip deletion" do
         expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
         expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
         expect(@textout).to receive(:puts).with(assoc_subnet_not_deleted)
+        begin
+          @command_route_table_json_vpcid.delete_assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "Route table association to subnet exists." do
+      it "Delete association" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_associations.get_json)
+        expect(@shellout).to receive(:cli).with(disassociate_route_table.aws.get_command, nil).and_return('{	"return" : "true" }')
+        expect(@textout).to receive(:puts).with(assoc_subnet_deleted)
         begin
           @command_route_table_json_vpcid.delete_assoc_subnet(externalid_route_table, cidr)
         rescue SystemExit => e
@@ -456,6 +483,32 @@ describe ZAWS::Services::EC2::RouteTable do
         expect(@textout).to receive(:puts).with(assoc_subnet_skipped)
         begin
           @command_route_table_json_vpcid.assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "Route table association to subnet does not exists." do
+      it "associate route table to subnet" do
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables.get_json)
+        expect(@shellout).to receive(:cli).with(associate_route_table.aws.get_command, nil).and_return('{	"AssociationId": "rtbassoc-???????" }')
+        expect(@textout).to receive(:puts).with(assoc_subnet_executed)
+        begin
+          @command_route_table_json_vpcid.assoc_subnet(externalid_route_table, cidr)
+        rescue SystemExit => e
+          expect(e.status).to eq(0)
+        end
+      end
+    end
+    context "Undo file set, and route table association to subnet exists." do
+      it "Writes to undo file skips association" do
+        expect(@undofile).to receive(:prepend).with("zaws route_table delete_assoc_subnet #{externalid_route_table} #{cidr} --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete route table association to subnet', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(single_subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_route_tables.aws.get_command, nil).and_return(single_route_tables_with_associations.get_json)
+        expect(@textout).to receive(:puts).with(assoc_subnet_skipped)
+        begin
+          @command_route_table_json_vpcid_undo.assoc_subnet(externalid_route_table, cidr)
         rescue SystemExit => e
           expect(e.status).to eq(0)
         end

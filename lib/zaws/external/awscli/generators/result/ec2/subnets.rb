@@ -47,6 +47,12 @@ module ZAWS
                 self
               end
 
+              def route_table_association_id(subnet_number, id)
+                resize_subnets_array(subnet_number)
+                @subnets["Subnets"][subnet_number]["RouteTableAssociationId"]=id
+                self
+              end
+
               def subnet_id(subnet_number, id)
                 resize_subnets_array(subnet_number)
                 @subnets["Subnets"][subnet_number]["SubnetId"]=id
@@ -60,8 +66,8 @@ module ZAWS
               end
 
               def add(subnets)
-                 @subnets["Subnets"].concat(subnets.get_subnets_array)
-                 self
+                @subnets["Subnets"].concat(subnets.get_subnets_array)
+                self
               end
 
               def get_json
