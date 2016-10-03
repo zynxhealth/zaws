@@ -35,7 +35,12 @@ describe ZAWS::Helper::ProcessHash do
     end
     context "provided array of hash with value matching leafs" do
       it "returns matching array of hash" do
-        expect(ZAWS::Helper::ProcessHash.keep({"root"=>[{"root" => "easy1"},{"root"=> "easy2"}]}, ["easy"])).to eql({"root"=>[{"root" => "easy1"},{"root"=> "easy2"}]})
+        expect(ZAWS::Helper::ProcessHash.keep({"root" => [{"root" => "easy1"}, {"root" => "easy2"}]}, ["easy"])).to eql({"root" => [{"root" => "easy1"}, {"root" => "easy2"}]})
+      end
+    end
+    context "provided array of hash with value matching leafs, and one of the leafs is an array" do
+      it "returns matching array of hash with array" do
+        expect(ZAWS::Helper::ProcessHash.keep({"root" => [{"root" => "easy1"}, {"root" => ["easy2","nope"]}]}, ["easy"])).to eql({"root" => [{"root" => "easy1"}, {"root" => ["easy2"]}]})
       end
     end
   end
