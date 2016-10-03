@@ -26,6 +26,8 @@ module ZAWS
               @aws=nil
               @filter=nil
               @owner=nil
+              @image_ids=nil
+              self
             end
 
             def owner(owner)
@@ -33,9 +35,15 @@ module ZAWS
               self
             end
 
+            def image_ids(id)
+              @image_ids=id
+              self
+            end
+
             def get_command
               command = "ec2 describe-images"
               command = "#{command} --owner #{@owner}" if @owner
+              command = "#{command} --image-ids #{@image_ids}" if @image_ids
               command = "#{command} #{@filter.get_command}" if @filter
               return command
             end

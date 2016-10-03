@@ -3,15 +3,19 @@ require 'spec_helper'
 describe ZAWS::Services::EC2::Compute do
 
   let(:instance_exists_skip_creation) { ZAWS::Helper::Output.colorize("Instance already exists. Creation skipped.", AWS_consts::COLOR_GREEN) }
+  let(:instance_created) { ZAWS::Helper::Output.colorize("Instance created.", AWS_consts::COLOR_YELLOW) }
   let(:instance_deleted) { ZAWS::Helper::Output.colorize("Instance deleted.", AWS_consts::COLOR_YELLOW) }
   let(:instance_not_deleted) { ZAWS::Helper::Output.colorize("Instance does not exist. Skipping deletion.", AWS_consts::COLOR_GREEN) }
 
   let (:vpc_id) { "my_vpc_id" }
+  let (:cidr_subnet) { "10.0.0.0/24" }
   let (:external_id) { "my_instance" }
   let (:output_json) { "json" }
   let (:region) { "us-west-1" }
   let (:security_group_name) { "my_security_group" }
   let (:instance_id) { "i-12345678" }
+  let (:security_group_id) { "sg-abcd1234" }
+  let (:image_id) { "ami-abc123" }
 
   let (:describe_instances) {
     tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
@@ -45,6 +49,73 @@ describe ZAWS::Services::EC2::Compute do
     instances = ZAWS::External::AWSCLI::Generators::Result::EC2::Instances.new
   }
 
+  let(:images) {
+    i = ZAWS::External::AWSCLI::Generators::Result::EC2::Images.new
+    i.root_device_name(0, "/dev/sda")
+    i.block_device_mappings(0, [{"DeviceName" => "/dev/sda1", "Ebs" => {
+        "DeleteOnTermination" => true,
+        "SnapshotId" => "snap-XXX",
+        "VolumeSize" => 7,
+        "VolumeType" => "standard"}}])
+  }
+
+  let (:describe_images) {
+    desc_image = ZAWS::External::AWSCLI::Commands::EC2::DescribeImages.new
+    desc_image.aws.output(output_json).region(region)
+    desc_image.owner("self").image_ids(image_id)
+  }
+
+  let(:describe_subnets) {
+    desc_subnets = ZAWS::External::AWSCLI::Commands::EC2::DescribeSubnets.new
+    desc_subnets.filter.vpc_id(vpc_id)
+    desc_subnets.aws.output("json").region(region)
+    desc_subnets
+  }
+
+  let(:subnets) {
+
+    subnets = ZAWS::External::AWSCLI::Generators::Result::EC2::Subnets.new
+    subnets.vpc_id(0, vpc_id).cidr_block(0, cidr_subnet).map_public_ip_on_launch(0, false)
+    subnets.default_for_az(0, false).state(0, "available").subnet_id(0, "subnet-XXXXXX")
+    subnets.available_ip_address_count(0, 251)
+
+  }
+
+  let(:describe_security_groups) {
+    desc_sec_grps = ZAWS::External::AWSCLI::Commands::EC2::DescribeSecurityGroups.new
+    desc_sec_grps.filter.group_name(security_group_name).vpc_id(vpc_id)
+    desc_sec_grps.aws.output(output_json).region(region)
+    desc_sec_grps }
+
+  let(:single_security_group) {
+    security_groups = ZAWS::External::AWSCLI::Generators::Result::EC2::SecurityGroups.new
+    security_groups.group_name(0, security_group_name).group_id(0, security_group_id)
+  }
+
+  let(:create_tags1) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("externalid", external_id)
+    create_tags = ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new
+    create_tags.resource(instance_id).tags(tags)
+    create_tags.aws.region(region).output(output_json)
+    create_tags
+  }
+
+  let(:create_tags2) {
+    tags = ZAWS::External::AWSCLI::Generators::Result::EC2::Tags.new
+    tags = tags.add("Name", external_id)
+    create_tags = ZAWS::External::AWSCLI::Commands::EC2::CreateTags.new
+    create_tags.resource(instance_id).tags(tags)
+    create_tags.aws.region(region).output(output_json)
+    create_tags
+  }
+
+  let(:modify_instance_attr) {
+    mia = ZAWS::External::AWSCLI::Commands::EC2::ModifyInstanceAttribute.new
+    mia.aws.output(output_json).region(region)
+    mia.instance_id(instance_id).no_source_dest_check
+  }
+
   let(:ok_instance_exists) { ZAWS::Helper::Output.colorize("OK: Instance already exists.", AWS_consts::COLOR_GREEN) }
   let(:critical_instance_exists) { ZAWS::Helper::Output.colorize("CRITICAL: Instance does not exist.", AWS_consts::COLOR_RED) }
 
@@ -70,11 +141,14 @@ describe ZAWS::Services::EC2::Compute do
                           :undofile => false,
                           :viewtype => 'json',
                           :vpcid => @var_vpc_id,
-                          :privateip => "10.0.0.6",
+                          :privateip => ["10.0.0.6"],
                           :optimized => true,
                           :apiterminate => true,
                           :clienttoken => 'test_token',
-                          :skipruncheck => true
+                          :skipruncheck => true,
+                          :tenancy => 'dedicated',
+                          :profilename => 'myrole',
+                          :nosdcheck => true
     }
     options_json_vpcid_check = {:region => @var_region,
                                 :verbose => false,
@@ -82,13 +156,24 @@ describe ZAWS::Services::EC2::Compute do
                                 :undofile => false,
                                 :viewtype => 'json',
                                 :vpcid => @var_vpc_id,
-                                :privateip => "10.0.0.6",
+                                :privateip => ["10.0.0.6"],
                                 :optimized => true,
                                 :apiterminate => true,
                                 :clienttoken => 'test_token',
                                 :skipruncheck => true
     }
-
+    options_json_vpcid_undo = {:region => @var_region,
+                               :verbose => false,
+                               :check => false,
+                               :undofile => "undo.sh",
+                               :viewtype => 'json',
+                               :vpcid => @var_vpc_id,
+                               :privateip => ["10.0.0.6"],
+                               :optimized => true,
+                               :apiterminate => true,
+                               :clienttoken => 'test_token',
+                               :skipruncheck => true
+    }
     options_table = {:region => @var_region,
                      :verbose => false,
                      :check => false,
@@ -117,6 +202,10 @@ describe ZAWS::Services::EC2::Compute do
     @command_compute_json_vpcid_check.aws=@aws
     @command_compute_json_vpcid_check.out=@textout
     @command_compute_json_vpcid_check.print_exit_code = true
+    @command_compute_json_vpcid_undo = ZAWS::Command::Compute.new([], options_json_vpcid_undo, {})
+    @command_compute_json_vpcid_undo.aws=@aws
+    @command_compute_json_vpcid_undo.out=@textout
+    @command_compute_json_vpcid_undo.print_exit_code = true
   }
 
   describe "#view" do
@@ -179,10 +268,32 @@ describe ZAWS::Services::EC2::Compute do
       end
     end
     context "instance exists" do
-      it "skip deletion" do
+      it "skip creation" do
         expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
         expect(@textout).to receive(:puts).with(instance_exists_skip_creation)
         @command_compute_json_vpcid.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
+      end
+    end
+    context "undo file specified and instance exists" do
+      it "write out undo file, skip creation" do
+        expect(@undofile).to receive(:prepend).with("zaws compute delete #{external_id} --region #{region} --vpcid #{vpc_id} $XTRA_OPTS", '#Delete instance', 'undo.sh')
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(instances.get_json)
+        expect(@textout).to receive(:puts).with(instance_exists_skip_creation)
+        @command_compute_json_vpcid_undo.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'mysecuritygroup')
+      end
+    end
+    context "instance does not exists" do
+      it "create instance" do
+        expect(@shellout).to receive(:cli).with(describe_instances.aws.get_command, nil).and_return(empty_instances.get_json)
+        expect(@shellout).to receive(:cli).with(describe_images.aws.get_command, nil).and_return(images.get_json)
+        expect(@shellout).to receive(:cli).with(describe_subnets.aws.get_command, nil).and_return(subnets.get_json)
+        expect(@shellout).to receive(:cli).with(describe_security_groups.aws.get_command, nil).and_return(single_security_group.get_json)
+        expect(@shellout).to receive(:cli).with("aws --region us-west-1 ec2 run-instances --image-id ami-abc123 --key-name sshkey --instance-type x1-large --placement AvailabilityZone=us-west-1a,Tenancy=dedicated --block-device-mappings \"[{\\\"DeviceName\\\":\\\"/dev/sda1\\\",\\\"Ebs\\\":{\\\"DeleteOnTermination\\\":true,\\\"SnapshotId\\\":\\\"snap-XXX\\\",\\\"VolumeSize\\\":7,\\\"VolumeType\\\":\\\"standard\\\"}}]\" --enable-api-termination --client-token test_token --network-interfaces \"[{\\\"Groups\\\":[\\\"sg-abcd1234\\\"],\\\"PrivateIpAddress\\\":\\\"10.0.0.6\\\",\\\"DeviceIndex\\\":0,\\\"SubnetId\\\":\\\"subnet-XXXXXX\\\"}]\" --iam-instance-profile Name=\"myrole\" --ebs-optimized", nil).and_return("{ \"Instances\" : [ {\"InstanceId\": \"#{instance_id}\",\"Tags\": [ ] } ] }")
+        expect(@shellout).to receive(:cli).with(create_tags1.aws.get_command, nil).and_return('{ "return":"true" }')
+        expect(@shellout).to receive(:cli).with(create_tags2.aws.get_command, nil).and_return('{ "return":"true" }')
+        expect(@shellout).to receive(:cli).with(modify_instance_attr.aws.get_command, nil).and_return('{ "return":"true" }')
+        expect(@textout).to receive(:puts).with(instance_created)
+        @command_compute_json_vpcid.declare(external_id, 'ami-abc123', 'self', 'x1-large', 70, 'us-west-1a', 'sshkey', 'my_security_group')
       end
     end
   end
