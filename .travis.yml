@@ -1,20 +1,11 @@
 language: ruby
 rvm:
-   - "2.0.0"
-# rvm:
-#   - "1.8.7"
-#   - "1.9.2"
-#   - "1.9.3"
-#   - jruby-18mode # JRuby in 1.8 mode
-#   - jruby-19mode # JRuby in 1.9 mode
-#   - rbx
-# uncomment this line if your project needs to run something other than `rake`:
-#install: ruby -S bundle install
-#script: find .
-# - bundle exec rspec spec
-# - bundle exec gem env
-# - bundle exec gem env
-# - bundle exec --verbose rake feature
-# - export GEM_PATH=/home/travis/build/zynxhealth/zaws/vendor/bundle/ruby/1.9.1:/home/travis/.rvm/gems/ruby-1.9.3-p545
-#:/home/travis/.rvm/gems/ruby-1.9.3-p545@global/bin:/home/travis/.rvm/rubies/ruby-1.9.3-p545/bin:/home/travis/.rvm/bin:/usr/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/sbin:/bin
-
+- 2.0.0
+deploy:
+  provider: rubygems
+  api_key:
+    secure: Yh9SvLN3oX7irNROrMWci4sFXhRi6bOte0tyFaSkF1EGjX78Bl3ja/8cVVXIPO6QNTFl8z1nOtw3vCny4sHqwUoGVszGxiHlBHfHSGd5jFBx+9ctT5wZrVEaspzBd+rIUuXOhV1276IoQPcpI4BkYRfAdnOsqvT5bW2N4bvaKEE=
+  gem: zaws
+  on:
+    tags: true
+    repo: zynxhealth/zaws
