@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    zaws (0.1.0)
+    zaws (0.1.1)
       excon
       json (~> 1.5.0)
       mixlib-shellout (~> 1.1.0)
